@@ -1,66 +1,60 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="manifest" href="/assets/images/favicons/site.webmanifest">
-    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicons/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicons/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicons/favicon-16x16.png">
-    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="manifest" href="/assets/images/favicons/site.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicons/favicon-16x16.png">
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
 
-    <!-- ✅ Use device width for better compatibility -->
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
+  <!-- ✅ Use device width for compatibility -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
+  <title>Emerald Hills EV Charger Booking</title>
 
-    <title>Emerald Hills EV Charger Booking</title>
+  <style>
+    body {
+      font-family: 'Poppins', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #ffffff;
+      color: #545454;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
 
-    <style>
-        body {
-            font-family: 'Poppins', Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            min-height: 100vh;
-            background-color: #ffffff;
-            color: #545454;
-        }
+    .iframe-scroll-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
 
-        .iframe-container {
-            width: 100%;
-            flex-grow: 1;
-            margin: 0 20px 20px 20px;
-            box-sizing: border-box;
-            height: calc(100vh - 100px);
-            overflow: hidden;
-        }
+    .iframe-container {
+      width: 980px; /* simulate desktop width */
+      height: calc(100vh - 40px); /* adjust as needed */
+      margin: 0 auto;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+    }
 
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-        }
-
-        /* ✅ Simulate desktop view on smaller screens */
-        @media (max-width: 768px) {
-            .iframe-container {
-                width: 1200px; /* pretend to be wider */
-                height: calc(100vh - 100px);
-                transform: scale(0.85); /* scale down to fit screen */
-                transform-origin: top center;
-                margin: 0 auto;
-            }
-        }
-    </style>
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+  </style>
 </head>
 <body>
+  <div class="iframe-scroll-wrapper">
     <div class="iframe-container">
-        <iframe 
-            src="https://script.google.com/macros/s/AKfycbzSBolEPuMQxtX82_qxdzn2S5nQ_7rrWLFqjAqhyzWzoil2jxPDMAjp3MAsPkrca-fH/exec" 
-            title="Emerald Hills EV Charger Booking System" 
-            sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-pointer-lock allow-downloads">
-        </iframe>
+      <iframe
+        src="https://script.google.com/macros/s/AKfycbzSBolEPuMQxtX82_qxdzn2S5nQ_7rrWLFqjAqhyzWzoil2jxPDMAjp3MAsPkrca-fH/exec"
+        title="Emerald Hills EV Charger Booking System"
+        sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-pointer-lock allow-downloads">
+      </iframe>
     </div>
+  </div>
 </body>
 </html>
