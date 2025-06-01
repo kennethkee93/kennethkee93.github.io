@@ -57,6 +57,7 @@
       padding: 10px 14px;
       border: none;
       border-radius: 8px;
+	  font-family: 'Poppins', Arial, sans-serif;
       font-size: 16px;
       cursor: pointer;
       z-index: 1000;
@@ -104,44 +105,80 @@
   <button id="updateAppBtn" style="display: none;">🔄 New version available. Click to update.</button>
 
   <script>
-    // Register service worker
-	  if ('serviceWorker' in navigator) {
-		navigator.serviceWorker.register('/service-worker.js').then(reg => {
-		  console.log('SW registered:', reg);
+	// Register service worker
+	if ('serviceWorker' in navigator) {
+	  let refreshing = false;
+	  let newWorker = null;
 
-		  reg.onupdatefound = () => {
-			const newSW = reg.installing;
-			newSW.onstatechange = () => {
-			  if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
-				// Show toast when update is available
-				const toast = document.getElementById('updateToast');
+	  navigator.serviceWorker.register('/service-worker.js').then(reg => {
+		console.log('SW registered:', reg);
+		
+		reg.addEventListener('updatefound', () => {
+		  newWorker = reg.installing;
+		  console.log('New SW found, installing...');
+		  
+		  newWorker.addEventListener('statechange', () => {
+			console.log('SW state changed to:', newWorker.state);
+			
+			if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+			  console.log('New SW installed, showing update toast');
+			  // Show toast when update is available
+			  const toast = document.getElementById('updateToast');
+			  if (toast) {
 				toast.style.display = 'block';
-
-				document.getElementById('refreshBtn').addEventListener('click', async () => {
-				  // Clear cache
-				  const cacheNames = await caches.keys();
-				  await Promise.all(cacheNames.map(name => caches.delete(name)));
-
-				  // Set reload flag before triggering skipWaiting
-				  refreshing = true;
-
-				  // Skip waiting
-				  newSW.postMessage({ action: 'skipWaiting' });
+				
+				// Remove any existing event listeners to prevent duplicates
+				const refreshBtn = document.getElementById('refreshBtn');
+				const newRefreshBtn = refreshBtn.cloneNode(true);
+				refreshBtn.parentNode.replaceChild(newRefreshBtn, refreshBtn);
+				
+				// Add click handler for update button
+				newRefreshBtn.addEventListener('click', async () => {
+				  console.log('User clicked refresh button');
+				  
+				  try {
+					// Clear cache
+					const cacheNames = await caches.keys();
+					await Promise.all(cacheNames.map(name => caches.delete(name)));
+					console.log('Caches cleared');
+					
+					// Set reload flag before triggering skipWaiting
+					refreshing = true;
+					
+					// Hide toast
+					toast.style.display = 'none';
+					
+					// Skip waiting - send message to the waiting service worker
+					if (newWorker) {
+					  newWorker.postMessage({ action: 'skipWaiting' });
+					} else {
+					  // Fallback: send to current controller
+					  navigator.serviceWorker.controller?.postMessage({ action: 'skipWaiting' });
+					}
+				  } catch (error) {
+					console.error('Error during update process:', error);
+					// Reset flag if error occurs
+					refreshing = false;
+				  }
 				});
 			  }
-			};
-		  };
+			}
+		  });
 		});
+	  }).catch(err => {
+		console.error('SW registration failed:', err);
+	  });
 
-		// Reload page when new SW takes control
-		let refreshing = false;
-
-		navigator.serviceWorker.addEventListener('controllerchange', () => {
-		  if (refreshing) return; // Prevent multiple reloads
-		  refreshing = true;
-		  window.location.reload(); // <-- keep this, but only after flag is set
-		});
-	  }
+	  // Reload page when new SW takes control
+	  navigator.serviceWorker.addEventListener('controllerchange', () => {
+		console.log('Controller changed, refreshing flag:', refreshing);
+		
+		if (refreshing) {
+		  console.log('Reloading page...');
+		  window.location.reload();
+		}
+	  });
+	}
 
     // Resize iframe dynamically if needed
     window.addEventListener('message', function(event) {

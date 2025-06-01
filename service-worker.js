@@ -10,10 +10,10 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
   );
-  self.skipWaiting(); // Activate immediately
+  // Remove self.skipWaiting() - let it wait for user action
 });
 
-// Activate event: clean old caches (optional for now)
+// Activate event: clean old caches
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys => 
@@ -23,6 +23,8 @@ self.addEventListener('activate', event => {
       )
     )
   );
+  // Take control of all clients immediately after activation
+  self.clients.claim();
 });
 
 // Fetch event: serve cached file if offline
@@ -44,6 +46,7 @@ self.addEventListener('fetch', event => {
   );
 });
 
+// Listen for skip waiting message from main thread
 self.addEventListener('message', event => {
   if (event.data?.action === 'skipWaiting') {
     self.skipWaiting();
