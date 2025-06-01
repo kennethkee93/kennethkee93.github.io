@@ -24,7 +24,7 @@
 	@supports (height: 100dvh) {
 	  .iframe-wrapper {
 		min-height: 100dvh; /* safari & modern browsers */
-		padding-bottom: env(safe-area-inset-bottom, 24px); /* 👈 Ensures iframe isn't cut off */
+		padding-bottom: env(safe-area-inset-bottom, 1px); /* 👈 Ensures iframe isn't cut off */
 	  }
 	}
 
@@ -45,7 +45,7 @@
       color: #545454;
       display: flex;
       flex-direction: column;
-	  padding-bottom: env(safe-area-inset-bottom, 24px); /* 👈 Adds safe space at bottom */
+	  padding-bottom: env(safe-area-inset-bottom, 1px); /* 👈 Adds safe space at bottom */
     }
 
     #installBtn {
