@@ -81,9 +81,10 @@
   <!-- ✅ Install UI inside body -->
   <button id="installBtn">Install App</button>
 
-  <div id="installFallback">
-    📲 To install this app, open your browser menu (⋮) and tap <strong>"Add to Home screen"</strong>.
-  </div>
+	<div id="installFallback">
+	  📲 To install this app, open your browser menu (⋮) and tap <strong>"Add to Home screen"</strong>.
+	  <button id="closeFallback" style="margin-left: 10px; background: none; border: none; font-weight: bold; cursor: pointer;">✕</button>
+	</div>
 
   <script>
     if ('serviceWorker' in navigator) {
@@ -130,6 +131,10 @@
         }
       }, 3000);
     });
+	
+	document.getElementById('closeFallback')?.addEventListener('click', () => {
+	  document.getElementById('installFallback').style.display = 'none';
+	});
   </script>
 </body>
 </html>
