@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Emerald Hills EV Charger Booking</title>
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- PWA Manifest and Icons -->
   <link rel="manifest" href="/assets/images/favicons/site.webmanifest">
   <meta name="theme-color" content="#0d6efd">
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicons/apple-touch-icon.png">
@@ -42,7 +43,7 @@
     #installBtn {
       position: fixed;
       bottom: 20px;
-      right: 20px;
+      left: 20px;
       background-color: #007bff;
       color: white;
       padding: 10px 14px;
@@ -52,20 +53,6 @@
       cursor: pointer;
       z-index: 1000;
       display: none;
-    }
-
-    #installFallback {
-      position: fixed;
-      bottom: 80px;
-      right: 20px;
-      background: #fffbe6;
-      border: 1px solid #ccc;
-      padding: 12px;
-      border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      z-index: 999;
-      display: none;
-      font-size: 14px;
     }
   </style>
 </head>
@@ -78,21 +65,18 @@
     </iframe>
   </div>
 
-  <!-- ✅ Install UI inside body -->
+  <!-- Install Button Only -->
   <button id="installBtn">Install App</button>
 
-	<div id="installFallback">
-	  📲 To install this app, open your browser menu (⋮) and tap <strong>"Add to Home screen"</strong>.
-	  <button id="closeFallback" style="margin-left: 10px; background: none; border: none; font-weight: bold; cursor: pointer;">✕</button>
-	</div>
-
   <script>
+    // Register service worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/service-worker.js')
         .then(reg => console.log('Service Worker registered', reg))
         .catch(err => console.error('Service Worker registration failed:', err));
     }
 
+    // Resize iframe dynamically if needed
     window.addEventListener('message', function(event) {
       if (event.data && event.data.type === 'iframeHeight') {
         const iframeElement = document.querySelector('iframe');
@@ -102,16 +86,14 @@
       }
     });
 
+    // Handle install prompt
     window.addEventListener('DOMContentLoaded', () => {
       let deferredPrompt;
-      let promptSupported = false;
 
       const installBtn = document.getElementById('installBtn');
-      const fallbackMsg = document.getElementById('installFallback');
 
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
-        promptSupported = true;
         deferredPrompt = e;
         installBtn.style.display = 'inline-block';
 
@@ -124,17 +106,7 @@
           });
         }, { once: true });
       });
-
-      setTimeout(() => {
-        if (!promptSupported) {
-          fallbackMsg.style.display = 'block';
-        }
-      }, 3000);
     });
-	
-	document.getElementById('closeFallback')?.addEventListener('click', () => {
-	  document.getElementById('installFallback').style.display = 'none';
-	});
   </script>
 </body>
 </html>
