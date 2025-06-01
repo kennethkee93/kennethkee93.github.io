@@ -38,6 +38,20 @@
       border: none;
       display: block;
     }
+	
+	#installBtn {
+	  position: fixed;
+	  bottom: 20px;
+	  left: 20px;
+	  background-color: #007bff;
+	  color: white;
+	  padding: 10px 16px;
+	  border: none;
+	  border-radius: 8px;
+	  font-size: 16px;
+	  cursor: pointer;
+	  z-index: 999;
+	}
   </style>
 </head>
 <body>
@@ -55,6 +69,36 @@
       .then(reg => console.log('Service Worker registered', reg))
       .catch(err => console.error('Service Worker registration failed:', err));
   }
+  
+  let deferredPrompt;
+
+	window.addEventListener('beforeinstallprompt', (e) => {
+	  e.preventDefault(); // Stop auto-prompt
+	  deferredPrompt = e;
+
+	  // Show your custom install button
+	  const installBtn = document.getElementById('installBtn');
+	  if (installBtn) {
+		installBtn.style.display = 'inline-block';
+
+		installBtn.addEventListener('click', () => {
+		  installBtn.style.display = 'none'; // Hide button after click
+		  deferredPrompt.prompt();
+
+		  deferredPrompt.userChoice.then((choiceResult) => {
+			if (choiceResult.outcome === 'accepted') {
+			  console.log('User accepted the install prompt');
+			} else {
+			  console.log('User dismissed the install prompt');
+			}
+			deferredPrompt = null;
+		  });
+		});
+	  }
+	});
 </script>
 </body>
+<footer>
+<button id="installBtn" style="display: none;">Install App</button>
+</footer>
 </html>
