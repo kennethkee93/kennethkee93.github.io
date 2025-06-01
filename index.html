@@ -39,19 +39,33 @@
       display: block;
     }
 	
-	#installBtn {
-	  position: fixed;
-	  bottom: 20px;
-	  left: 20px;
-	  background-color: #007bff;
-	  color: white;
-	  padding: 10px 16px;
-	  border: none;
-	  border-radius: 8px;
-	  font-size: 16px;
-	  cursor: pointer;
-	  z-index: 999;
-	}
+  #installBtn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #007bff;
+    color: white;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    z-index: 1000;
+  }
+
+  #installFallback {
+    position: fixed;
+    bottom: 70px;
+    right: 20px;
+    background: #fefefe;
+    border: 1px solid #ccc;
+    padding: 12px;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    z-index: 1000;
+  }
+
+</style>
   </style>
 </head>
 <body>
@@ -70,32 +84,38 @@
       .catch(err => console.error('Service Worker registration failed:', err));
   }
   
-  let deferredPrompt;
+    let deferredPrompt;
+    let promptSupported = false;
 
-	window.addEventListener('beforeinstallprompt', (e) => {
-	  e.preventDefault(); // Stop auto-prompt
-	  deferredPrompt = e;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      promptSupported = true;
+      deferredPrompt = e;
 
-	  // Show your custom install button
-	  const installBtn = document.getElementById('installBtn');
-	  if (installBtn) {
-		installBtn.style.display = 'inline-block';
+      const installBtn = document.getElementById('installBtn');
+      installBtn.style.display = 'inline-block';
 
-		installBtn.addEventListener('click', () => {
-		  installBtn.style.display = 'none'; // Hide button after click
-		  deferredPrompt.prompt();
+      installBtn.addEventListener('click', () => {
+        installBtn.style.display = 'none';
+        deferredPrompt.prompt();
 
-		  deferredPrompt.userChoice.then((choiceResult) => {
-			if (choiceResult.outcome === 'accepted') {
-			  console.log('User accepted the install prompt');
-			} else {
-			  console.log('User dismissed the install prompt');
-			}
-			deferredPrompt = null;
-		  });
-		});
-	  }
-	});
+        deferredPrompt.userChoice.then(choice => {
+          if (choice.outcome === 'accepted') {
+            console.log('User accepted the install prompt');
+          } else {
+            console.log('User dismissed the install prompt');
+          }
+          deferredPrompt = null;
+        });
+      });
+    });
+
+    // Fallback for unsupported browsers
+    setTimeout(() => {
+      if (!promptSupported) {
+        document.getElementById('installFallback').style.display = 'block';
+      }
+    }, 3000);
 </script>
 </body>
 <footer>
