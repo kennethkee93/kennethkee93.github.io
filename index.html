@@ -19,6 +19,7 @@
       display: flex;
       min-height: calc(100vh - 10px);
       flex-direction: column;
+	  padding-bottom: env(safe-area-inset-bottom, 24px); /* 👈 Optional: add to iframe wrapper */
     }
 
     iframe {
@@ -27,6 +28,7 @@
       border: none;
       display: block;
       flex-grow: 1;
+	  padding-bottom: env(safe-area-inset-bottom, 24px); /* 👈 Ensures iframe isn't cut off */
     }
 
     html, body {
@@ -38,6 +40,7 @@
       color: #545454;
       display: flex;
       flex-direction: column;
+	  padding-bottom: env(safe-area-inset-bottom, 24px); /* 👈 Adds safe space at bottom */
     }
 
     #installBtn {
