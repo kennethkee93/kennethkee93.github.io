@@ -28,7 +28,24 @@ self.addEventListener('activate', event => {
 // Fetch event: serve cached file if offline
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request)
-      .then(response => response || fetch(event.request))
+    fetch(event.request)
+      .then(networkResponse => {
+        // Clone and store in cache
+        const responseClone = networkResponse.clone();
+        caches.open(CACHE_NAME).then(cache => {
+          cache.put(event.request, responseClone);
+        });
+        return networkResponse;
+      })
+      .catch(() => {
+        // Fallback to cache if network fails
+        return caches.match(event.request);
+      })
   );
+});
+
+self.addEventListener('message', event => {
+  if (event.data?.action === 'skipWaiting') {
+    self.skipWaiting();
+  }
 });

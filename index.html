@@ -67,17 +67,69 @@
       sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-pointer-lock allow-downloads">
     </iframe>
   </div>
+  
+	 <div id="updateToast" style="
+	  display: none;
+	  position: fixed;
+	  bottom: 20px;
+	  left: 50%;
+	  transform: translateX(-50%);
+	  background-color: #333;
+	  color: #fff;
+	  padding: 14px 24px;
+	  border-radius: 8px;
+	  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+	  z-index: 1000;
+	  font-family: sans-serif;
+	">
+	  🔄 New version available.
+	  <button id="refreshBtn" style="
+		margin-left: 12px;
+		padding: 6px 12px;
+		background-color: #4CAF50;
+		border: none;
+		color: white;
+		border-radius: 4px;
+		cursor: pointer;
+	  ">Update Now</button>
+	</div>
 
-  <!-- Install Button Only -->
+  <!-- Button Only -->
   <button id="installBtn">Install App</button>
+  <button id="updateAppBtn" style="display: none;">🔄 New version available. Click to update.</button>
 
   <script>
     // Register service worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then(reg => console.log('Service Worker registered', reg))
-        .catch(err => console.error('Service Worker registration failed:', err));
-    }
+	  if ('serviceWorker' in navigator) {
+		navigator.serviceWorker.register('/service-worker.js').then(reg => {
+		  console.log('SW registered:', reg);
+
+		  reg.onupdatefound = () => {
+			const newSW = reg.installing;
+			newSW.onstatechange = () => {
+			  if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+				// Show toast when update is available
+				const toast = document.getElementById('updateToast');
+				toast.style.display = 'block';
+
+				document.getElementById('refreshBtn').addEventListener('click', async () => {
+				  // Clear cache
+				  const cacheNames = await caches.keys();
+				  await Promise.all(cacheNames.map(name => caches.delete(name)));
+
+				  // Tell SW to skip waiting and reload
+				  newSW.postMessage({ action: 'skipWaiting' });
+				});
+			  }
+			};
+		  };
+		});
+
+		// Reload page when new SW takes control
+		navigator.serviceWorker.addEventListener('controllerchange', () => {
+		  window.location.reload();
+		});
+	  }
 
     // Resize iframe dynamically if needed
     window.addEventListener('message', function(event) {
