@@ -17,14 +17,14 @@
     .iframe-wrapper {
       width: 100%;
       display: flex;
+      min-height: calc(100vh - 10px);
       flex-direction: column;
 	  padding-bottom: env(safe-area-inset-bottom, 24px); /* 👈 Optional: add to iframe wrapper */
     }
 
     iframe {
       width: 100%;
-      iframe {
-	  height: 100dvh; /* modern dynamic height */
+      height: 100%;
       border: none;
       display: block;
       flex-grow: 1;
@@ -162,6 +162,28 @@
         }, { once: true });
       });
     });
+	
+	/* Detect iOS Safari + Set Dynamic Height via JS */
+	  function isIOS() {
+		return /iP(hone|od|ad)/.test(navigator.userAgent);
+	  }
+
+	  function isSafari() {
+		return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+	  }
+
+	  function adjustIframeHeight() {
+		if (isIOS() && isSafari()) {
+		  const iframe = document.querySelector('iframe');
+		  if (iframe) {
+			iframe.style.height = `${window.innerHeight}px`;
+		  }
+		}
+	  }
+
+	  window.addEventListener('resize', adjustIframeHeight);
+	  window.addEventListener('orientationchange', adjustIframeHeight);
+	  document.addEventListener('DOMContentLoaded', adjustIframeHeight);
   </script>
 </body>
 </html>
