@@ -1,6 +1,6 @@
 {
-  "name": "Emerald Hills EV Charger Booking",
-  "short_name": "EV Booking",
+  "name": "Emerald Hills EV Charger Reservation",
+  "short_name": "EV Reservation",
   "start_url": "/",
   "icons": [
     {
