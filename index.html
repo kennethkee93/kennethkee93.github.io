@@ -122,7 +122,10 @@
 				  const cacheNames = await caches.keys();
 				  await Promise.all(cacheNames.map(name => caches.delete(name)));
 
-				  // Tell SW to skip waiting and reload
+				  // Set reload flag before triggering skipWaiting
+				  refreshing = true;
+
+				  // Skip waiting
 				  newSW.postMessage({ action: 'skipWaiting' });
 				});
 			  }
@@ -131,8 +134,12 @@
 		});
 
 		// Reload page when new SW takes control
+		let refreshing = false;
+
 		navigator.serviceWorker.addEventListener('controllerchange', () => {
-		  window.location.reload();
+		  if (refreshing) return; // Prevent multiple reloads
+		  refreshing = true;
+		  window.location.reload(); // <-- keep this, but only after flag is set
 		});
 	  }
 
