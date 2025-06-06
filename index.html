@@ -63,6 +63,45 @@
       z-index: 1000;
       display: none;
     }
+
+      #update-notification {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100%);
+      background: #fffbe6;
+      border: 1px solid #ffecb3;
+      padding: 16px 20px;
+      text-align: center;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      z-index: 1000;
+      animation: slideIn 0.4s forwards;
+    }
+
+    #update-notification p {
+      margin: 0;
+      font-size: 16px;
+      color: #333;
+    }
+
+    #update-notification button {
+      margin-top: 10px;
+      padding: 8px 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    @keyframes slideIn {
+      to {
+        transform: translateX(-50%) translateY(0%);
+      }
+    }
   </style>
 </head>
 <body>
@@ -74,6 +113,12 @@
       sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-pointer-lock allow-downloads">
     </iframe>
   </div>
+
+  <div id="update-notification">
+    <p>🔔 A new booking has been added.</p>
+    <button onclick="refreshIframe()">Update Calendar</button>
+  </div>
+
   
   <div id="updateToast" style="
     display: none;
@@ -240,35 +285,54 @@
 	  document.addEventListener('DOMContentLoaded', adjustIframeHeight);
   </script>
 
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyAlb8aLl1kRafLO7GY5rarVly-Z1wMDbz0",
-  authDomain: "bookingsync-ff9bd.firebaseapp.com",
-  databaseURL: "https://bookingsync-ff9bd-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "bookingsync-ff9bd",
-  storageBucket: "bookingsync-ff9bd.firebasestorage.app",
-  messagingSenderId: "269992391466",
-  appId: "1:269992391466:web:b65bc168c948de21796453"
-};
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const iframe = document.getElementById('booking-frame');
+      const updateBanner = document.getElementById('update-notification');
 
-  const iframe = document.getElementById('booking-frame');
+      const firebaseConfig = {
+        apiKey: "AIzaSyAlb8aLl1kRafLO7GY5rarVly-Z1wMDbz0",
+        authDomain: "bookingsync-ff9bd.firebaseapp.com",
+        databaseURL: "https://bookingsync-ff9bd-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "bookingsync-ff9bd",
+        storageBucket: "bookingsync-ff9bd.appspot.com",
+        messagingSenderId: "269992391466",
+        appId: "1:269992391466:web:b65bc168c948de21796453"
+      };
 
-  db.ref('server/lastUpdate').on('value', (snapshot) => {
-    const timestamp = snapshot.val();
-    if (timestamp) {
-      console.log("🔄 Booking updated at", new Date(timestamp));
-      if (iframe) {
-        iframe.src = iframe.src;  // ✅ Cross-origin-safe reload
-      }
-    }
-  });
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+
+      let lastSeenTimestamp = null;
+
+      db.ref('server/lastUpdate').on('value', (snapshot) => {
+        const timestamp = snapshot.val();
+        if (!timestamp) return;
+
+        if (lastSeenTimestamp === null) {
+          lastSeenTimestamp = timestamp;
+          return; // First load — no notification
+        }
+
+        if (timestamp !== lastSeenTimestamp) {
+          lastSeenTimestamp = timestamp;
+          console.log("🔔 New booking detected:", new Date(timestamp));
+          updateBanner.style.display = 'block';
+          updateBanner.style.animation = 'slideIn 0.4s forwards';
+        }
+      });
+
+      window.refreshIframe = () => {
+        iframe.src = iframe.src;
+        document.getElementById('update-notification').style.display = 'none';
+      };
+    });
 </script>
+
 </body>
 </html>
