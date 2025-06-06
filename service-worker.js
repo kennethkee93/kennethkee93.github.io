@@ -1,7 +1,7 @@
-const CACHE_NAME = 'emeraldevbooking-pwa-cache-v1.4';
+const CACHE_NAME = 'emeraldevbooking-pwa-cache-v1.2';
 const urlsToCache = [
   '/',
-  '/index.html'
+  '/index.html',
   '/assets/images/favicons/site.webmanifest',
   '/assets/images/favicons/apple-touch-icon.png',
   '/assets/images/favicons/favicon-32x32.png',
