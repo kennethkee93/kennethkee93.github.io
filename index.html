@@ -238,5 +238,32 @@
 	  window.addEventListener('orientationchange', adjustIframeHeight);
 	  document.addEventListener('DOMContentLoaded', adjustIframeHeight);
   </script>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAlb8aLl1kRafLO7GY5rarVly-Z1wMDbz0",
+  authDomain: "bookingsync-ff9bd.firebaseapp.com",
+  databaseURL: "https://bookingsync-ff9bd-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "bookingsync-ff9bd",
+  storageBucket: "bookingsync-ff9bd.firebasestorage.app",
+  messagingSenderId: "269992391466",
+  appId: "1:269992391466:web:b65bc168c948de21796453"
+};
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  db.ref('server/lastUpdate').on('value', (snapshot) => {
+    const timestamp = snapshot.val();
+    if (timestamp) {
+      console.log("🔄 Booking updated at", new Date(timestamp));
+      iframe.contentWindow.location.reload();
+    }
+  });
+</script>
 </body>
 </html>
