@@ -313,30 +313,48 @@
       firebase.initializeApp(firebaseConfig);
       const db = firebase.database();
 
+      function getClientId() {
+          let clientId = localStorage.getItem('ev_charger_client_id');
+          if (!clientId) {
+              // If for some reason index.html is loaded before App Script, generate a fallback ID
+              clientId = 'client_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9) + '_gh';
+              localStorage.setItem('ev_charger_client_id', clientId);
+          }
+          return clientId;
+      }
+
+      const currentClientId = getClientId();
+      console.log('GitHub Pages Client ID:', currentClientId);
+
       let lastSeenTimestamp = null;
 
-      db.ref('server/lastUpdate').on('value', (snapshot) => {
-        const timestamp = snapshot.val();
-        if (!timestamp) return;
+      db.ref('server/lastUpdateDetails').on('value', (snapshot) => { [cite: 1]
+          const data = snapshot.val(); // Get the entire object
+          if (!data || !data.timestamp) return; // Ensure data and timestamp exist
 
-        if (lastSeenTimestamp === null) {
-          lastSeenTimestamp = timestamp;
-          return; // First load — no notification
-        }
+          const timestamp = data.timestamp;
+          const bookingClientId = data.clientId; // Get the client ID from the booking
 
-        if (timestamp !== lastSeenTimestamp) {
-          lastSeenTimestamp = timestamp;
-          console.log("🔔 New booking detected:", new Date(timestamp));
-          updateBanner.style.display = 'block';
-          updateBanner.style.animation = 'slideIn 0.4s forwards';
-        }
+          if (lastSeenTimestamp === null) {
+              lastSeenTimestamp = timestamp;
+              return; // First load – no notification
+          }
+
+          // Only show notification if the timestamp has changed AND
+          // the booking was NOT made by this device
+          if (timestamp !== lastSeenTimestamp) {
+              lastSeenTimestamp = timestamp;
+              console.log("🌟 New booking detected:", new Date(timestamp), "Booker Client ID:", bookingClientId);
+
+              if (bookingClientId && bookingClientId === currentClientId) {
+                  console.log("🚫 Notification suppressed: Booking made by this device.");
+              } else {
+                  // Display notification to all other devices
+                  showUpdateNotification();
+                  console.log("✅ Notification displayed: Booking made by another device.");
+              }
+          }
       });
-
-      window.refreshIframe = () => {
-        iframe.src = iframe.src;
-        document.getElementById('update-notification').style.display = 'none';
-      };
-    });
 </script>
 
 </body>
