@@ -292,7 +292,6 @@
     document.addEventListener('DOMContentLoaded', adjustIframeHeight);
 
     // --- Start of Consolidated Firebase & Notification Logic ---
-    // This code now runs as soon as the script is parsed, ensuring Firebase is ready.
 
     const firebaseConfig = {
       apiKey: "AIzaSyAlb8aLl1kRafLO7GY5rarVly-Z1wMDbz0",
@@ -310,7 +309,6 @@
     function getClientId() {
         let clientId = localStorage.getItem('ev_charger_client_id');
         if (!clientId) {
-            // Generate a fallback ID if not found, this ID will be specific to the GitHub Pages instance
             clientId = 'client_gh_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
             localStorage.setItem('ev_charger_client_id', clientId);
         }
@@ -320,19 +318,19 @@
     const currentClientId = getClientId(); // This is the ID of the GitHub Pages container
     console.log('GitHub Pages Client ID:', currentClientId);
 
-    let lastSeenTimestamp = null; // This variable now correctly scoped within this block.
+    let lastSeenTimestamp = null;
 
-    // --- ADDED: Variable to hold the actual booking source client ID (from the iframe if available) ---
+    // --- MODIFIED: Variable to hold the iframe's client ID obtained from Firebase ---
     let actualBookingSourceClientId = currentClientId; // Initialize with parent's ID as fallback
 
-    // --- ADDED: Listener for messages from the iframe ---
-    window.addEventListener('message', (event) => {
-        // Ensure the message is from a trusted origin. For your Google Apps Script, it would be:
-        // 'https://script.google.com' (or the specific exec URL's origin)
-        // For simplicity here, we use '*', but in production, specify the Google App Script URL's origin
-        if (event.data && event.data.type === 'iframeClientId' && event.data.clientId) {
-            actualBookingSourceClientId = event.data.clientId;
-            console.log('Received iframe Client ID:', actualBookingSourceClientId);
+    // --- REMOVED: window.addEventListener('message', ...) was here ---
+
+    // --- ADDED: New Firebase listener to get the iframe's client ID ---
+    db.ref('clients/iframeClientId').on('value', (snapshot) => {
+        const iframeFirebaseClientId = snapshot.val();
+        if (iframeFirebaseClientId) {
+            actualBookingSourceClientId = iframeFirebaseClientId;
+            console.log('Received iframe Client ID from Firebase:', actualBookingSourceClientId);
         }
     });
     // --- END ADDED ---
