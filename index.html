@@ -116,8 +116,7 @@
   <div class="iframe-wrapper">
     <iframe
       id="booking-frame"
-      src="https://script.google.com/macros/s/AKfycbz_ogm5OeRnRs69SYg8ZUjO_hCkn5K_jcEzver5a2Zo_in1BIX1RUfuV9H9fZI2jh5p/exec"
-      title="Emerald Hills EV Charger Booking"
+      src="" title="Emerald Hills EV Charger Booking"
       sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-pointer-lock allow-downloads">
     </iframe>
   </div>
@@ -318,22 +317,25 @@
     const currentClientId = getClientId(); // This is the ID of the GitHub Pages container
     console.log('GitHub Pages Client ID:', currentClientId);
 
+    // MODIFIED: Construct the iframe URL with the currentClientId as a parameter
+    const iframeBaseUrl = "https://script.google.com/macros/s/AKfycbz_ogm5OeRnRs69SYg8ZUjO_hCkn5K_jcEzver5a2Zo_in1BIX1RUfuV9H9fZI2jh5p/exec";
+    const iframeElement = document.getElementById('booking-frame');
+    iframeElement.src = `${iframeBaseUrl}?parentId=${currentClientId}`;
+
+
     let lastSeenTimestamp = null;
 
-    // --- MODIFIED: Variable to hold the iframe's client ID obtained from Firebase ---
+    // MODIFIED: Variable to hold the iframe's client ID obtained from Firebase (specific to this parent)
     let actualBookingSourceClientId = currentClientId; // Initialize with parent's ID as fallback
 
-    // --- REMOVED: window.addEventListener('message', ...) was here ---
-
-    // --- ADDED: New Firebase listener to get the iframe's client ID ---
-    db.ref('clients/iframeClientId').on('value', (snapshot) => {
+    // MODIFIED: Firebase listener to get the iframe's client ID, specific to this parent
+    db.ref(`clients_map/${currentClientId}/iframeClientId`).on('value', (snapshot) => {
         const iframeFirebaseClientId = snapshot.val();
         if (iframeFirebaseClientId) {
             actualBookingSourceClientId = iframeFirebaseClientId;
-            console.log('Received iframe Client ID from Firebase:', actualBookingSourceClientId);
+            console.log('Received iframe Client ID from Firebase (specific to this parent):', actualBookingSourceClientId);
         }
     });
-    // --- END ADDED ---
 
     // Function to display the notification banner
     function showUpdateNotification() {
@@ -377,7 +379,7 @@
             lastSeenTimestamp = timestamp;
             console.log("🌟 New booking detected:", new Date(timestamp), "Booker Client ID:", bookingClientId);
 
-            // --- MODIFIED: Use actualBookingSourceClientId for comparison ---
+            // MODIFIED: Use actualBookingSourceClientId for comparison
             if (bookingClientId && bookingClientId === actualBookingSourceClientId) {
                 console.log("🚫 Notification suppressed: Booking made by this device.");
             } else {
@@ -385,11 +387,11 @@
                 showUpdateNotification();
                 console.log("✅ Notification displayed: Booking made by another device.");
             }
-            // --- END MODIFIED ---
         }
     });
 
     // --- End of Consolidated Firebase & Notification Logic ---
   </script>
+
 </body>
 </html>
