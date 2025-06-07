@@ -308,6 +308,14 @@
       firebase.initializeApp(firebaseConfig);
       const db = firebase.database();
 
+      // ✅ Step 2: Listen for booking signal from iframe
+      window.addEventListener("message", (event) => {
+        if (event.data && event.data.bookingSubmitted) {
+          console.log("📬 Received postMessage: booking submitted");
+          localStorage.setItem("skipNextBookingUpdate", "true");
+        }
+      });
+
       let lastSeenTimestamp = null;
 
       db.ref('server/lastUpdate').on('value', (snapshot) => {
@@ -316,23 +324,30 @@
 
         if (lastSeenTimestamp === null) {
           lastSeenTimestamp = timestamp;
-          return; // First load — no notification
+          return; // Skip on first load
         }
 
         if (timestamp !== lastSeenTimestamp) {
+          const skip = localStorage.getItem("skipNextBookingUpdate") === "true";
+          if (skip) {
+            console.log("🙈 Skipping banner: this device made the booking");
+            localStorage.removeItem("skipNextBookingUpdate");
+          } else {
+            console.log("🔔 New booking detected:", new Date(timestamp));
+            updateBanner.style.display = 'block';
+            updateBanner.style.animation = 'slideIn 0.4s forwards';
+          }
           lastSeenTimestamp = timestamp;
-          console.log("🔔 New booking detected:", new Date(timestamp));
-          updateBanner.style.display = 'block';
-          updateBanner.style.animation = 'slideIn 0.4s forwards';
         }
       });
 
+      // Optional: refresh button handler
       window.refreshIframe = () => {
         iframe.src = iframe.src;
-        document.getElementById('update-notification').style.display = 'none';
+        updateBanner.style.display = 'none';
       };
     });
-</script>
+  </script>
 
 </body>
 </html>
