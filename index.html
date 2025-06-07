@@ -5,6 +5,10 @@
   <title>Emerald Hills EV Charger Reservation</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
   <!-- PWA Manifest and Icons -->
   <link rel="manifest" href="/assets/images/favicons/site.webmanifest">
   <meta name="theme-color" content="#ffffff">
@@ -289,11 +293,6 @@
 	  window.addEventListener('orientationchange', adjustIframeHeight);
 	  document.addEventListener('DOMContentLoaded', adjustIframeHeight);
   </script>
-
-
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
