@@ -316,36 +316,29 @@
         }
       });
 
-      let lastSeenTimestamp = null;
+    let lastSeenTimestamp = null;
 
-      db.ref('server/lastUpdate').on('value', (snapshot) => {
-        const timestamp = snapshot.val();
-        if (!timestamp) return;
+    db.ref('server/lastUpdate').on('value', (snapshot) => {
+      const timestamp = snapshot.val();
+      if (!timestamp) return;
 
-        if (lastSeenTimestamp === null) {
-          lastSeenTimestamp = timestamp;
-          return; // Skip on first load
-        }
+      if (lastSeenTimestamp === null) {
+        lastSeenTimestamp = timestamp;
+        return; // Skip on first load
+      }
 
-        if (timestamp !== lastSeenTimestamp) {
-          const skip = localStorage.getItem("skipNextBookingUpdate") === "true";
-          if (skip) {
-            console.log("🙈 Skipping banner: this device made the booking");
-            localStorage.removeItem("skipNextBookingUpdate");
-          } else {
-            console.log("🔔 New booking detected:", new Date(timestamp));
-            updateBanner.style.display = 'block';
-            updateBanner.style.animation = 'slideIn 0.4s forwards';
-          }
-          lastSeenTimestamp = timestamp;
-        }
-      });
+      const stored = localStorage.getItem("myLastBookingTimestamp");
 
-      // Optional: refresh button handler
-      window.refreshIframe = () => {
-        iframe.src = iframe.src;
-        updateBanner.style.display = 'none';
-      };
+      if (stored && stored === String(timestamp)) {
+        console.log("🙈 Skipping banner (this device made the booking)");
+        localStorage.removeItem("myLastBookingTimestamp");
+      } else {
+        console.log("🔔 New booking detected:", new Date(timestamp));
+        updateBanner.style.display = 'block';
+        updateBanner.style.animation = 'slideIn 0.4s forwards';
+      }
+
+      lastSeenTimestamp = timestamp;
     });
   </script>
 
