@@ -1,4 +1,4 @@
-const CACHE_NAME = 'emeraldevbooking-pwa-cache-v1.4';
+const CACHE_NAME = 'emeraldevbooking-pwa-cache-v1.1';
 const urlsToCache = [
   '/',
   '/index.html',

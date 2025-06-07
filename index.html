@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html>More actions
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -70,6 +70,8 @@
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%) translateY(100%);
+      background: #fffbe6;
+      border: 1px solid #ffecb3;
       background: #fff7df;
       border: 1px solid #fff7df;
       padding: 16px 20px;
@@ -82,6 +84,7 @@
 
     #update-notification p {
       margin: 0;
+      font-size: 16px;
       font-size: 14px;
       color: #333;
     }
@@ -89,10 +92,12 @@
     #update-notification button {
       margin-top: 10px;
       padding: 8px 16px;
+      background-color: #007bff;
       background-color: #378fee;
       color: white;
       border: none;
       border-radius: 4px;
+      font-size: 14px;
       font-size: 12px;
       cursor: pointer;
     }
@@ -119,7 +124,7 @@
     <button onclick="refreshIframe()">Update Calendar</button>
   </div>
 
-  
+
   <div id="updateToast" style="
     display: none;
     position: fixed;
@@ -160,42 +165,42 @@
 
 	  navigator.serviceWorker.register('/service-worker.js').then(reg => {
 		console.log('SW registered:', reg);
-		
+
 		reg.addEventListener('updatefound', () => {
 		  newWorker = reg.installing;
 		  console.log('New SW found, installing...');
-		  
+
 		  newWorker.addEventListener('statechange', () => {
 			console.log('SW state changed to:', newWorker.state);
-			
+
 			if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
 			  console.log('New SW installed, showing update toast');
 			  // Show toast when update is available
 			  const toast = document.getElementById('updateToast');
 			  if (toast) {
 				toast.style.display = 'block';
-				
+
 				// Remove any existing event listeners to prevent duplicates
 				const refreshBtn = document.getElementById('refreshBtn');
 				const newRefreshBtn = refreshBtn.cloneNode(true);
 				refreshBtn.parentNode.replaceChild(newRefreshBtn, refreshBtn);
-				
+
 				// Add click handler for update button
 				newRefreshBtn.addEventListener('click', async () => {
 				  console.log('User clicked refresh button');
-				  
+
 				  try {
 					// Clear cache
 					const cacheNames = await caches.keys();
 					await Promise.all(cacheNames.map(name => caches.delete(name)));
 					console.log('Caches cleared');
-					
+
 					// Set reload flag before triggering skipWaiting
 					refreshing = true;
-					
+
 					// Hide toast
 					toast.style.display = 'none';
-					
+
 					// Skip waiting - send message to the waiting service worker
 					if (newWorker) {
 					  newWorker.postMessage({ action: 'skipWaiting' });
@@ -220,7 +225,7 @@
 	  // Reload page when new SW takes control
 	  navigator.serviceWorker.addEventListener('controllerchange', () => {
 		console.log('Controller changed, refreshing flag:', refreshing);
-		
+
 		if (refreshing) {
 		  console.log('Reloading page...');
 		  window.location.reload();
@@ -259,7 +264,7 @@
         }, { once: true });
       });
     });
-	
+
 	/* Detect iOS Safari + Set Dynamic Height via JS */
 		function isIOS() {
 		  return /iPad|iPhone|iPod/.test(navigator.platform) ||
@@ -308,39 +313,31 @@
       firebase.initializeApp(firebaseConfig);
       const db = firebase.database();
 
-      window.addEventListener("message", (event) => {
-        if (event.data && event.data.bookingSubmitted) {
-          console.log("📬 Received postMessage: booking submitted");
-          localStorage.setItem("skipNextBookingUpdate", "true");
-          console.log("✅ skipNextBookingUpdate flag set to true");
+      let lastSeenTimestamp = null;
+
+      db.ref('server/lastUpdate').on('value', (snapshot) => {
+        const timestamp = snapshot.val();
+        if (!timestamp) return;
+
+        if (lastSeenTimestamp === null) {
+          lastSeenTimestamp = timestamp;
+          return; // First load — no notification
+        }
+
+        if (timestamp !== lastSeenTimestamp) {
+          lastSeenTimestamp = timestamp;
+          console.log("🔔 New booking detected:", new Date(timestamp));
+          updateBanner.style.display = 'block';
+          updateBanner.style.animation = 'slideIn 0.4s forwards';
         }
       });
 
-    let lastSeenTimestamp = null;
-
-    db.ref('server/lastUpdate').on('value', (snapshot) => {
-      const timestamp = snapshot.val();
-      if (!timestamp) return;
-
-      if (lastSeenTimestamp === null) {
-        lastSeenTimestamp = timestamp;
-        return; // Skip on first load
-      }
-
-      const stored = localStorage.getItem("myLastBookingTimestamp");
-
-      if (stored && stored === String(timestamp)) {
-        console.log("🙈 Skipping banner (this device made the booking)");
-        localStorage.removeItem("myLastBookingTimestamp");
-      } else {
-        console.log("🔔 New booking detected:", new Date(timestamp));
-        updateBanner.style.display = 'block';
-        updateBanner.style.animation = 'slideIn 0.4s forwards';
-      }
-
-      lastSeenTimestamp = timestamp;
+      window.refreshIframe = () => {
+        iframe.src = iframe.src;
+        document.getElementById('update-notification').style.display = 'none';
+      };
     });
-  </script>
+</script>
 
 </body>
 </html>
