@@ -317,10 +317,25 @@
         return clientId;
     }
 
-    const currentClientId = getClientId();
-    console.log('GitHub Pages Client ID:', currentClientId); // This log should now appear!
+    const currentClientId = getClientId(); // This is the ID of the GitHub Pages container
+    console.log('GitHub Pages Client ID:', currentClientId);
 
     let lastSeenTimestamp = null; // This variable now correctly scoped within this block.
+
+    // --- ADDED: Variable to hold the actual booking source client ID (from the iframe if available) ---
+    let actualBookingSourceClientId = currentClientId; // Initialize with parent's ID as fallback
+
+    // --- ADDED: Listener for messages from the iframe ---
+    window.addEventListener('message', (event) => {
+        // Ensure the message is from a trusted origin. For your Google Apps Script, it would be:
+        // 'https://script.google.com' (or the specific exec URL's origin)
+        // For simplicity here, we use '*', but in production, specify the Google App Script URL's origin
+        if (event.data && event.data.type === 'iframeClientId' && event.data.clientId) {
+            actualBookingSourceClientId = event.data.clientId;
+            console.log('Received iframe Client ID:', actualBookingSourceClientId);
+        }
+    });
+    // --- END ADDED ---
 
     // Function to display the notification banner
     function showUpdateNotification() {
@@ -364,13 +379,15 @@
             lastSeenTimestamp = timestamp;
             console.log("🌟 New booking detected:", new Date(timestamp), "Booker Client ID:", bookingClientId);
 
-            if (bookingClientId && bookingClientId === currentClientId) {
+            // --- MODIFIED: Use actualBookingSourceClientId for comparison ---
+            if (bookingClientId && bookingClientId === actualBookingSourceClientId) {
                 console.log("🚫 Notification suppressed: Booking made by this device.");
             } else {
                 // Display notification to all other devices
                 showUpdateNotification();
                 console.log("✅ Notification displayed: Booking made by another device.");
             }
+            // --- END MODIFIED ---
         }
     });
 
