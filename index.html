@@ -308,11 +308,11 @@
       firebase.initializeApp(firebaseConfig);
       const db = firebase.database();
 
-      // ✅ Step 2: Listen for booking signal from iframe
       window.addEventListener("message", (event) => {
         if (event.data && event.data.bookingSubmitted) {
           console.log("📬 Received postMessage: booking submitted");
           localStorage.setItem("skipNextBookingUpdate", "true");
+          console.log("✅ skipNextBookingUpdate flag set to true");
         }
       });
 
