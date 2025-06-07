@@ -264,133 +264,135 @@
           });
         }, { once: true });
       });
-    });
 
-    /* Detect iOS Safari + Set Dynamic Height via JS */
-    function isIOS() {
-      return /iPad|iPhone|iPod/.test(navigator.platform) ||
-             (navigator.userAgent.includes("Mac") && "ontouchend" in document);
-    }
+      /* Detect iOS Safari + Set Dynamic Height via JS */
+      function isIOS() {
+        return /iPad|iPhone|iPod/.test(navigator.platform) ||
+              (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+      }
 
-    function isSafari() {
-      return /^((?!chrome|android).)*safari/i.test(navigator.userAgent) &&
-             navigator.vendor && navigator.vendor.includes("Apple");
-    }
+      function isSafari() {
+        return /^((?!chrome|android).)*safari/i.test(navigator.userAgent) &&
+              navigator.vendor && navigator.vendor.includes("Apple");
+      }
 
-    function adjustIframeHeight() {
-      if (isIOS() && isSafari()) {
-        const iframe = document.querySelector('iframe');
-        if (iframe) {
-          iframe.style.height = `${window.innerHeight}px`;
+      function adjustIframeHeight() {
+        if (isIOS() && isSafari()) {
+          const iframe = document.querySelector('iframe');
+          if (iframe) {
+            iframe.style.height = `${window.innerHeight}px`;
+          }
         }
       }
-    }
 
-    window.addEventListener('resize', adjustIframeHeight);
-    window.addEventListener('orientationchange', adjustIframeHeight);
-    document.addEventListener('DOMContentLoaded', adjustIframeHeight);
-
-    // --- Start of Consolidated Firebase & Notification Logic ---
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAlb8aLl1kRafLO7GY5rarVly-Z1wMDbz0",
-      authDomain: "bookingsync-ff9bd.firebaseapp.com",
-      databaseURL: "https://bookingsync-ff9bd-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "bookingsync-ff9bd",
-      storageBucket: "bookingsync-ff9bd.appspot.com",
-      messagingSenderId: "269992391466",
-      appId: "1:269992391466:web:b65bc168c948de21796453"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    function getClientId() {
-        let clientId = localStorage.getItem('ev_charger_client_id');
-        if (!clientId) {
-            clientId = 'client_gh_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('ev_charger_client_id', clientId);
-        }
-        return clientId;
-    }
-
-    const currentClientId = getClientId(); // This is the ID of the GitHub Pages container
-    console.log('GitHub Pages Client ID:', currentClientId);
-
-    // MODIFIED: Construct the iframe URL with the currentClientId as a parameter
-    const iframeBaseUrl = "https://script.google.com/macros/s/AKfycbz_ogm5OeRnRs69SYg8ZUjO_hCkn5K_jcEzver5a2Zo_in1BIX1RUfuV9H9fZI2jh5p/exec";
-    const iframeElement = document.getElementById('booking-frame');
-    iframeElement.src = `${iframeBaseUrl}?parentId=${currentClientId}`;
+      window.addEventListener('resize', adjustIframeHeight);
+      window.addEventListener('orientationchange', adjustIframeHeight);
+      document.addEventListener('DOMContentLoaded', adjustIframeHeight); // This was already here, but good.
 
 
-    let lastSeenTimestamp = null;
+      // --- Start of Consolidated Firebase & Notification Logic (moved inside DOMContentLoaded) ---
 
-    // MODIFIED: Variable to hold the iframe's client ID obtained from Firebase (specific to this parent)
-    let actualBookingSourceClientId = currentClientId; // Initialize with parent's ID as fallback
+      const firebaseConfig = {
+        apiKey: "AIzaSyAlb8aLl1kRafLO7GY5rarVly-Z1wMDbz0",
+        authDomain: "bookingsync-ff9bd.firebaseapp.com",
+        databaseURL: "https://bookingsync-ff9bd-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "bookingsync-ff9bd",
+        storageBucket: "bookingsync-ff9bd.appspot.com",
+        messagingSenderId: "269992391466",
+        appId: "1:269992391466:web:b65bc168c948de21796453"
+      };
 
-    // MODIFIED: Firebase listener to get the iframe's client ID, specific to this parent
-    db.ref(`clients_map/${currentClientId}/iframeClientId`).on('value', (snapshot) => {
-        const iframeFirebaseClientId = snapshot.val();
-        if (iframeFirebaseClientId) {
-            actualBookingSourceClientId = iframeFirebaseClientId;
-            console.log('Received iframe Client ID from Firebase (specific to this parent):', actualBookingSourceClientId);
-        }
-    });
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
 
-    // Function to display the notification banner
-    function showUpdateNotification() {
-        const updateBanner = document.getElementById('update-notification');
-        if (updateBanner) {
-            updateBanner.style.display = 'block';
-        }
-    }
+      function getClientId() {
+          let clientId = localStorage.getItem('ev_charger_client_id');
+          if (!clientId) {
+              clientId = 'client_gh_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+              localStorage.setItem('ev_charger_client_id', clientId);
+          }
+          return clientId;
+      }
 
-    // Function to refresh the iframe content
-    function refreshIframe() {
-        const iframe = document.getElementById('booking-frame');
-        if (iframe) {
-            iframe.src = iframe.src; // Reloads the iframe
-            const updateBanner = document.getElementById('update-notification');
-            if (updateBanner) {
-                updateBanner.style.display = 'none'; // Hide notification after refresh
-            }
-        }
-    }
+      const currentClientId = getClientId(); // This is the ID of the GitHub Pages container
+      console.log('GitHub Pages Client ID:', currentClientId);
 
-    // Assign the refreshIframe function to the global scope for the button's onclick
-    window.refreshIframe = refreshIframe;
+      // MODIFIED: Construct the iframe URL with the currentClientId as a parameter AFTER DOMContentLoaded
+      const iframeBaseUrl = "https://script.google.com/macros/s/AKfycbz_ogm5OeRnRs69SYg8ZUjO_hCkn5K_jcEzver5a2Zo_in1BIX1RUfuV9H9fZI2jh5p/exec";
+      const iframeElement = document.getElementById('booking-frame');
+      iframeElement.src = `${iframeBaseUrl}?parentId=${currentClientId}`;
 
-    // Firebase listener for booking updates
-    db.ref('server/lastUpdateDetails').on('value', (snapshot) => {
-        const data = snapshot.val(); // Get the entire object
-        if (!data || !data.timestamp) return; // Ensure data and timestamp exist
 
-        const timestamp = data.timestamp;
-        const bookingClientId = data.clientId; // Get the client ID from the booking
+      let lastSeenTimestamp = null;
 
-        if (lastSeenTimestamp === null) {
-            lastSeenTimestamp = timestamp;
-            return; // First load – no notification
-        }
+      // MODIFIED: Variable to hold the iframe's client ID obtained from Firebase (specific to this parent)
+      let actualBookingSourceClientId = currentClientId; // Initialize with parent's ID as fallback
 
-        // Only show notification if the timestamp has changed AND
-        // the booking was NOT made by this device
-        if (timestamp !== lastSeenTimestamp) {
-            lastSeenTimestamp = timestamp;
-            console.log("🌟 New booking detected:", new Date(timestamp), "Booker Client ID:", bookingClientId);
+      // MODIFIED: Firebase listener to get the iframe's client ID, specific to this parent
+      db.ref(`clients_map/${currentClientId}/iframeClientId`).on('value', (snapshot) => {
+          const iframeFirebaseClientId = snapshot.val();
+          if (iframeFirebaseClientId) {
+              actualBookingSourceClientId = iframeFirebaseClientId;
+              console.log('Received iframe Client ID from Firebase (specific to this parent):', actualBookingSourceClientId);
+          }
+      });
 
-            // MODIFIED: Use actualBookingSourceClientId for comparison
-            if (bookingClientId && bookingClientId === actualBookingSourceClientId) {
-                console.log("🚫 Notification suppressed: Booking made by this device.");
-            } else {
-                // Display notification to all other devices
-                showUpdateNotification();
-                console.log("✅ Notification displayed: Booking made by another device.");
-            }
-        }
-    });
+      // Function to display the notification banner
+      function showUpdateNotification() {
+          const updateBanner = document.getElementById('update-notification');
+          if (updateBanner) {
+              updateBanner.style.display = 'block';
+          }
+      }
 
-    // --- End of Consolidated Firebase & Notification Logic ---
+      // Function to refresh the iframe content
+      function refreshIframe() {
+          const iframe = document.getElementById('booking-frame');
+          if (iframe) {
+              iframe.src = iframe.src; // Reloads the iframe
+              const updateBanner = document.getElementById('update-notification');
+              if (updateBanner) {
+                  updateBanner.style.display = 'none'; // Hide notification after refresh
+              }
+          }
+      }
+
+      // Assign the refreshIframe function to the global scope for the button's onclick
+      window.refreshIframe = refreshIframe;
+
+      // Firebase listener for booking updates
+      db.ref('server/lastUpdateDetails').on('value', (snapshot) => {
+          const data = snapshot.val(); // Get the entire object
+          if (!data || !data.timestamp) return; // Ensure data and timestamp exist
+
+          const timestamp = data.timestamp;
+          const bookingClientId = data.clientId; // Get the client ID from the booking
+
+          if (lastSeenTimestamp === null) {
+              lastSeenTimestamp = timestamp;
+              return; // First load – no notification
+          }
+
+          // Only show notification if the timestamp has changed AND
+          // the booking was NOT made by this device
+          if (timestamp !== lastSeenTimestamp) {
+              lastSeenTimestamp = timestamp;
+              console.log("🌟 New booking detected:", new Date(timestamp), "Booker Client ID:", bookingClientId);
+
+              // MODIFIED: Use actualBookingSourceClientId for comparison
+              if (bookingClientId && bookingClientId === actualBookingSourceClientId) {
+                  console.log("🚫 Notification suppressed: Booking made by this device.");
+              } else {
+                  // Display notification to all other devices
+                  showUpdateNotification();
+                  console.log("✅ Notification displayed: Booking made by another device.");
+              }
+          }
+      });
+
+      // --- End of Consolidated Firebase & Notification Logic ---
+
+    }); // End of DOMContentLoaded listener
   </script>
 
 </body>
