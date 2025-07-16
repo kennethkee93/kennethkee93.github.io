@@ -48,22 +48,6 @@
 	  padding-bottom: env(safe-area-inset-bottom, 1px); /* 👈 Adds safe space at bottom */
     }
 
-    #installBtn {
-      position: static;
-      top: 10px;
-      left: 10px;
-      background-color: #007bff;
-      color: white;
-      padding: 10px 14px;
-      border: none;
-      border-radius: 8px 8px 0px 0px;
-      font-family: 'Poppins', Arial, sans-serif;
-      font-size: 16px;
-      cursor: pointer;
-      z-index: 1000;
-      display: none;
-    }
-
       #update-notification {
       display: none;
       position: fixed;
@@ -154,7 +138,6 @@
   </div>
 
   <!-- Button Only -->
-  <button id="installBtn">Install App</button>
   <button id="updateAppBtn" style="display: none;">🔄 New version available. Click to update.</button>
 
   <script>
