@@ -12,6 +12,11 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicons/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicons/favicon-16x16.png">
   <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+	
+	
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+
+	
 
   <style>
     .iframe-wrapper {
@@ -89,6 +94,14 @@
         transform: translateX(-50%) translateY(0%);
       }
     }
+
+	@keyframes slideOut {
+	  to {
+	    transform: translateX(-50%) translateY(100%);
+	    opacity: 0;
+	  }
+	}
+	  
   </style>
 </head>
 <body>
@@ -280,6 +293,18 @@
     document.addEventListener('DOMContentLoaded', () => {
       const iframe = document.getElementById('booking-frame');
       const updateBanner = document.getElementById('update-notification');
+
+	  // Enable swipe-to-dismiss on update notification
+	  const hammer = new Hammer(updateBanner);
+	  hammer.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
+	
+	  hammer.on('swipedown', () => {
+	    console.log('Swipe down detected on notification banner');
+	    updateBanner.style.animation = 'slideOut 0.4s forwards';
+	    setTimeout(() => {
+	      updateBanner.style.display = 'none';
+	    }, 400);
+	  });
 
       const firebaseConfig = {
         apiKey: "AIzaSyAlb8aLl1kRafLO7GY5rarVly-Z1wMDbz0",
