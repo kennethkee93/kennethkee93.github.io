@@ -69,6 +69,7 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       z-index: 1000;
       animation: slideIn 0.4s forwards;
+	transition: transform 0.4s ease, opacity 0.4s ease;
     }
 
     #update-notification p {
@@ -89,15 +90,20 @@
       cursor: pointer;
     }
 
+	.dismiss-notification {
+	  transform: translateX(-50%) translateY(50px);
+	  opacity: 0;
+	}
+
     @keyframes slideIn {
       to {
         transform: translateX(-50%) translateY(0%);
       }
     }
 
-	@keyframes slideOut {
+	@keyframes smoothSlideOut {
 	  to {
-	    transform: translateX(-50%) translateY(100%);
+	    transform: translateX(-50%) translateY(50px);
 	    opacity: 0;
 	  }
 	}
@@ -295,16 +301,17 @@
       const updateBanner = document.getElementById('update-notification');
 
 	  // Enable swipe-to-dismiss on update notification
-	  const hammer = new Hammer(updateBanner);
-	  hammer.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
+	const hammer = new Hammer(updateBanner);
+	hammer.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
 	
-	  hammer.on('swipedown', () => {
-	    console.log('Swipe down detected on notification banner');
-	    updateBanner.style.animation = 'slideOut 0.4s forwards';
-	    setTimeout(() => {
-	      updateBanner.style.display = 'none';
-	    }, 400);
-	  });
+	hammer.on('swipeup swipedown', () => {
+	  console.log('Swipe up or down detected on notification banner');
+	  updateBanner.classList.add('dismiss-notification');
+	  setTimeout(() => {
+	    updateBanner.style.display = 'none';
+	    updateBanner.classList.remove('dismiss-notification');
+	  }, 400);
+	});
 
       const firebaseConfig = {
         apiKey: "AIzaSyAlb8aLl1kRafLO7GY5rarVly-Z1wMDbz0",
