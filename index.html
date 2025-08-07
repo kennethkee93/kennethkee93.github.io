@@ -819,88 +819,82 @@
     }
 
     // Booking form submission - REFACTORED to use fetch()
-    document.getElementById('bookingForm').addEventListener('submit', async function(ev) {
-        ev.preventDefault();
-        const submitBtn = ev.target.querySelector('button[type="submit"]');
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = 'Processing...';
-        submitBtn.disabled = true;
-
-        const data = {
-            name: document.getElementById('name').value.trim(),
-            plate: document.getElementById('plate').value.trim(),
-            phone: document.getElementById('phone').value.trim(),
-            email: document.getElementById('email').value.trim(),
-            charger: document.getElementById('charger').value,
-            start_datetime: document.getElementById('start_datetime').value,
-            end_datetime: document.getElementById('end_datetime').value
-        };
-
-        if (!data.name || !data.plate || !data.email || !data.charger || !data.start_datetime || !data.end_datetime) {
-            showMessage('error', 'Please fill all required fields, including email.');
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-            return;
-        }
-
-        if (new Date(data.end_datetime) <= new Date(data.start_datetime)) {
-            showMessage('error', 'End date/time must be after start date/time.');
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-            return;
-        }
-
-        const remember = document.getElementById('rememberMe').checked;
-
-        if (remember) {
-          await saveUserInfo('name', document.getElementById('name').value.trim());
-          await saveUserInfo('email', document.getElementById('email').value.trim());
-          await saveUserInfo('phone', document.getElementById('phone').value.trim());
-          await saveUserInfo('plate', document.getElementById('plate').value.trim());
-          await saveUserInfo('rememberMe', true);
-        } else {
-          await clearUserInfo();
-        }
-
-        fetch(WEB_APP_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ action: 'book', data: data }) // <-- CORRECTED
-        })
-        .then(res => res.json())
-        .then(res => {
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-            if (res.status === 'success') {
-                showMessage('success', res.message);
-                ev.target.reset();
-                function roundTo30Minutes(date) {
-                    const ms = 1000 * 60 * 30;
-                    return new Date(Math.ceil(date.getTime() / ms) * ms);
-                }
-                const now = roundTo30Minutes(new Date());
-                const plusOneHour = new Date(now.getTime() + 60 * 60 * 1000);
-                document.getElementById('start_datetime').value = toDatetimeLocal(now, 'Asia/Kuala_Lumpur');
-                document.getElementById('end_datetime').value = toDatetimeLocal(plusOneHour, 'Asia/Kuala_Lumpur');
-                loadBookings();
-                const bookingDate = new Date(data.start_datetime);
-                calendar.gotoDate(bookingDate);
-                if (calendar.view.type.includes('timeGrid')) { 
-                    const hours = bookingDate.getHours().toString().padStart(2, '0');
-                    const minutes = bookingDate.getMinutes().toString().padStart(2, '0');
-                    calendar.scrollToTime(`${hours}:${minutes}:00`);
-                }
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            } else {
-                showMessage('error', res.message || 'Unknown error occurred');
-            }
-        })
-        .catch(err => {
-            showMessage('error', 'Reservation failed: ' + (err.message || 'Unknown error'));
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-        });
-    });
+	document.getElementById('bookingForm').addEventListener('submit', async function(ev) {
+	    ev.preventDefault();
+	    const submitBtn = ev.target.querySelector('button[type="submit"]');
+	    const originalText = submitBtn.textContent;
+	    submitBtn.textContent = 'Processing...';
+	    submitBtn.disabled = true;
+	
+	    const data = {
+	        name: document.getElementById('name').value.trim(),
+	        plate: document.getElementById('plate').value.trim(),
+	        phone: document.getElementById('phone').value.trim(),
+	        email: document.getElementById('email').value.trim(),
+	        charger: document.getElementById('charger').value,
+	        start_datetime: document.getElementById('start_datetime').value,
+	        end_datetime: document.getElementById('end_datetime').value
+	    };
+	
+	    if (!data.name || !data.plate || !data.email || !data.charger || !data.start_datetime || !data.end_datetime) {
+	        showMessage('error', 'Please fill all required fields, including email.');
+	        submitBtn.textContent = originalText;
+	        submitBtn.disabled = false;
+	        return;
+	    }
+	    if (new Date(data.end_datetime) <= new Date(data.start_datetime)) {
+	        showMessage('error', 'End date/time must be after start date/time.');
+	        submitBtn.textContent = originalText;
+	        submitBtn.disabled = false;
+	        return;
+	    }
+	
+	    const remember = document.getElementById('rememberMe').checked;
+	    if (remember) {
+	      await saveUserInfo('name', document.getElementById('name').value.trim());
+	      await saveUserInfo('email', document.getElementById('email').value.trim());
+	      await saveUserInfo('phone', document.getElementById('phone').value.trim());
+	      await saveUserInfo('plate', document.getElementById('plate').value.trim());
+	      await saveUserInfo('rememberMe', true);
+	    } else {
+	      await clearUserInfo();
+	    }
+	
+	    fetch(WEB_APP_URL, {
+	        method: 'POST',
+	        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+	        body: JSON.stringify({ action: 'book', data: data })
+	    })
+	    .then(res => res.json())
+	    .then(async (res) => { // Mark this function as async to use await
+	        submitBtn.textContent = originalText;
+	        submitBtn.disabled = false;
+	        if (res.status === 'success' && res.data) {
+	            showMessage('success', res.message);
+	            ev.target.reset();
+	            
+	            // THE FINAL FIX: Use the fresh data directly from the server's response
+	            console.log('Success! Received fresh data directly from server.');
+	            allEvents = res.data; // Update the main app state
+	            await saveEventsToIDB(allEvents); // Save the fresh data to IndexedDB
+	            renderCalendar(allEvents); // Re-render the calendar
+	            updateChargerStatus(); // Update the status panel
+	            
+	            // Go to the new booking on the calendar
+	            const bookingDate = new Date(data.start_datetime);
+	            calendar.gotoDate(bookingDate);
+	
+	        } else {
+	            // If the server didn't send back data or had an error
+	            showMessage('error', res.message || 'Unknown error occurred');
+	        }
+	    })
+	    .catch(err => {
+	        showMessage('error', 'Reservation failed: ' + (err.message || 'Unknown error'));
+	        submitBtn.textContent = originalText;
+	        submitBtn.disabled = false;
+	    });
+	});
 
     function toDatetimeLocal(dt, tz) {
         const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: tz };
