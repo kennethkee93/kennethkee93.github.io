@@ -1,9 +1,10 @@
-const CACHE_NAME = 'emerald-hills-ev-cache-v2.4'; // Match your app version
+const CACHE_NAME = 'emerald-hills-ev-cache-v3.1'; // Incrementing version to ensure update
 
-// A list of critical files to cache on install
+// A list of critical static files (the "App Shell") to cache on install
 const urlsToCache = [
   '/',
   '/index.html',
+  // Note: We do NOT cache the Google Script URL here.
   'https://fonts.googleapis.com/css2?family=Poppins&display=swap',
   'https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js',
   'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js',
@@ -16,20 +17,18 @@ const urlsToCache = [
   '/favicon.ico'
 ];
 
-// 1. Install the service worker and cache critical assets
 self.addEventListener('install', event => {
   console.log('SW: Installing...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('SW: Caching core assets...');
+        console.log('SW: Caching app shell...');
         return cache.addAll(urlsToCache);
       })
       .then(() => self.skipWaiting())
   );
 });
 
-// 2. Activate the service worker and clean up old caches
 self.addEventListener('activate', event => {
   console.log('SW: Activating...');
   event.waitUntil(
@@ -46,49 +45,52 @@ self.addEventListener('activate', event => {
   );
 });
 
-// 3. Intercept network requests
+// ** THE MOST IMPORTANT CHANGE IS HERE **
 self.addEventListener('fetch', event => {
-  // THE CRITICAL FIX IS HERE:
-  // We only apply caching logic to GET requests.
-  // For POST requests, we do nothing and let them go directly to the network.
-  if (event.request.method !== 'GET') {
-    // Do not intercept the request. Let it pass through.
-    return;
+  const { request } = event;
+
+  // STRATEGY 1: For API calls (to Google Scripts), use Network First.
+  if (request.url.includes('script.google.com')) {
+    event.respondWith(
+      fetch(request)
+        .then(networkResponse => {
+          // If we get a good response, clone it and update the cache for offline fallback.
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(request, responseToCache);
+          });
+          return networkResponse;
+        })
+        .catch(() => {
+          // If the network fails, try to serve the last known good version from the cache.
+          return caches.match(request);
+        })
+    );
+    return; // End execution for API calls
   }
 
-  // For GET requests, use a "cache first, then network" strategy.
+  // STRATEGY 2: For all other requests (static assets), use Cache First.
   event.respondWith(
-    caches.match(event.request)
+    caches.match(request)
       .then(cachedResponse => {
-        // If the response is in the cache, return it
+        // If we have a cached version, return it immediately.
         if (cachedResponse) {
-          // console.log('SW: Serving from cache:', event.request.url);
           return cachedResponse;
         }
-
-        // If it's not in the cache, fetch it from the network
-        // console.log('SW: Fetching from network:', event.request.url);
-        return fetch(event.request).then(
-          networkResponse => {
-            // And cache the new response for next time
+        // Otherwise, fetch it from the network.
+        return fetch(request).then(networkResponse => {
+            // And cache it for next time.
             const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(event.request, responseToCache);
-              });
+            caches.open(CACHE_NAME).then(cache => {
+                cache.put(request, responseToCache);
+            });
             return networkResponse;
-          }
-        );
-      })
-      .catch(error => {
-        // Handle fetch errors, e.g., by returning a fallback page
-        console.error('SW: Fetch failed:', error);
-        // You could return a custom offline page here if you had one
+        });
       })
   );
 });
 
-// 4. Listen for the 'skipWaiting' message from the front-end
+
 self.addEventListener('message', event => {
   if (event.data && event.data.action === 'skipWaiting') {
     self.skipWaiting();
