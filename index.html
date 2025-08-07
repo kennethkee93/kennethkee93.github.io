@@ -583,32 +583,44 @@
             e.preventDefault();
             const feedbackMessage = document.getElementById('feedbackMessage');
             const bugEncountered = e.target.bugEncountered.value;
-            if (!bugEncountered) { feedbackMessage.style.color = 'red'; feedbackMessage.textContent = 'Please select Yes or No.'; return; }
-            const formData = { bugEncountered: bugEncountered, bugDetails: e.target.bugDetails.value.trim(), suggestions: e.target.suggestions.value.trim() };
+            if (!bugEncountered) {
+                feedbackMessage.style.color = 'red';
+                feedbackMessage.textContent = 'Please select Yes or No for bug encountered.';
+                return;
+            }
+        
+            const formData = {
+                bugEncountered: bugEncountered,
+                bugDetails: e.target.bugDetails.value.trim(),
+                suggestions: e.target.suggestions.value.trim()
+            };
+        
             e.target.querySelector('button[type="submit"]').disabled = true;
             feedbackMessage.style.color = 'black';
             feedbackMessage.textContent = 'Submitting...';
-
+        
             fetch(WEB_APP_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: 'book', data: data }) 
-            })
-            .then(response => response.json())
-            .then(response => {
-                if (response.status === 'success') {
-                    feedbackMessage.style.color = 'green';
-                    feedbackMessage.textContent = 'Thank you for your feedback!';
-                    e.target.reset();
-                } else { throw new Error(response.message || 'Unknown error'); }
-            })
-            .catch(err => {
-                feedbackMessage.style.color = 'red';
-                feedbackMessage.textContent = 'Error: ' + err.message;
-            })
-            .finally(() => {
-                e.target.querySelector('button[type="submit"]').disabled = false;
-            });
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'submitFeedback', data: formData }) // <-- CORRECTED
+                })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.status === 'success') {
+                        feedbackMessage.style.color = 'green';
+                        feedbackMessage.textContent = 'Thank you for your feedback!';
+                        e.target.reset();
+                    } else {
+                        throw new Error(response.message || 'Unknown error');
+                    }
+                })
+                .catch(err => {
+                    feedbackMessage.style.color = 'red';
+                    feedbackMessage.textContent = 'Error: ' + err.message;
+                })
+                .finally(() => {
+                    e.target.querySelector('button[type="submit"]').disabled = false;
+                });
         });
 
         // Charger button and form logic (unchanged)
