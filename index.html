@@ -676,7 +676,10 @@
         }
 
         console.log('Step 2: Fetching from server...');
-        fetch(`${WEB_APP_URL}?action=getBookings`)
+          fetch(WEB_APP_URL, {
+	      method: 'POST',
+	      headers: { 'Content-Type': 'application/json' },
+	      body: JSON.stringify({ action: 'getBookings' })
             .then(response => response.json())
             .then(async serverResponse => {
                 console.group('[Server Response]');
