@@ -848,7 +848,22 @@
       });
     }
     async function saveEventsToIDB(events) { const db = await openDB(); const tx = db.transaction('bookings', 'readwrite'); tx.objectStore('bookings').clear(); events.forEach(event => { if (event.id) tx.objectStore('bookings').put(event); }); return tx.complete; }
-    async function loadEventsFromIDB() { const db = await openDB(); return db.transaction('bookings', 'readonly').objectStore('bookings').getAll(); }
+        async function loadEventsFromIDB() {
+      const db = await openDB();
+      const request = db.transaction('bookings', 'readonly').objectStore('bookings').getAll();
+      
+      return new Promise((resolve, reject) => {
+        request.onsuccess = () => {
+          // Ensure we always resolve with an array, even if the result is empty or undefined
+          resolve(request.result || []); 
+        };
+        request.onerror = (event) => {
+          console.error("Failed to load from IDB:", event.target.error);
+          // Reject the promise on error
+          reject(event.target.error);
+        };
+      });
+    }
     async function saveUserInfo(key, value) { const db = await openDB(); return db.transaction('userinfo', 'readwrite').objectStore('userinfo').put({ key, value }); }
     async function loadUserInfo(key) { const db = await openDB(); const request = db.transaction('userinfo', 'readonly').objectStore('userinfo').get(key); return new Promise(resolve => { request.onsuccess = () => resolve(request.result?.value ?? null); }); }
     async function clearUserInfo() { const db = await openDB(); return db.transaction('userinfo', 'readwrite').objectStore('userinfo').clear(); }
