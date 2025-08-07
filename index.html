@@ -16,7 +16,6 @@
 	
   <!-- External Libraries (from GAS files) -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js"></script>
 	
@@ -657,7 +656,7 @@
     function convertToTitleCase(input) { input.value = input.value.toLowerCase().replace(/\b\w/g, char => char.toUpperCase()); }
 
     // loadBookings - REFACTORED to use fetch()
-    async function loadBookings() {
+	async function loadBookings() {
         console.groupCollapsed(`[Booking Loader] Starting update @ ${new Date().toLocaleTimeString()}`);
         let cachedEvents = [];
         try {
@@ -668,22 +667,30 @@
                 allEvents = cachedEvents;
                 renderCalendar(allEvents);
                 updateChargerStatus();
-            } else { console.warn('No cached events found.'); }
+            } else { 
+                console.warn('No cached events found.'); 
+            }
         } catch (err) {
             console.error('Error loading from IndexedDB:', err);
             showMessage('error', 'Error loading cached bookings.');
-            console.groupEnd(); return;
+            console.groupEnd(); // End group immediately on critical cache error
+            return;
         }
 
         console.log('Step 2: Fetching from server...');
-          fetch(WEB_APP_URL, {
-	      method: 'POST',
-	      headers: { 'Content-Type': 'application/json' },
-	      body: JSON.stringify({ action: 'getBookings' })
-            .then(response => response.json())
+        fetch(`${WEB_APP_URL}?action=getBookings`)
+            .then(response => {
+                if (!response.ok) {
+                    // If response is not 2xx, throw an error to be caught by .catch()
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
+                return response.json();
+            })
             .then(async serverResponse => {
                 console.group('[Server Response]');
-                if (serverResponse.status !== 'success') throw new Error(serverResponse.message);
+                if (serverResponse.status !== 'success') {
+                    throw new Error(serverResponse.message || 'Server returned an error status.');
+                }
                 const eventsFromServer = serverResponse.data;
                 console.info(`Success: Received ${eventsFromServer.length} events.`);
 
@@ -697,13 +704,21 @@
                     console.info(`%cSaved ${eventsFromServer.length} new events to IndexedDB.`, 'color: green;');
                     renderCalendar(allEvents);
                     updateChargerStatus();
-                } else { console.log('No changes detected.'); }
-                console.groupEnd(); console.groupEnd();
+                } else { 
+                    console.log('No changes detected.'); 
+                }
+                console.groupEnd(); // Closes [Server Response] group
             })
             .catch(err => {
                 console.error('Server load failed:', err.message || err);
-                if (allEvents.length === 0) showMessage('error', 'Could not load calendar: ' + err.message);
-                console.groupEnd();
+                if (allEvents.length === 0) {
+                    showMessage('error', 'Could not load calendar: ' + err.message);
+                }
+            })
+            .finally(() => {
+                // This block runs regardless of success or failure.
+                // It's the perfect place to close the main console group.
+                console.groupEnd(); // Closes [Booking Loader] group
             });
     }
 
