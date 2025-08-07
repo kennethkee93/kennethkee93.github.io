@@ -591,8 +591,8 @@
 
             fetch(WEB_APP_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'submitFeedback', data: formData })
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'book', data: data }) 
             })
             .then(response => response.json())
             .then(response => {
@@ -794,38 +794,83 @@
     document.getElementById('bookingForm').addEventListener('submit', async function(ev) {
         ev.preventDefault();
         const submitBtn = ev.target.querySelector('button[type="submit"]');
-        submitBtn.textContent = 'Processing...'; submitBtn.disabled = true;
-        const data = { name: ev.target.name.value.trim(), plate: ev.target.plate.value.trim(), phone: ev.target.phone.value.trim(), email: ev.target.email.value.trim(), charger: ev.target.charger.value, start_datetime: ev.target.start_datetime.value, end_datetime: ev.target.end_datetime.value };
-        if (!data.name || !data.plate || !data.email || !data.charger || !data.start_datetime || !data.end_datetime) { showMessage('error', 'Please fill all required fields.'); submitBtn.textContent = 'Reserve'; submitBtn.disabled = false; return; }
-        if (new Date(data.end_datetime) <= new Date(data.start_datetime)) { showMessage('error', 'End time must be after start time.'); submitBtn.textContent = 'Reserve'; submitBtn.disabled = false; return; }
-        
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Processing...';
+        submitBtn.disabled = true;
+
+        const data = {
+            name: document.getElementById('name').value.trim(),
+            plate: document.getElementById('plate').value.trim(),
+            phone: document.getElementById('phone').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            charger: document.getElementById('charger').value,
+            start_datetime: document.getElementById('start_datetime').value,
+            end_datetime: document.getElementById('end_datetime').value
+        };
+
+        if (!data.name || !data.plate || !data.email || !data.charger || !data.start_datetime || !data.end_datetime) {
+            showMessage('error', 'Please fill all required fields, including email.');
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+            return;
+        }
+
+        if (new Date(data.end_datetime) <= new Date(data.start_datetime)) {
+            showMessage('error', 'End date/time must be after start date/time.');
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+            return;
+        }
+
         const remember = document.getElementById('rememberMe').checked;
-        if (remember) { saveUserInfo('name', data.name); saveUserInfo('email', data.email); saveUserInfo('phone', data.phone); saveUserInfo('plate', data.plate); saveUserInfo('rememberMe', true); }
-        else { await clearUserInfo(); }
+
+        if (remember) {
+          await saveUserInfo('name', document.getElementById('name').value.trim());
+          await saveUserInfo('email', document.getElementById('email').value.trim());
+          await saveUserInfo('phone', document.getElementById('phone').value.trim());
+          await saveUserInfo('plate', document.getElementById('plate').value.trim());
+          await saveUserInfo('rememberMe', true);
+        } else {
+          await clearUserInfo();
+        }
 
         fetch(WEB_APP_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'book', data: data })
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'book', data: data }) // <-- CORRECTED
         })
         .then(res => res.json())
         .then(res => {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
             if (res.status === 'success') {
                 showMessage('success', res.message);
                 ev.target.reset();
-                const now = new Date(Math.ceil(new Date().getTime() / (1000 * 60 * 30)) * (1000 * 60 * 30));
+                function roundTo30Minutes(date) {
+                    const ms = 1000 * 60 * 30;
+                    return new Date(Math.ceil(date.getTime() / ms) * ms);
+                }
+                const now = roundTo30Minutes(new Date());
+                const plusOneHour = new Date(now.getTime() + 60 * 60 * 1000);
                 document.getElementById('start_datetime').value = toDatetimeLocal(now, 'Asia/Kuala_Lumpur');
-                document.getElementById('end_datetime').value = toDatetimeLocal(new Date(now.getTime() + 60*60*1000), 'Asia/Kuala_Lumpur');
+                document.getElementById('end_datetime').value = toDatetimeLocal(plusOneHour, 'Asia/Kuala_Lumpur');
                 loadBookings();
                 const bookingDate = new Date(data.start_datetime);
                 calendar.gotoDate(bookingDate);
-            } else { throw new Error(res.message); }
+                if (calendar.view.type.includes('timeGrid')) { 
+                    const hours = bookingDate.getHours().toString().padStart(2, '0');
+                    const minutes = bookingDate.getMinutes().toString().padStart(2, '0');
+                    calendar.scrollToTime(`${hours}:${minutes}:00`);
+                }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                showMessage('error', res.message || 'Unknown error occurred');
+            }
         })
         .catch(err => {
-            showMessage('error', 'Reservation failed: ' + err.message);
-        })
-        .finally(() => {
-            submitBtn.textContent = 'Reserve'; submitBtn.disabled = false;
+            showMessage('error', 'Reservation failed: ' + (err.message || 'Unknown error'));
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
         });
     });
 
