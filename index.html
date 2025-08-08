@@ -660,7 +660,6 @@ function initializeDateTimePicker() {
     let endTimeInMinutes = 1020;
     const MINIMUM_SLOT_MINUTES = 15;
 
-    // THE FIX: Simplified minutesToTimeFormat, no more "-1 minute" logic
     function minutesToTimeFormat(minutes) {
         minutes = Math.round(minutes);
         const h = Math.floor(minutes / 60);
@@ -670,7 +669,6 @@ function initializeDateTimePicker() {
         return `${hour12}:${m < 10 ? '0' + m : m} ${ampm}`;
     }
 
-    // THE FIX: Simplified updateSummary, no more "-1 minute" logic
     function updateSummary() {
         if (!startDate) {
             summaryTextEl.innerHTML = `<span class="summary-placeholder">Select a start date</span>`;
@@ -900,9 +898,7 @@ function initializeDateTimePicker() {
         const now = new Date();
         const ms = 1000 * 60 * 30;
         const roundedNow = new Date(Math.ceil(now.getTime() / ms) * ms);
-        document.getElementById('start_datetime').value = toDatetimeLocal(roundedNow, 'Asia/Kuala_Lumpur');
         const plusOneHour = new Date(roundedNow.getTime() + 60 * 60 * 1000);
-        document.getElementById('end_datetime').value = toDatetimeLocal(plusOneHour, 'Asia/Kuala_Lumpur');
         
         // Initial data load and periodic updates
         loadBookings();
@@ -913,12 +909,23 @@ function initializeDateTimePicker() {
     function showMessage(type, message) {
         const errorDiv = document.getElementById('errorMsg');
         const successDiv = document.getElementById('successMsg');
-        const div = type === 'error' ? errorDiv : successDiv;
-        const otherDiv = type === 'error' ? successDiv : errorDiv;
-        div.textContent = message;
-        div.style.display = 'block';
-        otherDiv.style.display = 'none';
-        setTimeout(() => div.style.display = 'none', 7000);
+    
+        if (type === 'success') {
+            successDiv.textContent = message;
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 10000);
+    
+        } else {
+            errorDiv.textContent = message;
+            successDiv.style.display = 'none';
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 10000);
+        }
     }
 
     function showEventDetails(event) {
@@ -1171,82 +1178,113 @@ function initializeDateTimePicker() {
     }
 
     // Booking form submission - REFACTORED to use fetch()
-	document.getElementById('bookingForm').addEventListener('submit', async function(ev) {
-	    ev.preventDefault();
-	    const submitBtn = ev.target.querySelector('button[type="submit"]');
-	    const originalText = submitBtn.textContent;
-	    submitBtn.textContent = 'Processing...';
-	    submitBtn.disabled = true;
-	
-	    const data = {
-	        name: document.getElementById('name').value.trim(),
-	        plate: document.getElementById('plate').value.trim(),
-	        phone: document.getElementById('phone').value.trim(),
-	        email: document.getElementById('email').value.trim(),
-	        charger: document.getElementById('charger').value,
-	        start_datetime: document.getElementById('start_datetime').value,
-	        end_datetime: document.getElementById('end_datetime').value
-	    };
-	
-	    if (!data.name || !data.plate || !data.email || !data.charger || !data.start_datetime || !data.end_datetime) {
-	        showMessage('error', 'Please fill all required fields, including email.');
-	        submitBtn.textContent = originalText;
-	        submitBtn.disabled = false;
-	        return;
-	    }
-	    if (new Date(data.end_datetime) <= new Date(data.start_datetime)) {
-	        showMessage('error', 'End date/time must be after start date/time.');
-	        submitBtn.textContent = originalText;
-	        submitBtn.disabled = false;
-	        return;
-	    }
-	
-	    const remember = document.getElementById('rememberMe').checked;
-	    if (remember) {
-	      await saveUserInfo('name', document.getElementById('name').value.trim());
-	      await saveUserInfo('email', document.getElementById('email').value.trim());
-	      await saveUserInfo('phone', document.getElementById('phone').value.trim());
-	      await saveUserInfo('plate', document.getElementById('plate').value.trim());
-	      await saveUserInfo('rememberMe', true);
-	    } else {
-	      await clearUserInfo();
-	    }
-	
-	    fetch(WEB_APP_URL, {
-	        method: 'POST',
-	        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-	        body: JSON.stringify({ action: 'book', data: data })
-	    })
-	    .then(res => res.json())
-	    .then(async (res) => { // Mark this function as async to use await
-	        submitBtn.textContent = originalText;
-	        submitBtn.disabled = false;
-	        if (res.status === 'success' && res.data) {
-	            showMessage('success', res.message);
-	            ev.target.reset();
-	            
-	            // THE FINAL FIX: Use the fresh data directly from the server's response
-	            console.log('Success! Received fresh data directly from server.');
-	            allEvents = res.data; // Update the main app state
-	            await saveEventsToIDB(allEvents); // Save the fresh data to IndexedDB
-	            renderCalendar(allEvents); // Re-render the calendar
-	            updateChargerStatus(); // Update the status panel
-	            
-	            // Go to the new booking on the calendar
-	            const bookingDate = new Date(data.start_datetime);
-	            calendar.gotoDate(bookingDate);
-	
-	        } else {
-	            // If the server didn't send back data or had an error
-	            showMessage('error', res.message || 'Unknown error occurred');
-	        }
-	    })
-	    .catch(err => {
-	        showMessage('error', 'Reservation failed: ' + (err.message || 'Unknown error'));
-	        submitBtn.textContent = originalText;
-	        submitBtn.disabled = false;
-	    });
-	});
+    document.getElementById('bookingForm').addEventListener('submit', async function(ev) {
+        ev.preventDefault();
+        const submitBtn = ev.target.querySelector('button[type="submit"]');
+    
+        // --- START: New Granular Validation Logic ---
+        const validationErrors = [];
+        const name = document.getElementById('name').value.trim();
+        const plate = document.getElementById('plate').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const charger = document.getElementById('charger').value;
+        const startValue = document.getElementById('start_datetime').value;
+        const endValue = document.getElementById('end_datetime').value;
+    
+        if (!name) {
+            validationErrors.push("Name");
+        }
+        if (!plate) {
+            validationErrors.push("Car Plate Number");
+        }
+        if (!email) {
+            validationErrors.push("Email Address");
+        }
+        if (!charger) {
+            validationErrors.push("Charger Location");
+        }
+        if (!startValue || !endValue) {
+            validationErrors.push("Date & Time");
+        }
+    
+        // If the errors array has anything in it, show the message and stop.
+        if (validationErrors.length > 0) {
+            const errorMessage = "Please complete the " + validationErrors.join(' & ');
+            showMessage('error', errorMessage);
+            return; // Stop the function here
+        }
+    
+        // --- The rest of the function proceeds only if validation passes ---
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Processing...';
+        submitBtn.disabled = true;
+    
+        const data = {
+            name: name,
+            plate: plate,
+            phone: document.getElementById('phone').value.trim(),
+            email: email,
+            charger: charger,
+            start_datetime: startValue,
+            end_datetime: endValue
+        };
+    
+        if (new Date(data.end_datetime) <= new Date(data.start_datetime)) {
+            showMessage('error', 'End date/time must be after start date/time.');
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+            return;
+        }
+    
+        const remember = document.getElementById('rememberMe').checked;
+        if (remember) {
+            await saveUserInfo('name', data.name);
+            await saveUserInfo('email', data.email);
+            await saveUserInfo('phone', data.phone);
+            await saveUserInfo('plate', data.plate);
+            await saveUserInfo('rememberMe', true);
+        } else {
+          await clearUserInfo();
+        }
+    
+        fetch(WEB_APP_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+                action: 'book',
+                data: data
+            })
+        })
+        .then(res => res.json())
+        .then(async (res) => {
+            if (res.status === 'success' && res.newEvent) {
+                ev.target.reset();
+                document.getElementById('start_display').value = '';
+                document.getElementById('end_display').value = '';
+                document.querySelectorAll('#bookingForm .charger-btn.selected').forEach(btn => btn.classList.remove('selected'));
+                
+                showMessage('success', res.message);
+                
+                console.log('Success! Reconciling new event from server.');
+                allEvents.push(res.newEvent);
+                await saveEventsToIDB(allEvents);
+                renderCalendar(allEvents);
+                updateChargerStatus();
+                
+                const bookingDate = new Date(data.start_datetime);
+                calendar.gotoDate(bookingDate);
+            } else {
+                showMessage('error', res.message || 'Unknown error occurred');
+            }
+        })
+        .catch(err => {
+            showMessage('error', 'Reservation failed: ' + (err.message || 'Unknown error'));
+        })
+        .finally(() => {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        });
+    });
 
     function toDatetimeLocal(dt, tz) {
         const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: tz };
