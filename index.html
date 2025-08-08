@@ -190,7 +190,7 @@
 
     /* ===== CHARGER STATUS ===== */
     #chargerStatusContainer {
-        background: #FFF; padding: 20px; box-sizing: border-box; color: #eee;
+        background: #FFF; padding: 20px; padding-bottom:100px; box-sizing: border-box; color: #eee;
         flex-grow: 1; flex-shrink: 0; max-width: 1200px; display: flex;
         flex-direction: column; gap: 15px; margin: 10px auto; overflow: hidden;
     }
@@ -220,7 +220,7 @@
 
     /* ===== CALENDAR SYSTEM ===== */
     .calendarfilter-container, .calendar-container { width: 100%; max-width: 1200px; margin: 0 auto; box-sizing: border-box; overflow: hidden; flex-shrink: 0; position: relative; }
-    .calendar-container { padding-top: 100px; }
+    .calendar-container { padding-top: 5px; padding-bottom: 100px; }
     #calendar { width: 100%; max-width: 100%; height: auto; background: #fff; color: #111827; border-radius: 10px; border-color: #F7FAFC; padding: 10px; box-sizing: border-box; min-height: 520px; position: relative; z-index: 1; box-shadow: 0 0 10px #F7FAFC; touch-action: pan-y; }
     .fc-day-today { background: #e4e5e7 !important; border: none !important; } 
     #calendar .fc-view-harness, #calendar .fc-scroller, #calendar .fc-timegrid-body { touch-action: pan-y !important; }
@@ -229,7 +229,7 @@
     .fc-scroller, .fc-event, .fc-daygrid-event { pointer-events: auto !important; }
 
     /* ===== FILTER CONTROLS ===== */
-    .filter-controls { margin: 15px 0 30px 0; width: 100%; max-width: 1200px; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, auto); gap: 8px 12px; justify-items: center; }
+    .filter-controls { margin: 10px 0 5px 0; width: 100%; max-width: 1200px; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, auto); gap: 8px 12px; justify-items: center; }
     .filter-btn { padding: 7px 10px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; color: #2D3748; font-size: 14px; width: 100%; max-width: 150px; box-sizing: border-box; user-select: none; background-color: #F7FAFC; transition: background-color 0.3s ease, box-shadow 0.3s ease, outline 0.3s ease, transform 0.2s ease; }
     .filter-btn.active { box-shadow: 0 0 0 2px #545454, 0 0 0 4px #fff; transform: translateY(-2px); }
     .filter-btn-all { background-color: #E5E7EB; }
@@ -241,10 +241,15 @@
 
     /* ===== BOOKING FORM ===== */
     .form-and-status-wrapper { display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; width: 100%; max-width: 1200px; margin: 20px auto; }
-    #bookingForm { width: 100%; max-width: 1200px; flex-grow: 1; flex-shrink: 0; background: #FFFFF; padding: 20px; border-radius: 10px; box-sizing: border-box; color: #545454; box-shadow: 2px 2px 5px rgba(0,0,0,0.2); overflow: hidden; margin: 0 auto; }
+    #bookingForm { width: 100%; max-width: 1200px; flex-grow: 1; flex-shrink: 0; background: #FFFFF; padding: 20px; padding-bottom: 100px; border-radius: 10px; box-sizing: border-box; color: #545454; box-shadow: 2px 2px 5px rgba(0,0,0,0.2); overflow: hidden; margin: 0 auto; }
     #bookingForm input, #bookingForm select, #bookingForm button { padding: 10px; margin: 8px 0; width: 100%; border-radius: 10px; border: none; box-sizing: border-box; font-size: 15px; }
     #bookingForm input, #bookingForm select { font-family: 'Poppins', Arial, sans-serif; background: #e8e9eb; color: #545454; }
     #bookingForm input::placeholder { color: #aaa; }
+    #bookingForm .charger-btn.filter-btn-a { background-color: #3B82F6; color: #FFFFFF; }
+    #bookingForm .charger-btn.filter-btn-b { background-color: #10B981; color: #FFFFFF; }
+    #bookingForm .charger-btn.filter-btn-club { background-color: #F59E0B; color: #FFFFFF; }
+    #bookingForm .charger-btn.filter-btn-N1 { background-color: #b11879; color: #FFFFFF; }
+    #bookingForm .charger-btn.filter-btn-N2 { background-color: #ff3032; color: #FFFFFF; }
     #chargerButtons { margin: 0 auto; display: flex; flex-direction: column; gap: 8px; padding: 0 5px; }
     .row { display: flex; gap: 8px; }
     .row-top, .row-bottom { justify-content: center; }
@@ -412,6 +417,7 @@
             <input id="plate" name="license_plate" type="text" autocomplete="nickname" placeholder="Car Plate Number" required oninput="this.value = this.value.toUpperCase()" />
             <input id="phone" name="tel" type="tel" autocomplete="tel" placeholder="Phone Number" pattern="[0-9]*" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '');" />
             <input id="email" name="email" type="email" autocomplete="email" placeholder="Email for Confirmation (Required)" required />
+            <label class="save-info-label"><input type="checkbox" id="rememberMe" />Autofill my information in the next reservation</label>
             <div id="chargerButtons">
               <div class="row row-top">
                 <button type="button" class="charger-btn filter-btn-a" data-charger="Tower A">Tower A</button>
@@ -428,7 +434,6 @@
             <input id="start_datetime" name="start_datetime" type="datetime-local" step="1800" required />
             <label for="end_datetime">End Date & Time</label>
             <input id="end_datetime" name="end_datetime" type="datetime-local" step="1800" required />
-            <label class="save-info-label"><input type="checkbox" id="rememberMe" />Autofill details</label>
             <button type="submit">Reserve</button>
           </form>
         </div>
@@ -751,61 +756,163 @@
     }
 
     function renderCalendar(events) {
-        const calendarEl = document.getElementById('calendar');
-        if (calendar) { calendar.removeAllEvents(); calendar.addEventSource(events); return; }
-        const isMobile = window.innerWidth <= 768;
-        calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'timeGridWeek', allDaySlot: false, stickyHeaderDates: true, timeZone: 'local', firstDay: 1, nowIndicator: true,
-            editable: false, longPressDelay: 9999, selectable: false,
-            headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
-            events: events, contentHeight: isMobile ? 'auto' : 'auto', scrollTimeReset: false,
-            eventClick: info => showEventDetails(info.event),
-            eventContent: arg => ({ html: `<div class="fc-event-main-frame"><div class="fc-event-title-container" style="font-weight:bold;"><div class="fc-event-title fc-sticky" style="color:#FFF;">${arg.event.title}</div><div style="font-size:0.85em; color:#FFF;">${arg.event.extendedProps.charger}</div></div></div>` })
-        });
-        calendar.render();
-        calendarEl.style.touchAction = 'pan-y';
-        setTimeout(() => calendarEl.querySelectorAll('.fc-view-harness, .fc-scroller, .fc-timegrid-body').forEach(el => el.style.touchAction = 'pan-y'), 100);
-        const calendarHammer = new Hammer(calendarEl, { touchAction: 'pan-y' });
-        calendarHammer.on('swipeleft', e => { e.srcEvent.stopPropagation(); calendar.next(); });
-        calendarHammer.on('swiperight', e => { e.srcEvent.stopPropagation(); calendar.prev(); });
-    }
-
-    function updateChargerStatus() {
-        const chargers = { 'Tower A': 'statusTowerA', 'Tower B': 'statusTowerB', 'North 1': 'statusNorth1', 'North 2': 'statusNorth2', 'Clubhouse': 'statusClubhouse' };
-        const statusMap = Object.keys(chargers).reduce((acc, name) => ({ ...acc, [name]: { occupied: false, event: null, upcomingEvent: null } }), {});
-        const now = new Date();
-        allEvents.forEach(event => {
-            const charger = event.extendedProps.charger;
-            if (!statusMap[charger]) return;
-            const start = new Date(event.start); const end = new Date(event.end);
-            if (now >= start && now < end) { statusMap[charger].occupied = true; statusMap[charger].event = event; }
-            else if (start > now && (!statusMap[charger].upcomingEvent || new Date(statusMap[charger].upcomingEvent.start) > start)) { statusMap[charger].upcomingEvent = event; }
-        });
-        Object.entries(statusMap).forEach(([chargerName, status]) => {
-            const div = document.getElementById(chargers[chargerName]);
-            if (!div) return;
-            let html = '';
-            if (status.occupied) {
-                const event = status.event; const start = new Date(event.start); const end = new Date(event.end); const total = end - start; const elapsed = now - start;
-                const progress = Math.min(100, (elapsed / total) * 100);
-                const remainingMinutes = Math.floor((end - now) / 60000);
-                const hoursLeft = Math.floor(remainingMinutes / 60); const minutesLeft = remainingMinutes % 60;
-                const timeLeftText = hoursLeft > 0 ? `${hoursLeft}h ${minutesLeft}m left` : `${minutesLeft}m left`;
-                html = `<div class="charger-status-item occupied"><div style="display: flex; justify-content: space-between; align-items: center;"><strong>${chargerName}</strong><span style="font-size: 0.80em; font-weight: bold; color: #1e2128;">${timeLeftText}</span></div><span class="status-text"><b>Charging</b><br>${event.title}<br><small>${start.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} to ${end.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small></span><div class="progress-bar-container"><div class="progress-bar ${progress <= 80 ? 'orange' : 'green'} active" style="width:${progress}%;"></div></div>${generateUpcomingHtml(status.upcomingEvent, now)}</div>`;
-            } else {
-                html = `<div class="charger-status-item ${status.upcomingEvent ? 'upcoming' : 'vacant'}"><strong>${chargerName}</strong><span class="status-text"><strong>Available</strong></span>${generateUpcomingHtml(status.upcomingEvent, now)}</div>`;
+                const calendarEl = document.getElementById('calendar');
+                if (calendar) { calendar.removeAllEvents(); calendar.addEventSource(events); return; }
+                const isMobile = window.innerWidth <= 768;
+                calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'timeGridWeek', allDaySlot: false, stickyHeaderDates: true, timeZone: 'local', firstDay: 1, nowIndicator: true,
+                    editable: false, longPressDelay: 9999, selectable: false,
+                    headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+                    events: events, contentHeight: isMobile ? 'auto' : 'auto', scrollTimeReset: false,
+                    eventClick: info => showEventDetails(info.event),
+                    eventContent: arg => ({ html: `<div class="fc-event-main-frame"><div class="fc-event-title-container" style="font-weight:bold;"><div class="fc-event-title fc-sticky" style="color:#FFF;">${arg.event.title}</div><div style="font-size:0.85em; color:#FFF;">${arg.event.extendedProps.charger}</div></div></div>` })
+                });
+                calendar.render();
+                calendarEl.style.touchAction = 'pan-y';
+                setTimeout(() => calendarEl.querySelectorAll('.fc-view-harness, .fc-scroller, .fc-timegrid-body').forEach(el => el.style.touchAction = 'pan-y'), 100);
+                const calendarHammer = new Hammer(calendarEl, { touchAction: 'pan-y' });
+                calendarHammer.on('swipeleft', e => { e.srcEvent.stopPropagation(); calendar.next(); });
+                calendarHammer.on('swiperight', e => { e.srcEvent.stopPropagation(); calendar.prev(); });
             }
-            if (div.innerHTML !== html) div.innerHTML = html;
-        });
-    }
-
-    function generateUpcomingHtml(event, now) {
+        
+            function updateChargerStatus() {
+            const chargers = {
+                'Tower A': { elementId: 'statusTowerA' },
+                'Tower B': { elementId: 'statusTowerB' },
+                'North 1': { elementId: 'statusNorth1' },
+                'North 2': { elementId: 'statusNorth2' },
+                'Clubhouse': { elementId: 'statusClubhouse' }
+            };
+        
+            const statusMap = Object.keys(chargers).reduce((acc, name) => ({ ...acc, [name]: { occupied: false, event: null, upcomingEvent: null } }), {});
+            const now = new Date();
+        
+            allEvents.forEach(event => {
+                const charger = event.extendedProps.charger;
+                if (!statusMap[charger]) return;
+                const start = new Date(event.start);
+                const end = new Date(event.end);
+                if (now >= start && now < end) {
+                    statusMap[charger].occupied = true;
+                    statusMap[charger].event = event;
+                } else if (start > now && (!statusMap[charger].upcomingEvent || new Date(statusMap[charger].upcomingEvent.start) > start)) {
+                    statusMap[charger].upcomingEvent = event;
+                }
+            });
+        
+            Object.entries(statusMap).forEach(([chargerName, status]) => {
+                const div = document.getElementById(chargers[chargerName].elementId);
+                if (!div) return;
+                
+                let html = '';
+                const upcomingHtml = generateUpcomingHtml(status.upcomingEvent, now);
+                
+                if (status.occupied) {
+                    const event = status.event;
+                    const start = new Date(event.start);
+                    const end = new Date(event.end);
+        
+                    // THE FIX IS HERE: Define and use the same detailed formatting options
+                    const dateTimeOptions = {
+                        year: 'numeric', month: '2-digit', day: '2-digit',
+                        hour: 'numeric', minute: '2-digit', hour12: true
+                    };
+                    const startStr = start.toLocaleString('en-GB', dateTimeOptions).replace(',', '');
+                    const endStr = end.toLocaleString('en-GB', dateTimeOptions).replace(',', '');
+                    
+                    const totalDuration = end - start;
+                    const elapsedDuration = now - start;
+                    const progress = Math.min(100, Math.max(0, (elapsedDuration / totalDuration) * 100));
+                    
+                    const remainingMs = end - now;
+                    const remainingMinutes = Math.floor(remainingMs / 60000);
+                    const hoursLeft = Math.floor(remainingMinutes / 60);
+                    const minutesLeft = remainingMinutes % 60;
+                    const timeLeftText = remainingMs > 0 ? (hoursLeft > 0 ? `${hoursLeft}h ${minutesLeft}m left` : `${minutesLeft}m left`) : 'Ending soon';
+        
+                    html = `
+                        <div class="charger-status-item occupied">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <strong>${chargerName}</strong>
+                                <span style="font-size: 0.80em; font-weight: bold; color: #1e2128;">${timeLeftText}</span>
+                            </div>
+                            <span class="status-text">
+                                <b>Charging</b><br>
+                                ${event.title}<br>
+                                <small>${startStr} to ${endStr}</small>
+                            </span>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar active" style="width:${progress}%;"></div>
+                            </div>
+                            ${upcomingHtml}
+                        </div>
+                    `;
+                } else {
+                    html = `
+                        <div class="charger-status-item ${status.upcomingEvent ? 'upcoming' : 'vacant'}">
+                            <strong>${chargerName}</strong>
+                            <span class="status-text"><strong>Vacant</strong></span>
+                            ${upcomingHtml}
+                        </div>
+                    `;
+                }
+                
+                if (div.innerHTML !== html) {
+                    div.innerHTML = html;
+                }
+            });
+        }
+    
+        function generateUpcomingHtml(event, now) {
+        // If there is no upcoming event, return an empty string.
         if (!event) return '';
+    
         const start = new Date(event.start);
-        const diffMinutes = Math.floor((start - now) / 60000);
-        const days = Math.floor(diffMinutes / 1440); const hours = Math.floor((diffMinutes % 1440) / 60); const minutes = diffMinutes % 60;
-        let startsIn = days > 0 ? `in ${days}d ${hours}h` : hours > 0 ? `in ${hours}h ${minutes}m` : `in ${minutes}m`;
-        return `<div class="upcoming-session"><strong>Upcoming:</strong> ${event.title}<br><small>${start.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} (${startsIn})</small></div>`;
+        const end = new Date(event.end);
+        
+        // Define formatting options to match the image: dd/mm/yyyy, hh:mm am/pm
+        const dateTimeOptions = {
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: 'numeric', minute: '2-digit', hour12: true
+        };
+    
+        // Format the start and end strings
+        const startStr = start.toLocaleString('en-GB', dateTimeOptions).replace(',', '');
+        const endStr = end.toLocaleString('en-GB', dateTimeOptions).replace(',', '');
+    
+        // Calculate the "Starts in..." countdown text
+        let startsInText = '';
+        const timeUntilStart = start.getTime() - now.getTime();
+    
+        if (timeUntilStart > 0) {
+            const totalMinutes = Math.floor(timeUntilStart / (1000 * 60));
+            const days = Math.floor(totalMinutes / (60 * 24));
+            const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+            const minutes = totalMinutes % 60;
+            
+            // Build the countdown string based on how much time is left
+            if (days > 0) {
+                startsInText = `Starts in ${days}d ${hours}h ${minutes}m`;
+            } else if (hours > 0) {
+                startsInText = `Starts in ${hours}h ${minutes}m`;
+            } else {
+                startsInText = `Starts in ${minutes}m`;
+            }
+        } else {
+            startsInText = 'Starting soon';
+        }
+    
+        // Construct the final HTML, matching the structure and styling from your image
+        return `
+            <div class="upcoming-session">
+                <strong>Upcoming Session</strong><br>
+                <span class="status-text">
+                    ${event.title}<br>
+                    <small>${startStr} to ${endStr}</small><br>
+                    <span class="starts-in">${startsInText}</span>
+                </span>
+            </div>
+        `;
     }
 
     function filterEventsByCharger(charger) {
