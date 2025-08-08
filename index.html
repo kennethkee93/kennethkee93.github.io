@@ -1068,29 +1068,36 @@
        PWA & FIREBASE LOGIC (from original github.io file)
        ================================================================= */
     if ('serviceWorker' in navigator) {
-      let refreshing = false;
+      // We don't need the 'refreshing' flag anymore.
       navigator.serviceWorker.register('/service-worker.js').then(reg => {
         reg.addEventListener('updatefound', () => {
           const newWorker = reg.installing;
           newWorker.addEventListener('statechange', () => {
+            // This condition is the same: a new worker is ready and an old one is active.
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               const toast = document.getElementById('updateToast');
               if (toast) {
                 toast.style.display = 'block';
-                document.getElementById('refreshBtn').onclick = async () => {
-                  try {
-                    await Promise.all((await caches.keys()).map(name => caches.delete(name)));
-                    refreshing = true;
-                    toast.style.display = 'none';
-                    newWorker.postMessage({ action: 'skipWaiting' });
-                  } catch (error) { console.error('Update error:', error); refreshing = false; }
+                
+                // SIMPLIFIED ONCLICK HANDLER:
+                // Its only job is to tell the new worker to take over.
+                document.getElementById('refreshBtn').onclick = () => {
+                  toast.style.display = 'none'; // Hide the button immediately
+                  newWorker.postMessage({ action: 'skipWaiting' });
                 };
               }
             }
           });
         });
       }).catch(err => console.error('SW registration failed:', err));
-      navigator.serviceWorker.addEventListener('controllerchange', () => { if (refreshing) window.location.reload(); });
+    
+      // THE KEY CHANGE IS HERE:
+      // We listen for when the new worker has taken control.
+      // When it does, we reload the page unconditionally to get the new assets.
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        console.log('SW Controller changed! Reloading page...');
+        window.location.reload();
+      });
     }
 
     // Firebase for live notifications
