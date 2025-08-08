@@ -258,9 +258,26 @@
         cursor: pointer;
     }
     
-    /* Styles for Flatpickr and noUiSlider from the example */
-    #date-calendar .flatpickr-calendar { width: 100% !important; box-shadow: none; border: none; }
-    #date-calendar .flatpickr-rContainer, #date-calendar .dayContainer { width: 100%; }
+    /* Styles for Flatpickr and noUiSlider */
+    .calendar-wrapper {
+    display: flex;
+    justify-content: center;
+    }
+    
+    /* 2. Remove any conflicting styles from the direct container */
+    #date-calendar {
+        /* This element no longer needs centering styles */
+    }
+    
+    /* 3. Ensure the calendar itself doesn't force a full width */
+    #date-calendar .flatpickr-calendar {
+        /* Let the calendar determine its own width based on its content */
+        width: auto;
+        box-shadow: none;
+        border: none;
+    }
+    
+    /* (The rest of your flatpickr day/weekday styles are correct and can remain) */
     #date-calendar .flatpickr-weekdays { display: flex; }
     #date-calendar .flatpickr-weekday { flex: 1; text-align: center; font-weight: 500; }
     #date-calendar .flatpickr-day { flex-basis: 14.28%; max-width: none; height: 38px; line-height: 38px; border-radius: 50%; }
@@ -271,7 +288,7 @@
     .time-selector-group { margin-top: 25px; }
     .time-selector-group label { display: block; font-size: 14px; font-weight: 500; color: #34495e; margin-bottom: 15px; }
     .time-selector-group label span { float: right; font-weight: 600; background-color: #f0f3f5; padding: 3px 8px; border-radius: 5px; }
-    .time-slider { height: 6px; border: none; }
+    .time-slider { height: 8px; border: none; }
     #start-time-slider .noUi-connect { background: #5e72e4; }
     #start-time-slider .noUi-handle { background: #5e72e4; }
     #end-time-slider .noUi-connect { background: #f5365c; }
@@ -1351,7 +1368,9 @@
       <div class="modal-content">
           <button id="closeDateTimePicker" class="close-button">&times;</button>
           <h2>Select Date & Time</h2>
-          <div id="date-calendar"></div>
+          <div class="calendar-wrapper">
+              <div id="date-calendar"></div>
+          </div>
           <div class="time-selector-group">
               <label>Start Time: <span id="start-time-value"></span></label>
               <div id="start-time-slider" class="time-slider"></div>
@@ -1366,7 +1385,7 @@
           <!-- These hidden inputs are temporary storage for the modal -->
           <input type="hidden" id="dtp_start_datetime">
           <input type="hidden" id="dtp_end_datetime">
-          <button id="apply-button" class="apply-button" disabled>✓ APPLY SELECTION</button>
+          <button id="apply-button" class="apply-button" disabled>CONFIRM</button>
       </div>
     </div>
 </body>
