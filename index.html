@@ -636,7 +636,7 @@
     // =================================================================
     //        LOGIC FOR THE NEW DATE & TIME PICKER MODAL
     // =================================================================
-    function initializeDateTimePicker() {
+function initializeDateTimePicker() {
     const modal = document.getElementById('dateTimePickerModal');
     if (!modal) return;
 
@@ -660,36 +660,42 @@
     let endTimeInMinutes = 1020;
     const MINIMUM_SLOT_MINUTES = 15;
 
-    // --- Helper Functions (unchanged) ---
-    function minutesToTimeFormat(minutes, isEndTime = false) {
-        if (isEndTime && minutes > 0) { minutes = minutes - 1; }
-        minutes = Math.round(minutes); const h = Math.floor(minutes / 60); const m = minutes % 60;
-        const ampm = h >= 12 ? 'PM' : 'AM'; const hour12 = h % 12 === 0 ? 12 : h % 12;
+    // THE FIX: Simplified minutesToTimeFormat, no more "-1 minute" logic
+    function minutesToTimeFormat(minutes) {
+        minutes = Math.round(minutes);
+        const h = Math.floor(minutes / 60);
+        const m = minutes % 60;
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const hour12 = h % 12 === 0 ? 12 : h % 12;
         return `${hour12}:${m < 10 ? '0' + m : m} ${ampm}`;
     }
+
+    // THE FIX: Simplified updateSummary, no more "-1 minute" logic
     function updateSummary() {
         if (!startDate) {
             summaryTextEl.innerHTML = `<span class="summary-placeholder">Select a start date</span>`;
             applyButton.disabled = true;
             return;
         }
+        
         const effectiveEndDate = (endDate && startDate.getTime() !== endDate.getTime()) ? endDate : startDate;
+
         const finalStart = new Date(startDate);
         finalStart.setHours(Math.floor(startTimeInMinutes / 60), startTimeInMinutes % 60, 0, 0);
+
         const finalEnd = new Date(effectiveEndDate);
         finalEnd.setHours(Math.floor(endTimeInMinutes / 60), endTimeInMinutes % 60, 0, 0);
-        finalEnd.setMinutes(finalEnd.getMinutes() - 1);
-        if (finalEnd < finalStart) {
+        
+        if (finalEnd <= finalStart) {
             summaryTextEl.innerHTML = `<span class="summary-placeholder" style="color: #f5365c;">End time must be after start time</span>`;
             applyButton.disabled = true;
             return;
         }
+        
         const options = { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true };
         summaryTextEl.innerText = `${finalStart.toLocaleString('en-US', options)} - ${finalEnd.toLocaleString('en-US', options)}`;
         modalStartEl.value = finalStart.toISOString();
-        const serverFinalEnd = new Date(effectiveEndDate);
-        serverFinalEnd.setHours(Math.floor(endTimeInMinutes / 60), endTimeInMinutes % 60, 0, 0);
-        modalEndEl.value = serverFinalEnd.toISOString();
+        modalEndEl.value = finalEnd.toISOString();
         applyButton.disabled = false;
     }
 
@@ -697,7 +703,7 @@
     const startSlider = noUiSlider.create(startSliderEl, { start: startTimeInMinutes, connect: [true, false], step: 15, range: { 'min': 0, 'max': 1440 - MINIMUM_SLOT_MINUTES } });
     const endSlider = noUiSlider.create(endSliderEl, { start: endTimeInMinutes, connect: [true, false], step: 15, range: { 'min': MINIMUM_SLOT_MINUTES, 'max': 1440 } });
     
-    // --- Event Handlers (unchanged) ---
+    // --- Event Handlers (unchanged logic, but simplified display call) ---
     startSlider.on('update', (values, handle, unencoded) => {
         startTimeInMinutes = unencoded[0];
         startTimeValueEl.innerText = minutesToTimeFormat(startTimeInMinutes);
@@ -706,54 +712,37 @@
     });
     endSlider.on('update', (values, handle, unencoded) => {
         endTimeInMinutes = unencoded[0];
-        endTimeValueEl.innerText = minutesToTimeFormat(endTimeInMinutes, true);
+        // THE FIX: Reverted to the simple call without the 'true' parameter
+        endTimeValueEl.innerText = minutesToTimeFormat(endTimeInMinutes);
         if (!endDate || startDate.getTime() === endDate.getTime()) { if (endTimeInMinutes <= startTimeInMinutes) { startTimeInMinutes = endTimeInMinutes - MINIMUM_SLOT_MINUTES; startSlider.set(startTimeInMinutes); } }
         updateSummary();
     });
     const datePicker = flatpickr("#date-calendar", { inline: true, minDate: "today", disableMobile: true, mode: 'range', onChange: (selectedDates) => { startDate = selectedDates[0] || null; endDate = selectedDates[1] || null; updateSummary(); } });
     
-    // THE KEY CHANGE IS HERE: The openModal function is now smarter.
+    // --- Modal Control Functions (unchanged logic for smart open) ---
     function openModal() {
         modal.style.display = 'flex';
-
-        // 1. Calculate the new default start time
         const now = new Date();
         const currentMinutes = now.getHours() * 60 + now.getMinutes();
-        // This formula rounds the current time UP to the next 15-minute interval
         let roundedStartTime = Math.ceil(currentMinutes / 15) * 15;
-
-        // 2. Calculate a sensible default end time (1 hour later)
         let roundedEndTime = roundedStartTime + 60;
-        
-        // 3. Handle edge cases near midnight to prevent errors
-        if (roundedEndTime > 1440) { // If end time wraps past midnight
-            roundedEndTime = 1440; // Clamp it to 11:59 PM
-        }
-        if (roundedStartTime >= 1440 - MINIMUM_SLOT_MINUTES) { // If start is 11:45 PM or later
-            roundedStartTime = 1440 - MINIMUM_SLOT_MINUTES; // Clamp start to 11:45 PM
-            roundedEndTime = 1440; // And end to 11:59 PM
-        }
-
-        // 4. Reset the UI and set the new defaults
+        if (roundedEndTime > 1440) { roundedEndTime = 1440; }
+        if (roundedStartTime >= 1440 - MINIMUM_SLOT_MINUTES) { roundedStartTime = 1440 - MINIMUM_SLOT_MINUTES; roundedEndTime = 1440; }
         datePicker.clear();
-        startDate = null;
-        endDate = null;
-        
+        startDate = null; endDate = null;
         startSlider.set(roundedStartTime); 
         endSlider.set(roundedEndTime); 
-        
-        updateSummary(); // This will correctly show the placeholder text
+        updateSummary();
     }
-    
-    function closeModal() {
-        modal.style.display = 'none';
-    }
+    function closeModal() { modal.style.display = 'none'; }
 
-    // --- Final Event Listeners (unchanged) ---
+    // --- Final Event Listeners ---
     mainFormStartDisplay.addEventListener('click', openModal);
     mainFormEndDisplay.addEventListener('click', openModal);
     document.getElementById('closeDateTimePicker').addEventListener('click', closeModal);
     modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+    // THE FIX: Simplified applyButton listener, no more "-1 minute" logic
     applyButton.addEventListener('click', () => {
         if (!applyButton.disabled) {
             const startValueISO = modalStartEl.value;
@@ -761,17 +750,14 @@
             mainFormStartHidden.value = startValueISO;
             mainFormEndHidden.value = endValueISO;
             const displayOptions = { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true };
-            const finalEndDateForDisplay = new Date(endValueISO);
-            finalEndDateForDisplay.setMinutes(finalEndDateForDisplay.getMinutes() - 1);
             mainFormStartDisplay.value = new Date(startValueISO).toLocaleString('en-US', displayOptions);
-            mainFormEndDisplay.value = new Date(finalEndDateForDisplay).toLocaleString('en-US', displayOptions);
+            mainFormEndDisplay.value = new Date(endValueISO).toLocaleString('en-US', displayOptions); // Now uses the clean value
             closeModal();
         }
     });
 
     updateSummary();
-}
-    
+}  
     function showTab(tab) {
         const panels = { status: document.getElementById('statusPanel'), calendar: document.getElementById('calendarPanel'), form: document.getElementById('formPanel') };
         const newIndex = tabPanels.indexOf(tab);
