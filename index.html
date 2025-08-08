@@ -1209,7 +1209,7 @@ function initializeDateTimePicker() {
     
         // If the errors array has anything in it, show the message and stop.
         if (validationErrors.length > 0) {
-            const errorMessage = "Please complete the " + validationErrors.join(' & ');
+            const errorMessage = "Please complete the " + validationErrors.join(', ');
             showMessage('error', errorMessage);
             return; // Stop the function here
         }
