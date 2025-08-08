@@ -637,140 +637,140 @@
     //        LOGIC FOR THE NEW DATE & TIME PICKER MODAL
     // =================================================================
     function initializeDateTimePicker() {
-        const modal = document.getElementById('dateTimePickerModal');
-        if (!modal) return;
-    
-        const summaryTextEl = document.getElementById('summary-text');
-        const modalStartEl = document.getElementById('dtp_start_datetime');
-        const modalEndEl = document.getElementById('dtp_end_datetime');
-        const applyButton = document.getElementById('apply-button');
-        const startTimeValueEl = document.getElementById('start-time-value');
-        const endTimeValueEl = document.getElementById('end-time-value');
-        const startSliderEl = document.getElementById('start-time-slider');
-        const endSliderEl = document.getElementById('end-time-slider');
-        
-        const mainFormStartDisplay = document.getElementById('start_display');
-        const mainFormEndDisplay = document.getElementById('end_display');
-        const mainFormStartHidden = document.getElementById('start_datetime');
-        const mainFormEndHidden = document.getElementById('end_datetime');
-    
-        let startDate = null, endDate = null;
-        let startTimeInMinutes = 540; 
-        let endTimeInMinutes = 1020; 
-    
-        function minutesToTimeFormat(minutes) {
-            minutes = Math.round(minutes);
-            const h = Math.floor(minutes / 60);
-            const m = minutes % 60;
-            const ampm = h >= 12 ? 'PM' : 'AM';
-            const hour12 = h % 12 === 0 ? 12 : h % 12;
-            return `${hour12}:${m < 10 ? '0' + m : m} ${ampm}`;
-        }
-    
-        function updateUI() {
-            if (!startDate) {
-                summaryTextEl.innerHTML = `<span class="summary-placeholder">Select a start date</span>`;
-                applyButton.disabled = true;
-                return;
-            }
-            
-            const finalStart = new Date(startDate);
-            finalStart.setHours(Math.floor(startTimeInMinutes / 60), startTimeInMinutes % 60, 0, 0);
-    
-            const adjustedEndTimeInMinutes = endTimeInMinutes > 0 ? endTimeInMinutes - 1 : 0;
-            
-            let finalEnd;
-            if (endDate && endDate > startDate) {
-                finalEnd = new Date(endDate);
-                finalEnd.setHours(Math.floor(adjustedEndTimeInMinutes / 60), adjustedEndTimeInMinutes % 60, 0, 0);
-            } else {
-                finalEnd = new Date(startDate);
-                const endDayOffset = Math.floor(adjustedEndTimeInMinutes / 1440);
-                finalEnd.setDate(finalEnd.getDate() + endDayOffset);
-                const minutesOnFinalDay = adjustedEndTimeInMinutes % 1440;
-                finalEnd.setHours(Math.floor(minutesOnFinalDay / 60), minutesOnFinalDay % 60, 0, 0);
-            }
-            
-            const options = { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true };
-            summaryTextEl.innerText = `${finalStart.toLocaleString('en-US', options)} - ${finalEnd.toLocaleString('en-US', options)}`;
-            modalStartEl.value = finalStart.toISOString();
-            modalEndEl.value = finalEnd.toISOString();
-            applyButton.disabled = false;
-        }
-    
-        const datePicker = flatpickr("#date-calendar", {
-            inline: true, minDate: "today", disableMobile: true, mode: 'range',
-            onChange: (selectedDates) => {
-                startDate = selectedDates[0] || null;
-                endDate = selectedDates[1] || null;
-                updateUI();
-            }
-        });
-        
-        const startSlider = noUiSlider.create(startSliderEl, {
-            start: startTimeInMinutes, connect: [true, false], step: 15,
-            range: { 'min': 0, 'max': 1439 }
-        });
-    
-        startSlider.on('update', (values, handle) => {
-            startTimeInMinutes = Number(values[handle]);
-            startTimeValueEl.innerText = minutesToTimeFormat(startTimeInMinutes);
-            if ((!endDate || startDate.getTime() === endDate.getTime()) && startTimeInMinutes >= endTimeInMinutes) {
-                endTimeInMinutes = startTimeInMinutes + 15;
-                endSlider.set(endTimeInMinutes);
-            }
-            if (startDate) updateUI();
-        });
-    
-        const endSlider = noUiSlider.create(endSliderEl, {
-            start: endTimeInMinutes, connect: [true, false], step: 15,
-            range: { 'min': 0, 'max': 2879 } 
-        });
-    
-        endSlider.on('update', (values, handle) => {
-            endTimeInMinutes = Number(values[handle]);
-            if ((!endDate || startDate.getTime() === endDate.getTime()) && endTimeInMinutes <= startTimeInMinutes) {
-                endTimeInMinutes = startTimeInMinutes + 15;
-                endSlider.set(endTimeInMinutes); 
-            }
-            endTimeValueEl.innerText = minutesToTimeFormat(endTimeInMinutes % 1440);
-            if (startDate) updateUI();
-        });
-    
-        function openModal() {
-            modal.style.display = 'flex';
-            datePicker.clear();
-            startDate = null; endDate = null;
-            startSlider.set(540); 
-            endSlider.set(1020); 
-            updateUI();
-        }
-        
-        function closeModal() {
-            modal.style.display = 'none';
-        }
-    
-        mainFormStartDisplay.addEventListener('click', openModal);
-        mainFormEndDisplay.addEventListener('click', openModal);
-        document.getElementById('closeDateTimePicker').addEventListener('click', closeModal);
-        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-    
-        applyButton.addEventListener('click', () => {
-            if (!applyButton.disabled) {
-                const startValue = modalStartEl.value;
-                const endValue = modalEndEl.value;
-    
-                mainFormStartHidden.value = startValue;
-                mainFormEndHidden.value = endValue;
-    
-                const displayOptions = { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true };
-                mainFormStartDisplay.value = new Date(startValue).toLocaleString('en-US', displayOptions);
-                mainFormEndDisplay.value = new Date(endValue).toLocaleString('en-US', displayOptions);
-    
-                closeModal();
-            }
-        });
+    const modal = document.getElementById('dateTimePickerModal');
+    if (!modal) return;
+
+    // --- References to Elements (unchanged) ---
+    const summaryTextEl = document.getElementById('summary-text');
+    const modalStartEl = document.getElementById('dtp_start_datetime');
+    const modalEndEl = document.getElementById('dtp_end_datetime');
+    const applyButton = document.getElementById('apply-button');
+    const startTimeValueEl = document.getElementById('start-time-value');
+    const endTimeValueEl = document.getElementById('end-time-value');
+    const startSliderEl = document.getElementById('start-time-slider');
+    const endSliderEl = document.getElementById('end-time-slider');
+    const mainFormStartDisplay = document.getElementById('start_display');
+    const mainFormEndDisplay = document.getElementById('end_display');
+    const mainFormStartHidden = document.getElementById('start_datetime');
+    const mainFormEndHidden = document.getElementById('end_datetime');
+
+    // --- State Variables (unchanged) ---
+    let startDate = null, endDate = null;
+    let startTimeInMinutes = 540;
+    let endTimeInMinutes = 1020;
+    const MINIMUM_SLOT_MINUTES = 15;
+
+    // --- Helper Functions (unchanged) ---
+    function minutesToTimeFormat(minutes, isEndTime = false) {
+        if (isEndTime && minutes > 0) { minutes = minutes - 1; }
+        minutes = Math.round(minutes); const h = Math.floor(minutes / 60); const m = minutes % 60;
+        const ampm = h >= 12 ? 'PM' : 'AM'; const hour12 = h % 12 === 0 ? 12 : h % 12;
+        return `${hour12}:${m < 10 ? '0' + m : m} ${ampm}`;
     }
+    function updateSummary() {
+        if (!startDate) {
+            summaryTextEl.innerHTML = `<span class="summary-placeholder">Select a start date</span>`;
+            applyButton.disabled = true;
+            return;
+        }
+        const effectiveEndDate = (endDate && startDate.getTime() !== endDate.getTime()) ? endDate : startDate;
+        const finalStart = new Date(startDate);
+        finalStart.setHours(Math.floor(startTimeInMinutes / 60), startTimeInMinutes % 60, 0, 0);
+        const finalEnd = new Date(effectiveEndDate);
+        finalEnd.setHours(Math.floor(endTimeInMinutes / 60), endTimeInMinutes % 60, 0, 0);
+        finalEnd.setMinutes(finalEnd.getMinutes() - 1);
+        if (finalEnd < finalStart) {
+            summaryTextEl.innerHTML = `<span class="summary-placeholder" style="color: #f5365c;">End time must be after start time</span>`;
+            applyButton.disabled = true;
+            return;
+        }
+        const options = { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true };
+        summaryTextEl.innerText = `${finalStart.toLocaleString('en-US', options)} - ${finalEnd.toLocaleString('en-US', options)}`;
+        modalStartEl.value = finalStart.toISOString();
+        const serverFinalEnd = new Date(effectiveEndDate);
+        serverFinalEnd.setHours(Math.floor(endTimeInMinutes / 60), endTimeInMinutes % 60, 0, 0);
+        modalEndEl.value = serverFinalEnd.toISOString();
+        applyButton.disabled = false;
+    }
+
+    // --- Slider Initialization (unchanged) ---
+    const startSlider = noUiSlider.create(startSliderEl, { start: startTimeInMinutes, connect: [true, false], step: 15, range: { 'min': 0, 'max': 1440 - MINIMUM_SLOT_MINUTES } });
+    const endSlider = noUiSlider.create(endSliderEl, { start: endTimeInMinutes, connect: [true, false], step: 15, range: { 'min': MINIMUM_SLOT_MINUTES, 'max': 1440 } });
+    
+    // --- Event Handlers (unchanged) ---
+    startSlider.on('update', (values, handle, unencoded) => {
+        startTimeInMinutes = unencoded[0];
+        startTimeValueEl.innerText = minutesToTimeFormat(startTimeInMinutes);
+        if (!endDate || startDate.getTime() === endDate.getTime()) { if (startTimeInMinutes >= endTimeInMinutes) { endTimeInMinutes = startTimeInMinutes + MINIMUM_SLOT_MINUTES; endSlider.set(endTimeInMinutes); } }
+        updateSummary();
+    });
+    endSlider.on('update', (values, handle, unencoded) => {
+        endTimeInMinutes = unencoded[0];
+        endTimeValueEl.innerText = minutesToTimeFormat(endTimeInMinutes, true);
+        if (!endDate || startDate.getTime() === endDate.getTime()) { if (endTimeInMinutes <= startTimeInMinutes) { startTimeInMinutes = endTimeInMinutes - MINIMUM_SLOT_MINUTES; startSlider.set(startTimeInMinutes); } }
+        updateSummary();
+    });
+    const datePicker = flatpickr("#date-calendar", { inline: true, minDate: "today", disableMobile: true, mode: 'range', onChange: (selectedDates) => { startDate = selectedDates[0] || null; endDate = selectedDates[1] || null; updateSummary(); } });
+    
+    // THE KEY CHANGE IS HERE: The openModal function is now smarter.
+    function openModal() {
+        modal.style.display = 'flex';
+
+        // 1. Calculate the new default start time
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        // This formula rounds the current time UP to the next 15-minute interval
+        let roundedStartTime = Math.ceil(currentMinutes / 15) * 15;
+
+        // 2. Calculate a sensible default end time (1 hour later)
+        let roundedEndTime = roundedStartTime + 60;
+        
+        // 3. Handle edge cases near midnight to prevent errors
+        if (roundedEndTime > 1440) { // If end time wraps past midnight
+            roundedEndTime = 1440; // Clamp it to 11:59 PM
+        }
+        if (roundedStartTime >= 1440 - MINIMUM_SLOT_MINUTES) { // If start is 11:45 PM or later
+            roundedStartTime = 1440 - MINIMUM_SLOT_MINUTES; // Clamp start to 11:45 PM
+            roundedEndTime = 1440; // And end to 11:59 PM
+        }
+
+        // 4. Reset the UI and set the new defaults
+        datePicker.clear();
+        startDate = null;
+        endDate = null;
+        
+        startSlider.set(roundedStartTime); 
+        endSlider.set(roundedEndTime); 
+        
+        updateSummary(); // This will correctly show the placeholder text
+    }
+    
+    function closeModal() {
+        modal.style.display = 'none';
+    }
+
+    // --- Final Event Listeners (unchanged) ---
+    mainFormStartDisplay.addEventListener('click', openModal);
+    mainFormEndDisplay.addEventListener('click', openModal);
+    document.getElementById('closeDateTimePicker').addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    applyButton.addEventListener('click', () => {
+        if (!applyButton.disabled) {
+            const startValueISO = modalStartEl.value;
+            const endValueISO = modalEndEl.value;
+            mainFormStartHidden.value = startValueISO;
+            mainFormEndHidden.value = endValueISO;
+            const displayOptions = { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true };
+            const finalEndDateForDisplay = new Date(endValueISO);
+            finalEndDateForDisplay.setMinutes(finalEndDateForDisplay.getMinutes() - 1);
+            mainFormStartDisplay.value = new Date(startValueISO).toLocaleString('en-US', displayOptions);
+            mainFormEndDisplay.value = new Date(finalEndDateForDisplay).toLocaleString('en-US', displayOptions);
+            closeModal();
+        }
+    });
+
+    updateSummary();
+}
     
     function showTab(tab) {
         const panels = { status: document.getElementById('statusPanel'), calendar: document.getElementById('calendarPanel'), form: document.getElementById('formPanel') };
