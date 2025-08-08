@@ -49,36 +49,207 @@
     }
     
     /* ===== HEADER STYLES (Unchanged, but included for context) ===== */
-    #appHeader {
-        display: flex;
-        flex: 0 0 auto; /* Header should not grow or shrink */
-        justify-content: center;
-        align-items: center;
-        padding: 10px;
-        text-align: center;
-        z-index: 10;
-        transition: all 0.3s ease;
-        overflow: hidden;
+#appHeader {
+    display: flex;
+    flex: 0 0 auto;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    text-align: center;
+    z-index: 10;
+    overflow: hidden;
+    /* Enhanced transition with cubic-bezier for smoother feel */
+    transition: 
+        padding 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        box-shadow 0.3s ease-out;
+    /* Add backdrop blur for modern effect when shrunk */
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+}
+
+/* Enhanced shrunk header state */
+#appHeader.header-shrink {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06);
+    /* Add subtle backdrop blur when shrunk */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    /* Optional: slight background tint when shrunk */
+    background-color: rgba(255, 255, 255, 0.95);
+}
+
+/* Enhanced container transitions */
+#appHeader > div {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    /* Smoother transition with staggered timing */
+    transition: 
+        gap 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        transform 0.3s ease-out;
+}
+
+/* Enhanced image container transitions */
+#appHeader .image-container {
+    width: 60px;
+    flex-shrink: 0;
+    /* Multi-property transition with different timings */
+    transition: 
+        width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        transform 0.3s ease-out,
+        opacity 0.2s ease-in-out;
+    /* Prevent layout shift during transition */
+    transform-origin: center;
+}
+
+/* Enhanced logo transitions */
+#appHeader .icon-large {
+    max-width: 60px;
+    max-height: 60px;
+    /* Smooth size and transform transitions */
+    transition: 
+        max-width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        max-height 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        transform 0.3s ease-out;
+    transform-origin: center;
+    /* Ensure crisp rendering during transitions */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+/* Enhanced H1 base styles */
+h1 {
+    color: #111827;
+    margin: 20px 0;
+    text-align: center;
+    line-height: 1.2;
+    /* Comprehensive text transition */
+    transition: 
+        font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        margin 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        line-height 0.3s ease-out,
+        font-weight 0.2s ease-out;
+    /* Prevent text rendering issues during transitions */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Title part transitions */
+h1 .title-main-part {
+    font-weight: 600;
+    transition: font-weight 0.2s ease-out;
+}
+
+h1 span:not(.title-main-part) {
+    display: block;
+    font-weight: 280;
+    /* Smooth transition for span elements */
+    transition: 
+        display 0.1s ease-out,
+        font-weight 0.2s ease-out,
+        opacity 0.3s ease-out;
+}
+
+/* --- ENHANCED SHRUNK STATE TRANSITIONS --- */
+
+/* Shrunk container with subtle scaling effect */
+#appHeader.header-shrink > div {
+    gap: 8px;
+    /* Optional: subtle scale effect for polish */
+    transform: scale(0.98);
+}
+
+/* Enhanced shrunk image container */
+#appHeader.header-shrink .image-container {
+    width: 24px;
+    /* Slightly faster opacity transition for responsiveness */
+    opacity: 0.9;
+}
+
+/* Enhanced shrunk logo with micro-animation */
+#appHeader.header-shrink .icon-large {
+    min-width: 0;
+    min-height: 0;
+    max-width: 24px;
+    max-height: 24px;
+    /* Subtle scale adjustment for visual balance */
+    transform: scale(1.05);
+}
+
+/* Enhanced shrunk H1 with better text flow */
+#appHeader.header-shrink h1 {
+    font-size: 0.9em;
+    line-height: 1;
+    margin: 0;
+    font-weight: 500;
+    /* Subtle text shadow for better readability when small */
+    text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+#appHeader.header-shrink h1 .title-main-part {
+    font-weight: 600;
+    /* Smooth weight transition */
+    transition: font-weight 0.2s ease-out;
+}
+
+/* Enhanced span transition for inline display */
+#appHeader.header-shrink h1 span {
+    display: inline;
+    font-weight: 280;
+    /* Smooth transition when changing from block to inline */
+    transition: all 0.3s ease-out;
+}
+
+/* Space addition with smooth transition */
+#appHeader.header-shrink h1 span::before {
+    content: " ";
+    /* Animate the space insertion */
+    opacity: 1;
+    transition: opacity 0.2s ease-in;
+}
+
+/* --- ADDITIONAL ENHANCEMENTS --- */
+
+/* Add hover effects for interactive feel */
+#appHeader:not(.header-shrink):hover .icon-large {
+    transform: scale(1.05);
+}
+
+#appHeader.header-shrink:hover .icon-large {
+    transform: scale(1.1);
+}
+
+/* Smooth focus states for accessibility */
+#appHeader:focus-within {
+    outline: 2px solid rgba(59, 130, 246, 0.5);
+    outline-offset: 2px;
+    transition: outline 0.2s ease-out;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    #appHeader,
+    #appHeader > div,
+    #appHeader .image-container,
+    #appHeader .icon-large,
+    h1,
+    h1 .title-main-part,
+    h1 span:not(.title-main-part) {
+        transition-duration: 0.1s;
     }
     
-    #appHeader.header-shrink {
-        transform: translateY(-50px) scaleY(0.5);
-        opacity: 0.8;
-        padding: 1px 5px;
-        height: 5px;
+    #appHeader.header-shrink > div {
+        transform: none;
     }
     
-    #appHeader.header-shrink h1 {
-        font-size: 0.2em;
-        transition: all 0.3s ease;
+    #appHeader.header-shrink .icon-large,
+    #appHeader:hover .icon-large,
+    #appHeader.header-shrink:hover .icon-large {
+        transform: none;
     }
-    
-    h1 {
-        color: #111827;
-        margin-bottom: 20px;
-        text-align: center;
-    }
-    
+}
+        
     /* ===== TAB SYSTEM (Revised for Safe Area) ===== */
     #tabButtons {
         position: fixed;
@@ -461,8 +632,8 @@
         <img class="icon icon-large" src="https://github.com/emeraldevbooking/emeraldevbooking.github.io/blob/main/assets/images/favicons/android-chrome-192x192.png?raw=true" alt="Main Icon">
       </div>
       <h1 style="margin: 0; white-space: nowrap;">
-        Emerald Hills<br>
-         <span style="font-weight: 280;">EV Charger Reservation</span>
+            <span class="title-main-part">Emerald Hills</span>
+         <span>EV Charger Reservation</span>
       </h1>
     </div>
   </div>
@@ -632,6 +803,7 @@
     const tabPanels = ['status', 'calendar', 'form'];
     let calendar = null;
     let allEvents = [];
+    let tabHeaderState = {};
 
     // =================================================================
     //        LOGIC FOR THE NEW DATE & TIME PICKER MODAL
@@ -754,34 +926,50 @@ function initializeDateTimePicker() {
         }
     });
 
-    updateSummary();
-}  
-    function showTab(tab) {
-        const panels = { status: document.getElementById('statusPanel'), calendar: document.getElementById('calendarPanel'), form: document.getElementById('formPanel') };
-        const newIndex = tabPanels.indexOf(tab);
-        if (newIndex === currentIndex) return;
-        
-        const direction = (newIndex < currentIndex) ? 'right' : 'left';
-        Object.values(panels).forEach(p => p.classList.remove('slide-in-left', 'slide-in-right', 'slide-out-left', 'slide-out-right'));
-        
-        const currentPanel = panels[tabPanels[currentIndex]];
-        const nextPanel = panels[tabPanels[newIndex]];
-        
-        currentPanel.classList.remove('active');
-        currentPanel.classList.add(direction === 'left' ? 'slide-out-left' : 'slide-out-right');
-        nextPanel.classList.add('active');
-        nextPanel.classList.add(direction === 'left' ? 'slide-in-left' : 'slide-in-right');
+        updateSummary();
+    }  
 
-        setTimeout(() => {
-            currentPanel.classList.remove('slide-out-left', 'slide-out-right');
-            nextPanel.classList.remove('slide-in-left', 'slide-in-right');
-        }, 400);
-
-        document.querySelectorAll('#tabButtons .tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`.tab-btn[onclick*="showTab('${tab}')"]`)?.classList.add('active');
-        currentIndex = newIndex;
-        if (tab === 'calendar' && calendar) setTimeout(() => calendar.render(), 0);
-    }
+      function showTab(tab) {
+          const header = document.getElementById('appHeader');
+          const panels = {
+              status: document.getElementById('statusPanel'),
+              calendar: document.getElementById('calendarPanel'),
+              form: document.getElementById('formPanel'),
+          };
+          const newIndex = tabPanels.indexOf(tab);
+          if (newIndex === currentIndex) return;
+      
+          // Rule #1: Always expand the header when switching to a new tab.
+          header.classList.remove('header-shrink');
+      
+          const direction = (newIndex < currentIndex) ? 'right' : 'left';
+          Object.values(panels).forEach(p => p.classList.remove('slide-in-left', 'slide-in-right', 'slide-out-left', 'slide-out-right'));
+          
+          const currentPanel = panels[tabPanels[currentIndex]];
+          const nextPanel = panels[tabPanels[newIndex]];
+          
+          currentPanel.classList.remove('active');
+          currentPanel.classList.add(direction === 'left' ? 'slide-out-left' : 'slide-out-right');
+          nextPanel.classList.add('active');
+          nextPanel.classList.add(direction === 'left' ? 'slide-in-left' : 'slide-in-right');
+      
+          setTimeout(() => {
+              currentPanel.classList.remove('slide-out-left', 'slide-out-right');
+              nextPanel.classList.remove('slide-in-left', 'slide-in-right');
+          }, 400);
+      
+          document.querySelectorAll('#tabButtons .tab-btn').forEach(btn => btn.classList.remove('active'));
+          document.querySelector(`.tab-btn[onclick*="showTab('${tab}')"]`)?.classList.add('active');
+          currentIndex = newIndex;
+      
+          // Rule #2: After switching, check the saved state and re-shrink if necessary.
+          const newPanelId = nextPanel.id;
+          if (tabHeaderState[newPanelId]) {
+              header.classList.add('header-shrink');
+          }
+      
+          if (tab === 'calendar' && calendar) setTimeout(() => calendar.render(), 0);
+      }
     
       document.addEventListener('DOMContentLoaded', function() {
         
@@ -852,6 +1040,22 @@ function initializeDateTimePicker() {
         moreBtn.addEventListener('click', (e) => { e.stopPropagation(); const isExpanded = moreBtn.getAttribute('aria-expanded') === 'true'; if (!isExpanded) { expandedGroup.classList.add('show-expanded'); moreBtn.setAttribute('aria-expanded', 'true'); } else { expandedGroup.classList.remove('show-expanded'); moreBtn.setAttribute('aria-expanded', 'false'); closeAllIndividualPanels(); } });
         document.addEventListener('mousedown', (e) => { if (expandedGroup.classList.contains('show-expanded') && !expandedGroup.contains(e.target) && !moreBtn.contains(e.target)) { expandedGroup.classList.remove('show-expanded'); moreBtn.setAttribute('aria-expanded', 'false'); closeAllIndividualPanels(); } else if (openPanel && !openPanel.contains(e.target) && !buttons.some(({ btnId }) => document.getElementById(btnId).contains(e.target))) { closeAllIndividualPanels(); } });
         document.getElementById('copyrightYear').textContent = new Date().getFullYear();
+        
+            // ** NEW ** Logic for shrinking the header on scroll
+        const header = document.getElementById('appHeader');
+        const scrollablePanels = document.querySelectorAll('.tab-panel');
+        
+        scrollablePanels.forEach(panel => {
+            panel.addEventListener('scroll', () => {
+                if (panel.scrollTop > 50) {
+                    header.classList.add('header-shrink');
+                    tabHeaderState[panel.id] = true; // Save state: this panel is shrunk
+                } else {
+                    header.classList.remove('header-shrink');
+                    tabHeaderState[panel.id] = false; // Save state: this panel is expanded
+                }
+            });
+        });
     
         // Feedback form submission
         document.getElementById('feedbackForm').addEventListener('submit', (e) => {
