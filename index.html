@@ -812,7 +812,7 @@ function initializeDateTimePicker() {
     const modal = document.getElementById('dateTimePickerModal');
     if (!modal) return;
 
-    // --- References to Elements (unchanged) ---
+    // --- References to Elements ---
     const summaryTextEl = document.getElementById('summary-text');
     const modalStartEl = document.getElementById('dtp_start_datetime');
     const modalEndEl = document.getElementById('dtp_end_datetime');
@@ -826,19 +826,41 @@ function initializeDateTimePicker() {
     const mainFormStartHidden = document.getElementById('start_datetime');
     const mainFormEndHidden = document.getElementById('end_datetime');
 
-    // --- State Variables (unchanged) ---
-    let startDate = null, endDate = null;
-    let startTimeInMinutes = 540;
-    let endTimeInMinutes = 1020;
+    // --- State Variables ---
+    let startDate = null;
+    let endDate = null;
+    let startTimeInMinutes = 540;  // 9:00 AM
+    let endTimeInMinutes = 1020;   // 5:00 PM
     const MINIMUM_SLOT_MINUTES = 15;
+    
+    // Track if the range was created by midnight crossover
+    let wasCreatedByMidnight = false;
+    let isUpdatingCalendar = false;
 
+    // --- Helper Functions ---
     function minutesToTimeFormat(minutes) {
         minutes = Math.round(minutes);
+        if (minutes === 1440) return '12:00 AM';
         const h = Math.floor(minutes / 60);
         const m = minutes % 60;
         const ampm = h >= 12 ? 'PM' : 'AM';
-        const hour12 = h % 12 === 0 ? 12 : h % 12;
+        let hour12 = h % 12;
+        if (hour12 === 0) { hour12 = 12; }
         return `${hour12}:${m < 10 ? '0' + m : m} ${ampm}`;
+    }
+
+    function isSingleDaySelection() {
+        return !endDate || (startDate && endDate && 
+               startDate.getFullYear() === endDate.getFullYear() &&
+               startDate.getMonth() === endDate.getMonth() &&
+               startDate.getDate() === endDate.getDate());
+    }
+
+    function isConsecutiveDays() {
+        if (!startDate || !endDate) return false;
+        const timeDiff = endDate.getTime() - startDate.getTime();
+        const oneDayInMs = 24 * 60 * 60 * 1000;
+        return timeDiff === oneDayInMs;
     }
 
     function updateSummary() {
@@ -847,48 +869,160 @@ function initializeDateTimePicker() {
             applyButton.disabled = true;
             return;
         }
-        
-        const effectiveEndDate = (endDate && startDate.getTime() !== endDate.getTime()) ? endDate : startDate;
 
+        const effectiveEndDate = endDate || startDate;
         const finalStart = new Date(startDate);
         finalStart.setHours(Math.floor(startTimeInMinutes / 60), startTimeInMinutes % 60, 0, 0);
-
-        const finalEnd = new Date(effectiveEndDate);
-        finalEnd.setHours(Math.floor(endTimeInMinutes / 60), endTimeInMinutes % 60, 0, 0);
         
+        const finalEnd = new Date(effectiveEndDate);
+        const endHour = endTimeInMinutes === 1440 ? 0 : Math.floor(endTimeInMinutes / 60);
+        const endMinutes = endTimeInMinutes % 60;
+        finalEnd.setHours(endHour, endMinutes, 0, 0);
+        
+        if (endTimeInMinutes === 1440 && startDate.getTime() === effectiveEndDate.getTime()) {
+            finalEnd.setDate(finalEnd.getDate() + 1);
+        }
+
         if (finalEnd <= finalStart) {
             summaryTextEl.innerHTML = `<span class="summary-placeholder" style="color: #f5365c;">End time must be after start time</span>`;
             applyButton.disabled = true;
             return;
         }
+
+        const options = { 
+            weekday: 'short', 
+            month: 'short', 
+            day: 'numeric', 
+            hour: 'numeric', 
+            minute: 'numeric', 
+            hour12: true 
+        };
         
-        const options = { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true };
         summaryTextEl.innerText = `${finalStart.toLocaleString('en-US', options)} - ${finalEnd.toLocaleString('en-US', options)}`;
         modalStartEl.value = finalStart.toISOString();
         modalEndEl.value = finalEnd.toISOString();
         applyButton.disabled = false;
     }
 
-    // --- Slider Initialization (unchanged) ---
-    const startSlider = noUiSlider.create(startSliderEl, { start: startTimeInMinutes, connect: [true, false], step: 15, range: { 'min': 0, 'max': 1440 - MINIMUM_SLOT_MINUTES } });
-    const endSlider = noUiSlider.create(endSliderEl, { start: endTimeInMinutes, connect: [true, false], step: 15, range: { 'min': MINIMUM_SLOT_MINUTES, 'max': 1440 } });
-    
-    // --- Event Handlers (unchanged logic, but simplified display call) ---
-    startSlider.on('update', (values, handle, unencoded) => {
-        startTimeInMinutes = unencoded[0];
+    // --- Slider Initialization ---
+    const startSlider = noUiSlider.create(startSliderEl, {
+        start: startTimeInMinutes,
+        connect: [true, false],
+        step: 15,
+        range: { 'min': 0, 'max': 1440 - MINIMUM_SLOT_MINUTES }
+    });
+
+    const endSlider = noUiSlider.create(endSliderEl, {
+        start: endTimeInMinutes,
+        connect: [true, false],
+        step: 15,
+        range: { 'min': MINIMUM_SLOT_MINUTES, 'max': 1440 }
+    });
+
+    // --- Date Picker Initialization ---
+    const datePicker = flatpickr("#date-calendar", {
+        inline: true,
+        minDate: "today",
+        disableMobile: true,
+        mode: 'range',
+        onChange: (selectedDates) => {
+            if (isUpdatingCalendar) return;
+            
+            startDate = selectedDates[0] || null;
+            endDate = selectedDates[1] || null;
+            
+            // When user manually selects dates, reset the midnight flag
+            wasCreatedByMidnight = false;
+            
+            updateSummary();
+        }
+    });
+
+    // --- Start Time Slider Event Handler ---
+    startSlider.on('update', (values) => {
+        startTimeInMinutes = Number(values[0]);
         startTimeValueEl.innerText = minutesToTimeFormat(startTimeInMinutes);
-        if (!endDate || startDate.getTime() === endDate.getTime()) { if (startTimeInMinutes >= endTimeInMinutes) { endTimeInMinutes = startTimeInMinutes + MINIMUM_SLOT_MINUTES; endSlider.set(endTimeInMinutes); } }
+        
+        const isSingleDay = isSingleDaySelection();
+
+        // SINGLE DAY LOGIC: Ensure end time is always after start time
+        if (isSingleDay) {
+            if (startTimeInMinutes >= endTimeInMinutes) {
+                endSlider.set(startTimeInMinutes + MINIMUM_SLOT_MINUTES);
+            }
+        }
+
         updateSummary();
     });
-    endSlider.on('update', (values, handle, unencoded) => {
-        endTimeInMinutes = unencoded[0];
-        // THE FIX: Reverted to the simple call without the 'true' parameter
+
+    // --- End Time Slider Event Handler ---
+    endSlider.on('update', (values) => {
+        endTimeInMinutes = Number(values[0]);
         endTimeValueEl.innerText = minutesToTimeFormat(endTimeInMinutes);
-        if (!endDate || startDate.getTime() === endDate.getTime()) { if (endTimeInMinutes <= startTimeInMinutes) { startTimeInMinutes = endTimeInMinutes - MINIMUM_SLOT_MINUTES; startSlider.set(startTimeInMinutes); } }
+
+        const isSingleDay = isSingleDaySelection();
+        
+        // Handle midnight crossover
+        if (endTimeInMinutes === 1440 && startDate) {
+            if (isSingleDay) {
+                // Create next day range for single day selection
+                const nextDay = new Date(startDate);
+                nextDay.setDate(nextDay.getDate() + 1);
+                
+                isUpdatingCalendar = true;
+                datePicker.setDate([startDate, nextDay], true);
+                endDate = nextDay;
+                wasCreatedByMidnight = true;
+                isUpdatingCalendar = false;
+            }
+            else if (!wasCreatedByMidnight && isConsecutiveDays()) {
+                // Extend consecutive days by one more day when sliding to midnight
+                const dayAfterEnd = new Date(endDate);
+                dayAfterEnd.setDate(dayAfterEnd.getDate() + 1);
+                
+                isUpdatingCalendar = true;
+                datePicker.setDate([startDate, dayAfterEnd], true);
+                endDate = dayAfterEnd;
+                wasCreatedByMidnight = true; // Mark as midnight-extended
+                isUpdatingCalendar = false;
+            }
+        }
+        // Handle moving away from midnight
+        else if (endTimeInMinutes < 1440) {
+            if (wasCreatedByMidnight) {
+                if (isConsecutiveDays()) {
+                    // Revert single day that was extended to range
+                    isUpdatingCalendar = true;
+                    datePicker.setDate([startDate], true);
+                    endDate = null;
+                    wasCreatedByMidnight = false;
+                    isUpdatingCalendar = false;
+                }
+                else {
+                    // Revert extended consecutive days back to original consecutive days
+                    const dayBeforeEnd = new Date(endDate);
+                    dayBeforeEnd.setDate(dayBeforeEnd.getDate() - 1);
+                    
+                    isUpdatingCalendar = true;
+                    datePicker.setDate([startDate, dayBeforeEnd], true);
+                    endDate = dayBeforeEnd;
+                    wasCreatedByMidnight = false; // Reset the flag
+                    isUpdatingCalendar = false;
+                }
+            }
+        }
+        
+        // SINGLE DAY LOGIC: Handle backward adjustment
+        const isCurrentlySingleDay = isSingleDaySelection();
+        if (isCurrentlySingleDay) {
+            if (endTimeInMinutes <= startTimeInMinutes) {
+                startSlider.set(endTimeInMinutes - MINIMUM_SLOT_MINUTES);
+            }
+        }
+
         updateSummary();
     });
-    const datePicker = flatpickr("#date-calendar", { inline: true, minDate: "today", disableMobile: true, mode: 'range', onChange: (selectedDates) => { startDate = selectedDates[0] || null; endDate = selectedDates[1] || null; updateSummary(); } });
-    
+
     // --- Modal Control Functions (unchanged logic for smart open) ---
     function openModal() {
         modal.style.display = 'flex';
