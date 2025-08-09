@@ -864,44 +864,49 @@ function initializeDateTimePicker() {
     }
 
     function updateSummary() {
-        if (!startDate) {
-            summaryTextEl.innerHTML = `<span class="summary-placeholder">Select a start date</span>`;
-            applyButton.disabled = true;
-            return;
-        }
+    const options = { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true };
 
-        const effectiveEndDate = endDate || startDate;
-        const finalStart = new Date(startDate);
-        finalStart.setHours(Math.floor(startTimeInMinutes / 60), startTimeInMinutes % 60, 0, 0);
-        
-        const finalEnd = new Date(effectiveEndDate);
-        const endHour = endTimeInMinutes === 1440 ? 0 : Math.floor(endTimeInMinutes / 60);
-        const endMinutes = endTimeInMinutes % 60;
-        finalEnd.setHours(endHour, endMinutes, 0, 0);
-        
-        if (endTimeInMinutes === 1440 && startDate.getTime() === effectiveEndDate.getTime()) {
-            finalEnd.setDate(finalEnd.getDate() + 1);
-        }
+    // Priority 1: Check if a start date has been selected yet.
+    if (!startDate) {
+        summaryTextEl.innerHTML = `<span class="summary-placeholder">Select a start date</span>`;
+        applyButton.disabled = true;
+        return;
+    }
+    
+    // Priority 2: Check if an end date has been selected yet (in range mode).
+    // Note: If they are the same day, it counts as both start and end being selected.
+    const isRangeMode = datePicker.config.mode === 'range';
+    if (isRangeMode && !endDate) {
+        summaryTextEl.innerHTML = `<span class="summary-placeholder">Select an end date</span>`;
+        applyButton.disabled = true;
+        return;
+    }
+    
+    // If we get here, both dates are selected, so we can calculate and show the full summary.
+    const effectiveEndDate = endDate || startDate;
 
-        if (finalEnd <= finalStart) {
-            summaryTextEl.innerHTML = `<span class="summary-placeholder" style="color: #f5365c;">End time must be after start time</span>`;
-            applyButton.disabled = true;
-            return;
-        }
+    const finalStart = new Date(startDate);
+    finalStart.setHours(Math.floor(startTimeInMinutes / 60), startTimeInMinutes % 60, 0, 0);
 
-        const options = { 
-            weekday: 'short', 
-            month: 'short', 
-            day: 'numeric', 
-            hour: 'numeric', 
-            minute: 'numeric', 
-            hour12: true 
-        };
-        
-        summaryTextEl.innerText = `${finalStart.toLocaleString('en-US', options)} - ${finalEnd.toLocaleString('en-US', options)}`;
-        modalStartEl.value = finalStart.toISOString();
-        modalEndEl.value = finalEnd.toISOString();
-        applyButton.disabled = false;
+    const finalEnd = new Date(effectiveEndDate);
+    const endHour = endTimeInMinutes === 1440 ? 0 : Math.floor(endTimeInMinutes / 60);
+    const endMinutes = endTimeInMinutes % 60;
+    finalEnd.setHours(endHour, endMinutes, 0, 0);
+
+    if (isSingleDaySelection() && endTimeInMinutes === 1440) {
+        finalEnd.setDate(finalEnd.getDate() + 1);
+    }
+    
+    if (finalEnd <= finalStart) {
+        summaryTextEl.innerHTML = `<span class="summary-placeholder" style="color: #f5365c;">End time must be after start time</span>`;
+        applyButton.disabled = true;
+        return;
+    }
+    
+    summaryTextEl.innerText = `${finalStart.toLocaleString('en-US', options)} - ${finalEnd.toLocaleString('en-US', options)}`;
+    modalStartEl.value = finalStart.toISOString();
+    modalEndEl.value = finalEnd.toISOString();
+    applyButton.disabled = false;
     }
 
     // --- Slider Initialization ---
@@ -1741,7 +1746,7 @@ document.getElementById('bookingForm').addEventListener('submit', async function
               <div id="end-time-slider" class="time-slider"></div>
           </div>
           <div class="summary-display">
-              <div id="summary-text" class="summary-placeholder">Select a start date</div>
+              <div id="summary-text" class="summary-placeholder">Select the start and end date</div>
           </div>
           <!-- These hidden inputs are temporary storage for the modal -->
           <input type="hidden" id="dtp_start_datetime">
