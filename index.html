@@ -1226,8 +1226,8 @@ function initializeDateTimePicker() {
         // Charger button and form logic
         const chargerButtons = document.querySelectorAll('.charger-btn');
         const chargerInput = document.getElementById('charger');
-        chargerButtons.forEach(btn => btn.addEventListener('click', function() { chargerButtons.forEach(b => b.classList.remove('selected')); this.classList.add('selected'); chargerInput.value = this.getAttribute('data-charger'); }));
-        document.getElementById('bookingForm').addEventListener('submit', function(e) { if (!chargerInput.value) { e.preventDefault(); showMessage('error', 'Please select a charger location.'); } });
+        chargerButtons.forEach(btn => btn.addEventListener('click', function() { chargerButtons.forEach(b => b.classList.remove('selected')); this.classList.add('selected'); 
+        chargerInput.value = this.getAttribute('data-charger'); }));
         
         // Load user info from IndexedDB
         populateFormWithStoredUserInfo();
@@ -1516,113 +1516,112 @@ function initializeDateTimePicker() {
     }
 
     // Booking form submission - REFACTORED to use fetch()
-    document.getElementById('bookingForm').addEventListener('submit', async function(ev) {
-        ev.preventDefault();
-        const submitBtn = ev.target.querySelector('button[type="submit"]');
+document.getElementById('bookingForm').addEventListener('submit', async function(ev) {
+    ev.preventDefault();
+    const submitBtn = ev.target.querySelector('button[type="submit"]');
+
+    // --- START: New Prioritized Validation Logic ---
+    const name = document.getElementById('name').value.trim();
+    const plate = document.getElementById('plate').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const charger = document.getElementById('charger').value;
+    const startValue = document.getElementById('start_datetime').value;
     
-        // --- START: New Granular Validation Logic ---
-        const validationErrors = [];
-        const name = document.getElementById('name').value.trim();
-        const plate = document.getElementById('plate').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const charger = document.getElementById('charger').value;
-        const startValue = document.getElementById('start_datetime').value;
-        const endValue = document.getElementById('end_datetime').value;
+    // Priority 1: User Details
+    if (!name) {
+        showMessage('error', 'Please enter the Name of Car Owner.');
+        return; // Stop
+    }
+    if (!plate) {
+        showMessage('error', 'Please enter the Car Plate Number.');
+        return; // Stop
+    }
+    if (!email) {
+        showMessage('error', 'Please enter your Email Address for confirmation.');
+        return; // Stop
+    }
+
+    // Priority 2: Charger Selection
+    if (!charger) {
+        showMessage('error', 'Please select a Charger Location.');
+        return; // Stop
+    }
+
+    // Priority 3: Date and Time Selection
+    if (!startValue) { // We only need to check one, as they are set together
+        showMessage('error', 'Please select a Start and End Date and Time.');
+        return; // Stop
+    }
     
-        if (!name) {
-            validationErrors.push("Name");
-        }
-        if (!plate) {
-            validationErrors.push("Car Plate Number");
-        }
-        if (!email) {
-            validationErrors.push("Email Address");
-        }
-        if (!charger) {
-            validationErrors.push("Charger Location");
-        }
-        if (!startValue || !endValue) {
-            validationErrors.push("Date & Time");
-        }
-    
-        // If the errors array has anything in it, show the message and stop.
-        if (validationErrors.length > 0) {
-            const errorMessage = "Please complete the " + validationErrors.join(', ');
-            showMessage('error', errorMessage);
-            return; // Stop the function here
-        }
-    
-        // --- The rest of the function proceeds only if validation passes ---
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = 'Processing...';
-        submitBtn.disabled = true;
-    
-        const data = {
-            name: name,
-            plate: plate,
-            phone: document.getElementById('phone').value.trim(),
-            email: email,
-            charger: charger,
-            start_datetime: startValue,
-            end_datetime: endValue
-        };
-    
-        if (new Date(data.end_datetime) <= new Date(data.start_datetime)) {
-            showMessage('error', 'End date/time must be after start date/time.');
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-            return;
-        }
-    
-        const remember = document.getElementById('rememberMe').checked;
-        if (remember) {
-            await saveUserInfo('name', data.name);
-            await saveUserInfo('email', data.email);
-            await saveUserInfo('phone', data.phone);
-            await saveUserInfo('plate', data.plate);
-            await saveUserInfo('rememberMe', true);
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Processing...';
+    submitBtn.disabled = true;
+
+    const data = {
+        name: name,
+        plate: plate,
+        phone: document.getElementById('phone').value.trim(), // Phone is optional, no validation needed
+        email: email,
+        charger: charger,
+        start_datetime: startValue,
+        end_datetime: document.getElementById('end_datetime').value
+    };
+
+    if (new Date(data.end_datetime) <= new Date(data.start_datetime)) {
+        showMessage('error', 'End date/time must be after start date/time.');
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        return;
+    }
+
+    const remember = document.getElementById('rememberMe').checked;
+    if (remember) {
+        await saveUserInfo('name', data.name);
+        await saveUserInfo('email', data.email);
+        await saveUserInfo('phone', data.phone);
+        await saveUserInfo('plate', data.plate);
+        await saveUserInfo('rememberMe', true);
+    } else {
+      await clearUserInfo();
+    }
+
+    fetch(WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+            action: 'book',
+            data: data
+        })
+    })
+    .then(res => res.json())
+    .then(async (res) => {
+        if (res.status === 'success' && res.newEvent) {
+            ev.target.reset();
+            document.getElementById('start_display').value = '';
+            document.getElementById('end_display').value = '';
+            document.querySelectorAll('#bookingForm .charger-btn.selected').forEach(btn => btn.classList.remove('selected'));
+            
+            showMessage('success', res.message);
+            
+            allEvents.push(res.newEvent);
+            await saveEventsToIDB(allEvents);
+            renderCalendar(allEvents);
+            updateChargerStatus();
+            
+            const bookingDate = new Date(data.start_datetime);
+            calendar.gotoDate(bookingDate);
         } else {
-          await clearUserInfo();
+            showMessage('error', res.message || 'Unknown error occurred');
         }
-    
-        fetch(WEB_APP_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({
-                action: 'book',
-                data: data
-            })
-        })
-        .then(res => res.json())
-        .then(async (res) => {
-            if (res.status === 'success' && res.newEvent) {
-                ev.target.reset();
-                document.getElementById('start_display').value = '';
-                document.getElementById('end_display').value = '';
-                document.querySelectorAll('#bookingForm .charger-btn.selected').forEach(btn => btn.classList.remove('selected'));
-                
-                showMessage('success', res.message);
-                
-                console.log('Success! Reconciling new event from server.');
-                allEvents.push(res.newEvent);
-                await saveEventsToIDB(allEvents);
-                renderCalendar(allEvents);
-                updateChargerStatus();
-                
-                const bookingDate = new Date(data.start_datetime);
-                calendar.gotoDate(bookingDate);
-            } else {
-                showMessage('error', res.message || 'Unknown error occurred');
-            }
-        })
-        .catch(err => {
-            showMessage('error', 'Reservation failed: ' + (err.message || 'Unknown error'));
-        })
-        .finally(() => {
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-        });
+    })
+    .catch(err => {
+        showMessage('error', 'Reservation failed: ' + (err.message || 'Unknown error'));
+    })
+    .finally(() => {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
     });
+});
 
     function toDatetimeLocal(dt, tz) {
         const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: tz };
