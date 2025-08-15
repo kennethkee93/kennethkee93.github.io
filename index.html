@@ -67,16 +67,11 @@
     -webkit-backdrop-filter: blur(0px);
 }
 
-/* Enhanced shrunk header state */
+/* Enhanced shrunk header state - REMOVED shadow and backdrop effects */
 #appHeader.header-shrink {
     padding-top: 5px;
     padding-bottom: 5px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06);
-    /* Add subtle backdrop blur when shrunk */
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    /* Optional: slight background tint when shrunk */
-    background-color: rgba(255, 255, 255, 0.95);
+    /* REMOVED: box-shadow, backdrop-filter, and background-color */
 }
 
 /* Enhanced container transitions */
@@ -183,8 +178,7 @@ h1 span:not(.title-main-part) {
     line-height: 1;
     margin: 0;
     font-weight: 500;
-    /* Subtle text shadow for better readability when small */
-    text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    /* REMOVED: text-shadow for cleaner look */
 }
 
 #appHeader.header-shrink h1 .title-main-part {
