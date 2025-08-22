@@ -483,7 +483,7 @@ h1 span:not(.title-main-part) {
     .fc-scroller, .fc-event, .fc-daygrid-event { pointer-events: auto !important; }
 
     /* ===== FILTER CONTROLS ===== */
-    .filter-controls { margin: 10px 0 5px 0; width: 100%; max-width: 1200px; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, auto); gap: 8px 12px; justify-items: center; }
+    .filter-controls { margin: 10px 0 5px 0; width: 100%; max-width: 1200px; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, auto); gap: 8px 12px; justify-items: center; }
     .filter-btn { padding: 7px 10px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; color: #2D3748; font-size: 14px; width: 100%; max-width: 150px; box-sizing: border-box; user-select: none; background-color: #F7FAFC; transition: background-color 0.3s ease, box-shadow 0.3s ease, outline 0.3s ease, transform 0.2s ease; }
     .filter-btn.active { box-shadow: 0 0 0 2px #545454, 0 0 0 4px #fff; transform: translateY(-2px); }
     .filter-btn-all { background-color: #E5E7EB; }
@@ -779,7 +779,7 @@ h1 span:not(.title-main-part) {
      *                  CRITICAL CONFIGURATION                      *
      *   PASTE THE WEB APP URL YOU COPIED FROM STEP 2 BELOW         *
      ****************************************************************/
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzgLMpLsD26Nilh9NPf7QiDVjscIcpHPh1REfZVKWVnpXVpK488prqJsRF0NKN4FdtI/exec'; // <-- PASTE YOUR URL HERE!
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwe0OYJDTlktqJ2An_kFETXBbJ5PA3EmO8TYSwCmR4ioEKxg9bW-vHtmZgawxG6Vgv-/exec'; // <-- PASTE YOUR URL HERE!
 
 
     /* =================================================================
@@ -1698,7 +1698,15 @@ document.getElementById('bookingForm').addEventListener('submit', async function
       const hammer = new Hammer(updateBanner);
       hammer.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
       hammer.on('swipeup swipedown', () => { updateBanner.style.display = 'none'; });
-      const firebaseConfig = { apiKey: "AIzaSyAlb8aLl1kRafLO7GY5rarVly-Z1wMDbz0", authDomain: "bookingsync-ff9bd.firebaseapp.com", databaseURL: "https://bookingsync-ff9bd-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "bookingsync-ff9bd", storageBucket: "bookingsync-ff9bd.appspot.com", messagingSenderId: "269992391466", appId: "1:269992391466:web:b65bc168c948de21796453" };
+      const firebaseConfig = {
+        apiKey: "AIzaSyBgry0qgmprMVXk0svD8sPX-wqLnH6m80U",
+        authDomain: "bookingsync-94975.firebaseapp.com",
+        databaseURL: "https://bookingsync-94975-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "bookingsync-94975",
+        storageBucket: "bookingsync-94975.firebasestorage.app",
+        messagingSenderId: "941285031936",
+        appId: "1:941285031936:web:5fbb2e3ef9ff730e4e98e5"
+      };
       firebase.initializeApp(firebaseConfig);
       const db = firebase.database();
       let lastSeenTimestamp = null;
