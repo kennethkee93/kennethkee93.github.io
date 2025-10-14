@@ -518,6 +518,32 @@ h1 span:not(.title-main-part) {
         cursor: pointer;
     }
     
+    /* Style for charger buttons inside the modal */
+    #chargerButtonsModal { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
+    .charger-btn { padding: 8px 12px; font-size: 13px; border-radius: 8px; color: #fff; border: 2px solid transparent; cursor: pointer; transition: all 0.2s ease; }
+    .charger-btn.selected { border-color: #000; transform: scale(1.05); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .filter-btn-a { background-color: #3B82F6; }
+    .filter-btn-b { background-color: #10B981; }
+    .filter-btn-club { background-color: #F59E0B; }
+    
+    /* Container for all the little red blocked slot indicators */
+    .blocked-slots-container {
+        position: absolute;
+        top: 10px; /* Match wrapper padding */
+        left: 0;
+        right: 0;
+        height: 8px; /* Match slider height */
+        z-index: 0;
+        pointer-events: none; /* Allows clicks to go through to the slider */
+    }
+    .blocked-slot {
+        position: absolute;
+        height: 100%;
+        background-color: rgba(255, 82, 82, 0.6); /* Semi-transparent red */
+        border-radius: 4px;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+    }
+    
     /* Styles for Flatpickr and noUiSlider */
     .calendar-wrapper {
     display: flex;
@@ -543,22 +569,18 @@ h1 span:not(.title-main-part) {
     #date-calendar .flatpickr-day { flex-basis: 14.28%; max-width: none; height: 38px; line-height: 38px; border-radius: 50%; }
     .flatpickr-day.in-range, .flatpickr-day.in-preview-range { background: #eef2fe; border-color: transparent; border-radius: 0; }
     .flatpickr-day.start-date { background: #5e72e4; color: #fff; border-radius: 50px 0 0 50px; }
-    .flatpickr-day.end-date { background: #f5365c; color: #fff; border-radius: 0 50px 50px 0; }
+    .flatpickr-day.end-date { background: #5ee48d; color: #fff; border-radius: 0 50px 50px 0; }
     .flatpickr-day.start-date.end-date { border-radius: 50px; }
     .time-selector-group { margin-top: 25px; }
     .time-selector-group label { display: block; font-size: 14px; font-weight: 500; color: #34495e; margin-bottom: 15px; }
     .time-selector-group label span { float: right; font-weight: 600; background-color: #f0f3f5; padding: 3px 8px; border-radius: 5px; }
     .time-slider { height: 8px; border: none; }
+    .noUi-handle { height: 22px !important; width: 22px !important; top: -9px; right: -11px; border-radius: 50% !important; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.2); cursor: grab; }
     #start-time-slider .noUi-connect { background: #5e72e4; }
-    #start-time-slider .noUi-handle { background: #5e72e4; }
-    #end-time-slider .noUi-connect { background: #f5365c; }
-    #end-time-slider .noUi-handle { background: #f5365c; }
-    .noUi-handle {
-        height: 22px !important; width: 22px !important; top: -9px; right: -11px;
-        border-radius: 50% !important; border: 3px solid white;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.2); cursor: grab;
-        box-sizing: border-box !important; 
-    }
+    #end-time-slider .noUi-connect { background: #5ee48d; }
+    .time-slider-wrapper { position: relative; padding: 10px 0; }
+    .blocked-slots-container { position: absolute; top: 10px; left: 0; right: 0; height: 8px; z-index: 2; pointer-events: none; } /* CORRECTION: Increased z-index */
+    .blocked-slot { position: absolute; height: 100%; background-color: rgba(255, 82, 82, 0.6); border-radius: 4px; }
     .noUi-handle:focus { outline: none; }
     .noUi-handle::before, .noUi-handle::after { display: none; } 
     .summary-display { border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; margin: 25px 0 20px 0; text-align: center; min-height: 50px; display: flex; justify-content: center; align-items: center; }
@@ -800,67 +822,45 @@ h1 span:not(.title-main-part) {
   </div>
 
   <div id="mainAppWrapper">
-    <!-- Tab Panels -->
     <div id="tabContent">
-      <!-- Status Panel -->
       <div id="statusPanel" class="tab-panel active">
-          <div id="chargerStatusContainer">
-            <div id="statusTowerA" class="charger-status-item"></div>
-            <div id="statusTowerB" class="charger-status-item"></div>
-            <div id="statusClubhouse" class="charger-status-item"></div>
-          </div>
+        <div id="chargerStatusContainer">
+          <div id="statusTowerA" class="charger-status-item"></div>
+          <div id="statusTowerB" class="charger-status-item"></div>
+          <div id="statusClubhouse" class="charger-status-item"></div>
+        </div>
       </div>
-      <!-- Calendar Panel -->
       <div id="calendarPanel" class="tab-panel">
-        <div class="calendarfilter-container">
-          <div class="filter-controls" role="group" aria-label="Filter chargers">
-              <button class="filter-btn filter-btn-all active" data-charger="all" type="button" aria-pressed="true">All</button>
-              <button class="filter-btn filter-btn-a" data-charger="Tower A" type="button" aria-pressed="false">Tower A</button>
-              <button class="filter-btn filter-btn-b" data-charger="Tower B" type="button" aria-pressed="false">Tower B</button>
-              <button class="filter-btn filter-btn-club" data-charger="Clubhouse" type="button" aria-pressed="false">Clubhouse</button>
-          </div>
-          <div class="calendar-container">
-            <div id="calendar"></div>
-          </div>
+        <div class="filter-controls">
+          <button class="filter-btn filter-btn-all active" data-charger="all">All</button>
+          <button class="filter-btn filter-btn-a" data-charger="Tower A">Tower A</button>
+          <button class="filter-btn filter-btn-b" data-charger="Tower B">Tower B</button>
+          <button class="filter-btn filter-btn-club" data-charger="Clubhouse">Clubhouse</button>
+        </div>
+        <div class="calendar-container">
+          <div id="calendar"></div>
         </div>
       </div>
-      <!-- Booking Form Panel -->
       <div id="formPanel" class="tab-panel">
-        <div class="form-and-status-wrapper">
-          <form id="bookingForm" method="POST" autocomplete="on" novalidate>
-            <div id="errorMsg" class="error" role="alert"></div>
-            <div id="successMsg" class="success" role="status"></div>
-            <input id="name" name="name" type="text" autocomplete="name" placeholder="Name of Car Owner" required oninput="convertToTitleCase(this)" />
-            <input id="plate" name="license_plate" type="text" autocomplete="nickname" placeholder="Car Plate Number" required oninput="this.value = this.value.toUpperCase()" />
-            <input id="phone" name="tel" type="tel" autocomplete="tel" placeholder="Phone Number" pattern="[0-9]*" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '');" />
-            <input id="email" name="email" type="email" autocomplete="email" placeholder="Email for Confirmation (Required)" required />
-            
-            <div id="chargerButtons">
-              <div class="row row-top">
-                <button type="button" class="charger-btn filter-btn-a" data-charger="Tower A">Tower A</button>
-                <button type="button" class="charger-btn filter-btn-b" data-charger="Tower B">Tower B</button>
-                <button type="button" class="charger-btn filter-btn-club" data-charger="Clubhouse">Clubhouse</button>
-              </div>
-            </div>
-            
-            <input type="hidden" id="charger" name="charger" required/>
-            
-            <!-- NEW VISIBLE inputs that open the modal -->
-            <label for="start_display">Start Date & Time</label>
-            <input id="start_display" name="start_display" type="text" placeholder="Tap to select date & time" readonly style="cursor: pointer;"/>
-            
-            <label for="end_display" style="margin-top:10px;">End Date & Time</label>
-            <input id="end_display" name="end_display" type="text" placeholder="Tap to select date & time" readonly style="cursor: pointer;"/>
-            
-            <!-- ORIGINAL HIDDEN inputs that store the final ISO date for submission -->
-            <input id="start_datetime" name="start_datetime" type="hidden" required />
-            <input id="end_datetime" name="end_datetime" type="hidden" required />
-            
-            <label class="save-info-label"><input type="checkbox" id="rememberMe" />Autofill my information in the next reservation</label>
-            
-            <button type="submit">Reserve</button>
-          </form>
-        </div>
+        <form id="bookingForm">
+          <div id="errorMsg" class="error"></div>
+          <div id="successMsg" class="success"></div>
+          <input id="name" name="name" type="text" placeholder="Name of Car Owner" required oninput="convertToTitleCase(this)" />
+          <input id="plate" name="license_plate" type="text" placeholder="Car Plate Number" required oninput="this.value = this.value.toUpperCase()" />
+          <input id="phone" name="tel" type="tel" placeholder="Phone Number" />
+          <input id="email" name="email" type="email" placeholder="Email for Confirmation (Required)" required />
+          
+          <label for="datetime_display">Charger, Date & Time</label>
+          <input id="datetime_display" type="text" placeholder="Tap to select charger & time" readonly style="cursor: pointer;"/>
+          
+          <input id="charger" name="charger" type="hidden" required/>
+          <input id="start_datetime" name="start_datetime" type="hidden" required />
+          <input id="end_datetime" name="end_datetime" type="hidden" required />
+          
+          <label class="save-info-label"><input type="checkbox" id="rememberMe" />Autofill my information</label>
+          
+          <button type="submit">Reserve</button>
+        </form>
       </div>
     </div>
   </div>
@@ -897,17 +897,15 @@ h1 span:not(.title-main-part) {
               <div id="faqPanel" class="side-panel">
                     <strong>Frequently Asked Questions (FAQ)</strong><br><br>
                     <strong>Q: Who created this web app?</strong><br>
-                    This web app was developed by members of the Emerald Hills EV community to support efficient scheduling and communication regarding EV charger reservations. It is a community-driven initiative designed to enhance coordination among residents and EV owners.<br><br>
+                    This web app was developed by members of the Emerald Hills EV community to support efficient scheduling and communication regarding EV charger reservations.<br><br>
                     <strong>Q: Is this web app affiliated with Emerald Hills Management?</strong><br>
-                    No, this web app is independent and is not affiliated with Emerald Hills Management in any way. It was created by EV community to streamline charger reservations and improve accessibility for residents who need to charge their vehicles.<br><br>
+                    No, this web app is independent and is not affiliated with Emerald Hills Management in any way.<br><br>
                     <strong>Q: What is the purpose of this web app?</strong><br>
-                    The primary goal of this web app is to facilitate better communication and planning among EV owners regarding charger availability. By allowing users to schedule their charging slots in advance, we aim to minimize conflicts, ensure fair access to chargers, and improve the overall charging experience for everyone in the community.<br><br>
-                    <strong>Q: How can I book a charging slot?</strong><br>
-                    Users can simply access the reservation system through this web app, select their preferred date and time, and submit a request to book an available charger.<br><br>
+                    The primary goal of this web app is to facilitate better communication and planning among EV owners regarding charger availability.<br><br>
                     <strong>Q: How do I cancel a reservation?</strong><br>
-                    To cancel a reservation, please use the unique cancellation link provided in your booking confirmation email. This will automatically cancel your reservation.<br><br>
+                    To cancel a reservation, please use the unique cancellation link provided in your booking confirmation email.<br><br>
                     <strong>Q: How do I modify my reservation?</strong><br>
-                    To make changes to an existing reservation, please cancel your current booking using the unique cancellation link provided in your booking confirmation email. Then, simply submit a new reservation with your updated details.
+                    To make changes to an existing reservation, please cancel your current booking using the cancellation link, then submit a new reservation.
                 </div>
           </div>
           <div class="side-button-group">
@@ -926,11 +924,17 @@ h1 span:not(.title-main-part) {
   </div>
   
   <!-- Event Modal -->
-  <div id="eventModal"><div id="modalInner"><button id="closeModal">&times;</button><h2 id="modalTitle"></h2><pre id="modalContent"></pre></div></div>
+  <div id="eventModal" class="modal-overlay">
+    <div class="modal-content" style="background: #111827; color: #e4e5e7;">
+      <button id="closeModal" class="close-button" style="color: #c7e7f0;">&times;</button>
+      <h2 id="modalTitle" style="color: #fff;"></h2>
+      <pre id="modalContent"></pre>
+    </div>
+  </div>
   
   <!-- PWA & Firebase Notifications -->
   <div id="update-notification"><p>🔔 A new reservation has been added.</p><button onclick="refreshPage()">Update Now</button></div>
-  <div id="updateToast"><div>🔄 New version available</div><button id="refreshBtn">Update Now</button></div>
+  <div id="updateToast"><div>🔄 New version available. Updating..</div></div>
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -961,264 +965,247 @@ h1 span:not(.title-main-part) {
     // =================================================================
     //        LOGIC FOR THE NEW DATE & TIME PICKER MODAL
     // =================================================================
-function initializeDateTimePicker() {
-    const modal = document.getElementById('dateTimePickerModal');
-    if (!modal) return;
-
-    // --- References to Elements ---
-    const summaryTextEl = document.getElementById('summary-text');
-    const modalStartEl = document.getElementById('dtp_start_datetime');
-    const modalEndEl = document.getElementById('dtp_end_datetime');
-    const applyButton = document.getElementById('apply-button');
-    const startTimeValueEl = document.getElementById('start-time-value');
-    const endTimeValueEl = document.getElementById('end-time-value');
-    const startSliderEl = document.getElementById('start-time-slider');
-    const endSliderEl = document.getElementById('end-time-slider');
-    const mainFormStartDisplay = document.getElementById('start_display');
-    const mainFormEndDisplay = document.getElementById('end_display');
-    const mainFormStartHidden = document.getElementById('start_datetime');
-    const mainFormEndHidden = document.getElementById('end_datetime');
-
-    // --- State Variables ---
-    let startDate = null;
-    let endDate = null;
-    let startTimeInMinutes = 540;  // 9:00 AM
-    let endTimeInMinutes = 1020;   // 5:00 PM
-    const MINIMUM_SLOT_MINUTES = 15;
+    function initializeDateTimePicker() {
+        const modal = document.getElementById('dateTimePickerModal');
+        if (!modal) return;
     
-    // Track if the range was created by midnight crossover
-    let wasCreatedByMidnight = false;
-    let isUpdatingCalendar = false;
-
-    // --- Helper Functions ---
-    function minutesToTimeFormat(minutes) {
-        minutes = Math.round(minutes);
-        if (minutes === 1440) return '12:00 AM';
-        const h = Math.floor(minutes / 60);
-        const m = minutes % 60;
-        const ampm = h >= 12 ? 'PM' : 'AM';
-        let hour12 = h % 12;
-        if (hour12 === 0) { hour12 = 12; }
-        return `${hour12}:${m < 10 ? '0' + m : m} ${ampm}`;
-    }
-
-    function isSingleDaySelection() {
-        return !endDate || (startDate && endDate && 
-               startDate.getFullYear() === endDate.getFullYear() &&
-               startDate.getMonth() === endDate.getMonth() &&
-               startDate.getDate() === endDate.getDate());
-    }
-
-    function isConsecutiveDays() {
-        if (!startDate || !endDate) return false;
-        const timeDiff = endDate.getTime() - startDate.getTime();
-        const oneDayInMs = 24 * 60 * 60 * 1000;
-        return timeDiff === oneDayInMs;
-    }
-
-    function updateSummary() {
-    const options = { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true };
-
-    // Priority 1: Check if a start date has been selected yet.
-    if (!startDate) {
-        summaryTextEl.innerHTML = `<span class="summary-placeholder">Select a start date</span>`;
-        applyButton.disabled = true;
-        return;
-    }
+        // --- References to Elements ---
+        const summaryTextEl = document.getElementById('summary-text');
+        const modalStartEl = document.getElementById('dtp_start_datetime');
+        const modalEndEl = document.getElementById('dtp_end_datetime');
+        const applyButton = document.getElementById('apply-button');
+        const startTimeValueEl = document.getElementById('start-time-value');
+        const endTimeValueEl = document.getElementById('end-time-value');
+        const startSliderEl = document.getElementById('start-time-slider');
+        const endSliderEl = document.getElementById('end-time-slider');
+        const mainFormDisplay = document.getElementById('datetime_display'); // <-- MODIFICATION: Combined display input
+        const mainFormChargerHidden = document.getElementById('charger');
+        const mainFormStartHidden = document.getElementById('start_datetime');
+        const mainFormEndHidden = document.getElementById('end_datetime');
+        const chargerButtonsModal = document.querySelectorAll('#chargerButtonsModal .charger-btn'); // <-- MODIFICATION: Charger buttons in modal
+        const startBlockedSlotsEl = document.getElementById('start-blocked-slots');
+        const endBlockedSlotsEl = document.getElementById('end-blocked-slots');
     
-    // Priority 2: Check if an end date has been selected yet (in range mode).
-    // Note: If they are the same day, it counts as both start and end being selected.
-    const isRangeMode = datePicker.config.mode === 'range';
-    if (isRangeMode && !endDate) {
-        summaryTextEl.innerHTML = `<span class="summary-placeholder">Select an end date</span>`;
-        applyButton.disabled = true;
-        return;
-    }
+        // --- State Variables ---
+        let modalSelectedCharger = null; // <-- MODIFICATION: State for charger selection within the modal
+        let startDate = null;
+        let endDate = null;
+        let startTimeInMinutes = 540;
+        let endTimeInMinutes = 1020;
+        const MINIMUM_SLOT_MINUTES = 15;
+        
+        let wasCreatedByMidnight = false;
+        let isUpdatingCalendar = false;
     
-    // If we get here, both dates are selected, so we can calculate and show the full summary.
-    const effectiveEndDate = endDate || startDate;
-
-    const finalStart = new Date(startDate);
-    finalStart.setHours(Math.floor(startTimeInMinutes / 60), startTimeInMinutes % 60, 0, 0);
-
-    const finalEnd = new Date(effectiveEndDate);
-    const endHour = endTimeInMinutes === 1440 ? 0 : Math.floor(endTimeInMinutes / 60);
-    const endMinutes = endTimeInMinutes % 60;
-    finalEnd.setHours(endHour, endMinutes, 0, 0);
-
-    if (isSingleDaySelection() && endTimeInMinutes === 1440) {
-        finalEnd.setDate(finalEnd.getDate() + 1);
-    }
+        // --- Helper Functions ---
+        function minutesToTimeFormat(minutes) {
+            minutes = Math.round(minutes);
+            if (minutes === 1440) return '12:00 AM';
+            const h = Math.floor(minutes / 60);
+            const m = minutes % 60;
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            let hour12 = h % 12;
+            if (hour12 === 0) { hour12 = 12; }
+            return `${hour12}:${m < 10 ? '0' + m : m} ${ampm}`;
+        }
     
-    if (finalEnd <= finalStart) {
-        summaryTextEl.innerHTML = `<span class="summary-placeholder" style="color: #f5365c;">End time must be after start time</span>`;
-        applyButton.disabled = true;
-        return;
-    }
+        function isSingleDaySelection() {
+            return !endDate || (startDate && endDate && startDate.getTime() === endDate.getTime());
+        }
+        
+        // <-- START: MODIFICATION - Logic for Blocked Time Indicators -->
+        function drawBlockedSlots(date, charger, sliderContainer) {
+            sliderContainer.innerHTML = ''; // Clear previous indicators
+            if (!date || !charger) return;
     
-    summaryTextEl.innerText = `${finalStart.toLocaleString('en-US', options)} - ${finalEnd.toLocaleString('en-US', options)}`;
-    modalStartEl.value = finalStart.toISOString();
-    modalEndEl.value = finalEnd.toISOString();
-    applyButton.disabled = false;
-    }
-
-    // --- Slider Initialization ---
-    const startSlider = noUiSlider.create(startSliderEl, {
-        start: startTimeInMinutes,
-        connect: [true, false],
-        step: 15,
-        range: { 'min': 0, 'max': 1440 - MINIMUM_SLOT_MINUTES }
-    });
-
-    const endSlider = noUiSlider.create(endSliderEl, {
-        start: endTimeInMinutes,
-        connect: [true, false],
-        step: 15,
-        range: { 'min': MINIMUM_SLOT_MINUTES, 'max': 1440 }
-    });
-
-    // --- Date Picker Initialization ---
-    const datePicker = flatpickr("#date-calendar", {
-        inline: true,
-        minDate: "today",
-        disableMobile: true,
-        mode: 'range',
-        onChange: (selectedDates) => {
-            if (isUpdatingCalendar) return;
+            const dayStart = new Date(date);
+            dayStart.setHours(0, 0, 0, 0);
+            const dayEnd = new Date(date);
+            dayEnd.setHours(23, 59, 59, 999);
+    
+            const chargerBookings = allEvents.filter(event => 
+                event.extendedProps.charger === charger &&
+                new Date(event.start) < dayEnd && 
+                new Date(event.end) > dayStart
+            );
+    
+            chargerBookings.forEach(booking => {
+                const bookingStart = new Date(booking.start);
+                const bookingEnd = new Date(booking.end);
+    
+                let startMinutes = 0;
+                if (bookingStart > dayStart) {
+                    startMinutes = bookingStart.getHours() * 60 + bookingStart.getMinutes();
+                }
+    
+                let endMinutes = 1440;
+                if (bookingEnd < dayEnd) {
+                    endMinutes = bookingEnd.getHours() * 60 + bookingEnd.getMinutes();
+                }
+    
+                const leftPercent = (startMinutes / 1440) * 100;
+                const widthPercent = ((endMinutes - startMinutes) / 1440) * 100;
+    
+                const slotDiv = document.createElement('div');
+                slotDiv.className = 'blocked-slot';
+                slotDiv.style.left = `${leftPercent}%`;
+                slotDiv.style.width = `${widthPercent}%`;
+                sliderContainer.appendChild(slotDiv);
+            });
+        }
+    
+        function updateAllBlockedSlots() {
+            if (!modalSelectedCharger || !startDate) {
+                startBlockedSlotsEl.innerHTML = '';
+                endBlockedSlotsEl.innerHTML = '';
+                return;
+            }
+            drawBlockedSlots(startDate, modalSelectedCharger, startBlockedSlotsEl);
+            drawBlockedSlots(endDate || startDate, modalSelectedCharger, endBlockedSlotsEl);
+        }
+        // <-- END: MODIFICATION -->
+    
+    
+        function updateSummary() {
+            const options = { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true };
+    
+            if (!modalSelectedCharger) {
+                summaryTextEl.innerHTML = `<span class="summary-placeholder">Select a charger</span>`;
+                applyButton.disabled = true;
+                return;
+            }
+            if (!startDate) {
+                summaryTextEl.innerHTML = `<span class="summary-placeholder">Select a start date</span>`;
+                applyButton.disabled = true;
+                return;
+            }
+            const isRangeMode = datePicker.config.mode === 'range';
+            if (isRangeMode && !endDate) {
+                summaryTextEl.innerHTML = `<span class="summary-placeholder">Select an end date</span>`;
+                applyButton.disabled = true;
+                return;
+            }
             
-            startDate = selectedDates[0] || null;
-            endDate = selectedDates[1] || null;
+            const effectiveEndDate = endDate || startDate;
+            const finalStart = new Date(startDate);
+            finalStart.setHours(Math.floor(startTimeInMinutes / 60), startTimeInMinutes % 60, 0, 0);
+    
+            const finalEnd = new Date(effectiveEndDate);
+            const endHour = endTimeInMinutes === 1440 ? 0 : Math.floor(endTimeInMinutes / 60);
+            const endMinutes = endTimeInMinutes % 60;
+            finalEnd.setHours(endHour, endMinutes, 0, 0);
+    
+            if (isSingleDaySelection() && endTimeInMinutes === 1440) {
+                finalEnd.setDate(finalEnd.getDate() + 1);
+            }
             
-            // When user manually selects dates, reset the midnight flag
-            wasCreatedByMidnight = false;
+            if (finalEnd <= finalStart) {
+                summaryTextEl.innerHTML = `<span class="summary-placeholder" style="color: #f5365c;">End time must be after start time</span>`;
+                applyButton.disabled = true;
+                return;
+            }
+    
+            let isConflict = false;
+            let conflictingEventTitle = '';
+            const chargerBookings = allEvents.filter(event => event.extendedProps.charger === modalSelectedCharger);
+            for (const booking of chargerBookings) {
+                const bookingStart = new Date(booking.start);
+                const bookingEnd = new Date(booking.end);
+                if (finalStart < bookingEnd && finalEnd > bookingStart) {
+                    isConflict = true;
+                    conflictingEventTitle = booking.title;
+                    break;
+                }
+            }
+            if (isConflict) {
+                summaryTextEl.innerHTML = `<span class="summary-placeholder" style="color: #f5365c;">Conflicts with booking for ${conflictingEventTitle}</span>`;
+                applyButton.disabled = true;
+                return;
+            }
             
+            summaryTextEl.innerText = `${finalStart.toLocaleString('en-US', options)} - ${finalEnd.toLocaleString('en-US', options)}`;
+            modalStartEl.value = finalStart.toISOString();
+            modalEndEl.value = finalEnd.toISOString();
+            applyButton.disabled = false;
+        }
+    
+        // --- Slider & Date Picker Initialization ---
+        const startSlider = noUiSlider.create(startSliderEl, { start: startTimeInMinutes, connect: [true, false], step: 15, range: { 'min': 0, 'max': 1440 - MINIMUM_SLOT_MINUTES } });
+        const endSlider = noUiSlider.create(endSliderEl, { start: endTimeInMinutes, connect: [true, false], step: 15, range: { 'min': MINIMUM_SLOT_MINUTES, 'max': 1440 } });
+    
+        const datePicker = flatpickr("#date-calendar", {
+            inline: true, minDate: "today", disableMobile: true, mode: 'range',
+            onChange: (selectedDates) => {
+                if (isUpdatingCalendar) return;
+                startDate = selectedDates[0] ? new Date(selectedDates[0].setHours(0,0,0,0)) : null;
+                endDate = selectedDates[1] ? new Date(selectedDates[1].setHours(0,0,0,0)) : null;
+                wasCreatedByMidnight = false;
+                updateAllBlockedSlots(); // <-- MODIFICATION
+                updateSummary();
+            }
+        });
+    
+        // --- Event Handlers ---
+        startSlider.on('update', (values) => { startTimeInMinutes = Number(values[0]); startTimeValueEl.innerText = minutesToTimeFormat(startTimeInMinutes); if (isSingleDaySelection() && startTimeInMinutes >= endTimeInMinutes) { endSlider.set(startTimeInMinutes + MINIMUM_SLOT_MINUTES); } updateSummary(); });
+        endSlider.on('update', (values) => { endTimeInMinutes = Number(values[0]); endTimeValueEl.innerText = minutesToTimeFormat(endTimeInMinutes); if (isSingleDaySelection() && endTimeInMinutes <= startTimeInMinutes) { startSlider.set(endTimeInMinutes - MINIMUM_SLOT_MINUTES); } updateSummary(); });
+        chargerButtonsModal.forEach(btn => { // <-- MODIFICATION
+            btn.addEventListener('click', function() {
+                chargerButtonsModal.forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+                modalSelectedCharger = this.getAttribute('data-charger');
+                updateAllBlockedSlots();
+                updateSummary();
+            });
+        });
+    
+        // --- Modal Control Functions ---
+        function openModal() {
+            modal.style.display = 'flex';
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            let roundedStartTime = Math.ceil(currentMinutes / 15) * 15;
+            let roundedEndTime = roundedStartTime + 60;
+            if (roundedEndTime > 1440) { roundedEndTime = 1440; }
+            if (roundedStartTime >= 1440 - MINIMUM_SLOT_MINUTES) { roundedStartTime = 1440 - MINIMUM_SLOT_MINUTES; roundedEndTime = 1440; }
+            
+            datePicker.clear();
+            startDate = null; endDate = null;
+            startSlider.set(roundedStartTime); 
+            endSlider.set(roundedEndTime); 
+    
+            // <-- MODIFICATION: Reset modal state on open
+            chargerButtonsModal.forEach(b => b.classList.remove('selected'));
+            modalSelectedCharger = null;
+            updateAllBlockedSlots();
             updateSummary();
         }
-    });
-
-    // --- Start Time Slider Event Handler ---
-    startSlider.on('update', (values) => {
-        startTimeInMinutes = Number(values[0]);
-        startTimeValueEl.innerText = minutesToTimeFormat(startTimeInMinutes);
-        
-        const isSingleDay = isSingleDaySelection();
-
-        // SINGLE DAY LOGIC: Ensure end time is always after start time
-        if (isSingleDay) {
-            if (startTimeInMinutes >= endTimeInMinutes) {
-                endSlider.set(startTimeInMinutes + MINIMUM_SLOT_MINUTES);
-            }
-        }
-
-        updateSummary();
-    });
-
-    // --- End Time Slider Event Handler ---
-    endSlider.on('update', (values) => {
-        endTimeInMinutes = Number(values[0]);
-        endTimeValueEl.innerText = minutesToTimeFormat(endTimeInMinutes);
-
-        const isSingleDay = isSingleDaySelection();
-        
-        // Handle midnight crossover
-        if (endTimeInMinutes === 1440 && startDate) {
-            if (isSingleDay) {
-                // Create next day range for single day selection
-                const nextDay = new Date(startDate);
-                nextDay.setDate(nextDay.getDate() + 1);
+        function closeModal() { modal.style.display = 'none'; }
+    
+        // --- Final Event Listeners ---
+        mainFormDisplay.addEventListener('click', openModal); // <-- MODIFICATION
+        document.getElementById('closeDateTimePicker').addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    
+        applyButton.addEventListener('click', () => { // <-- MODIFICATION
+            if (!applyButton.disabled) {
+                const startValueISO = modalStartEl.value;
+                const endValueISO = modalEndEl.value;
+    
+                // Update all hidden form fields
+                mainFormChargerHidden.value = modalSelectedCharger;
+                mainFormStartHidden.value = startValueISO;
+                mainFormEndHidden.value = endValueISO;
+    
+                // Update the single visual display
+                const displayOptions = { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' };
+                const startStr = new Date(startValueISO).toLocaleString('en-US', displayOptions);
+                const endStr = new Date(endValueISO).toLocaleString('en-US', displayOptions);
+                mainFormDisplay.value = `${modalSelectedCharger}: ${startStr} - ${endStr}`;
                 
-                isUpdatingCalendar = true;
-                datePicker.setDate([startDate, nextDay], true);
-                endDate = nextDay;
-                wasCreatedByMidnight = true;
-                isUpdatingCalendar = false;
+                closeModal();
             }
-            else if (!wasCreatedByMidnight && isConsecutiveDays()) {
-                // Extend consecutive days by one more day when sliding to midnight
-                const dayAfterEnd = new Date(endDate);
-                dayAfterEnd.setDate(dayAfterEnd.getDate() + 1);
-                
-                isUpdatingCalendar = true;
-                datePicker.setDate([startDate, dayAfterEnd], true);
-                endDate = dayAfterEnd;
-                wasCreatedByMidnight = true; // Mark as midnight-extended
-                isUpdatingCalendar = false;
-            }
-        }
-        // Handle moving away from midnight
-        else if (endTimeInMinutes < 1440) {
-            if (wasCreatedByMidnight) {
-                if (isConsecutiveDays()) {
-                    // Revert single day that was extended to range
-                    isUpdatingCalendar = true;
-                    datePicker.setDate([startDate], true);
-                    endDate = null;
-                    wasCreatedByMidnight = false;
-                    isUpdatingCalendar = false;
-                }
-                else {
-                    // Revert extended consecutive days back to original consecutive days
-                    const dayBeforeEnd = new Date(endDate);
-                    dayBeforeEnd.setDate(dayBeforeEnd.getDate() - 1);
-                    
-                    isUpdatingCalendar = true;
-                    datePicker.setDate([startDate, dayBeforeEnd], true);
-                    endDate = dayBeforeEnd;
-                    wasCreatedByMidnight = false; // Reset the flag
-                    isUpdatingCalendar = false;
-                }
-            }
-        }
-        
-        // SINGLE DAY LOGIC: Handle backward adjustment
-        const isCurrentlySingleDay = isSingleDaySelection();
-        if (isCurrentlySingleDay) {
-            if (endTimeInMinutes <= startTimeInMinutes) {
-                startSlider.set(endTimeInMinutes - MINIMUM_SLOT_MINUTES);
-            }
-        }
+        });
 
-        updateSummary();
-    });
-
-    // --- Modal Control Functions (unchanged logic for smart open) ---
-    function openModal() {
-        modal.style.display = 'flex';
-        const now = new Date();
-        const currentMinutes = now.getHours() * 60 + now.getMinutes();
-        let roundedStartTime = Math.ceil(currentMinutes / 15) * 15;
-        let roundedEndTime = roundedStartTime + 60;
-        if (roundedEndTime > 1440) { roundedEndTime = 1440; }
-        if (roundedStartTime >= 1440 - MINIMUM_SLOT_MINUTES) { roundedStartTime = 1440 - MINIMUM_SLOT_MINUTES; roundedEndTime = 1440; }
-        datePicker.clear();
-        startDate = null; endDate = null;
-        startSlider.set(roundedStartTime); 
-        endSlider.set(roundedEndTime); 
-        updateSummary();
-    }
-    function closeModal() { modal.style.display = 'none'; }
-
-    // --- Final Event Listeners ---
-    mainFormStartDisplay.addEventListener('click', openModal);
-    mainFormEndDisplay.addEventListener('click', openModal);
-    document.getElementById('closeDateTimePicker').addEventListener('click', closeModal);
-    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-
-    // THE FIX: Simplified applyButton listener, no more "-1 minute" logic
-    applyButton.addEventListener('click', () => {
-        if (!applyButton.disabled) {
-            const startValueISO = modalStartEl.value;
-            const endValueISO = modalEndEl.value;
-            mainFormStartHidden.value = startValueISO;
-            mainFormEndHidden.value = endValueISO;
-            const displayOptions = { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true };
-            mainFormStartDisplay.value = new Date(startValueISO).toLocaleString('en-US', displayOptions);
-            mainFormEndDisplay.value = new Date(endValueISO).toLocaleString('en-US', displayOptions); // Now uses the clean value
-            closeModal();
-        }
-    });
-
-        updateSummary();
     }  
 
       function showTab(tab) {
@@ -1397,6 +1384,7 @@ function initializeDateTimePicker() {
         const plusOneHour = new Date(roundedNow.getTime() + 60 * 60 * 1000);
         
         // Initial data load and periodic updates
+        populateFormWithStoredUserInfo();
         loadBookings();
         setupFilterButtons();
         setInterval(updateChargerStatus, 1 * 1000);
@@ -1897,28 +1885,42 @@ document.getElementById('bookingForm').addEventListener('submit', async function
   </script>
   
       // timepickr and nouislider 
-    <div id="dateTimePickerModal" class="modal-overlay" style="display: none;">
-      <div class="modal-content">
-          <button id="closeDateTimePicker" class="close-button">&times;</button>
-          <h2>Select Date & Time</h2>
-          <div class="calendar-wrapper">
-              <div id="date-calendar"></div>
-          </div>
-          <div class="time-selector-group">
-              <label>Start Time: <span id="start-time-value"></span></label>
-              <div id="start-time-slider" class="time-slider"></div>
-          </div>
-          <div class="time-selector-group">
-              <label>End Time: <span id="end-time-value"></span></label>
-              <div id="end-time-slider" class="time-slider"></div>
-          </div>
-          <div class="summary-display">
-              <div id="summary-text" class="summary-placeholder">Select the start and end date</div>
-          </div>
-          <!-- These hidden inputs are temporary storage for the modal -->
-          <input type="hidden" id="dtp_start_datetime">
-          <input type="hidden" id="dtp_end_datetime">
-          <button id="apply-button" class="apply-button" disabled>CONFIRM</button>
+  <div id="dateTimePickerModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <button id="closeDateTimePicker" class="close-button">&times;</button>
+        <h2>Select Charger, Date & Time</h2>
+
+        <!-- Charger buttons are now inside the modal -->
+        <div id="chargerButtonsModal">
+            <button type="button" class="charger-btn filter-btn-a" data-charger="Tower A">Tower A</button>
+            <button type="button" class="charger-btn filter-btn-b" data-charger="Tower B">Tower B</button>
+            <button type="button" class="charger-btn filter-btn-club" data-charger="Clubhouse">Clubhouse</button>
+        </div>
+        <div class="calendar-wrapper">
+            <div id="date-calendar"></div>
+        </div>
+        
+        <!-- Sliders are wrapped for blocked slot indicators -->
+        <div class="time-selector-group">
+            <label>Start Time: <span id="start-time-value"></span></label>
+            <div class="time-slider-wrapper">
+                <div id="start-time-slider" class="time-slider"></div>
+                <div id="start-blocked-slots" class="blocked-slots-container"></div>
+            </div>
+        </div>
+        <div class="time-selector-group">
+            <label>End Time: <span id="end-time-value"></span></label>
+            <div class="time-slider-wrapper">
+                <div id="end-time-slider" class="time-slider"></div>
+                <div id="end-blocked-slots" class="blocked-slots-container"></div>
+            </div>
+        </div>
+        <div class="summary-display">
+            <div id="summary-text" class="summary-placeholder">Select a charger and date</div>
+        </div>
+        <input type="hidden" id="dtp_start_datetime">
+        <input type="hidden" id="dtp_end_datetime">
+        <button id="apply-button" class="apply-button" disabled>CONFIRM</button>
       </div>
     </div>
 </body>
