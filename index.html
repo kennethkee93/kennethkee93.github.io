@@ -1075,7 +1075,7 @@ h1 span:not(.title-main-part) {
           let startTimeInMinutes = 540;
           let endTimeInMinutes = 1020;
           const MINIMUM_SLOT_MINUTES = 15;
-          
+      
           let wasCreatedByMidnight = false;
           let isUpdatingCalendar = false;
       
@@ -1096,27 +1096,32 @@ h1 span:not(.title-main-part) {
               return date.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
           }
       
+          function isSingleDaySelection() {
+              return !endDate || (startDate && endDate && startDate.getTime() === endDate.getTime());
+          }
+      
+          function isConsecutiveDays() {
+              if (!startDate || !endDate) return false;
+              const oneDayMs = 24 * 60 * 60 * 1000;
+              return endDate.getTime() - startDate.getTime() === oneDayMs;
+          }
+      
           function updateSliderLabels() {
-              // --- START TIME LABEL ---
               if (startDate) {
                   const startDateStr = dateToShortFormat(startDate);
                   startTimeValueEl.innerText = `${startDateStr}, ${minutesToTimeFormat(startTimeInMinutes)}`;
               } else {
                   startTimeValueEl.innerText = minutesToTimeFormat(startTimeInMinutes);
               }
-          
-              // --- END TIME LABEL ---
+      
               let dateForEnd = endDate || startDate;
               let displayEndDate = null;
-          
+      
               if (dateForEnd) {
                   displayEndDate = new Date(dateForEnd);
-          
-                  // If user drags end to 12:00 AM (1440 min), show next day's date
                   if (endTimeInMinutes === 1440) {
                       displayEndDate.setDate(displayEndDate.getDate() + 1);
                   }
-          
                   const endDateStr = dateToShortFormat(displayEndDate);
                   endTimeValueEl.innerText = `${endDateStr}, ${minutesToTimeFormat(endTimeInMinutes)}`;
               } else {
@@ -1124,10 +1129,7 @@ h1 span:not(.title-main-part) {
               }
           }
       
-          function isSingleDaySelection() {
-              return !endDate || (startDate && endDate && startDate.getTime() === endDate.getTime());
-          }
-          
+          // --- Blocked Slot & Range Indicator Functions (unchanged) ---
           function drawBlockedSlots(date, charger, sliderContainer) {
               sliderContainer.innerHTML = '';
               if (!date || !charger) return;
@@ -1137,9 +1139,9 @@ h1 span:not(.title-main-part) {
               const dayEnd = new Date(date);
               dayEnd.setHours(23, 59, 59, 999);
       
-              const chargerBookings = allEvents.filter(event => 
+              const chargerBookings = allEvents.filter(event =>
                   event.extendedProps.charger === charger &&
-                  new Date(event.start) < dayEnd && 
+                  new Date(event.start) < dayEnd &&
                   new Date(event.end) > dayStart
               );
       
@@ -1157,15 +1159,13 @@ h1 span:not(.title-main-part) {
                       endMinutes = bookingEnd.getHours() * 60 + bookingEnd.getMinutes();
                   }
       
-                  // Get the slider container width to calculate pixel offsets
                   const sliderWidth = sliderContainer.parentElement.querySelector('.time-slider').offsetWidth;
-                  const handleWidth = 22; // Handle is 22px wide
-                  const handleOffset = handleWidth / 11; // Center offset is 11px
-                  
-                  // Calculate positions accounting for handle centering
+                  const handleWidth = 22;
+                  const handleOffset = handleWidth / 11;
+      
                   const leftPercent = (startMinutes / 1440) * 100;
                   const rightPercent = (endMinutes / 1440) * 100;
-                  
+      
                   const slotDiv = document.createElement('div');
                   slotDiv.className = 'blocked-slot';
                   slotDiv.style.left = `calc(${leftPercent}% + ${handleOffset}px)`;
@@ -1183,98 +1183,76 @@ h1 span:not(.title-main-part) {
               drawBlockedSlots(startDate, modalSelectedCharger, startBlockedSlotsEl);
               drawBlockedSlots(endDate || startDate, modalSelectedCharger, endBlockedSlotsEl);
           }
-  
+      
           function updateRangeIndicator() {
-              // Remove any existing green indicators
               document.querySelectorAll('.green-range-indicator').forEach(el => el.remove());
-              
               if (!modalSelectedCharger || !startDate) {
                   if (rangeIndicatorEl) rangeIndicatorEl.style.display = 'none';
                   return;
               }
-              
-              const startSliderWrapper = document.getElementById('start-time-slider').parentElement;
-              const endSliderWrapper = document.getElementById('end-time-slider').parentElement;
-              
-              const handleWidth = 22; // Handle is 22px wide
-              const handleOffset = handleWidth / 11; // Center offset is 11px
-              
-              // For single day: show green bar between the two handles on both sliders
+      
+              const startSliderWrapper = startSliderEl.parentElement;
+              const endSliderWrapper = endSliderEl.parentElement;
+              const handleWidth = 22;
+              const handleOffset = handleWidth / 11;
+      
               if (isSingleDaySelection()) {
                   const leftPercent = (startTimeInMinutes / 1440) * 100;
                   const rightPercent = (endTimeInMinutes / 1440) * 100;
-                  
-                  // Create green bar for start time slider
-                  const startGreenBar = document.createElement('div');
-                  startGreenBar.className = 'green-range-indicator';
-                  startGreenBar.style.position = 'absolute';
-                  startGreenBar.style.height = '8px';
-                  startGreenBar.style.backgroundColor = 'rgba(16, 185, 45, 0.6)';
-                  startGreenBar.style.borderRadius = '4px';
-                  startGreenBar.style.zIndex = '1';
-                  startGreenBar.style.pointerEvents = 'none';
-                  startGreenBar.style.top = '10px';
-                  startGreenBar.style.left = `calc(${leftPercent}% + ${handleOffset}px)`;
-                  startGreenBar.style.width = `calc(${rightPercent - leftPercent}% - ${handleOffset}px)`;
-                  startSliderWrapper.appendChild(startGreenBar);
-                  
-                  // Create green bar for end time slider
-                  const endGreenBar = document.createElement('div');
-                  endGreenBar.className = 'green-range-indicator';
-                  endGreenBar.style.position = 'absolute';
-                  endGreenBar.style.height = '8px';
-                  endGreenBar.style.backgroundColor = 'rgba(16, 185, 45, 0.6)';
-                  endGreenBar.style.borderRadius = '4px';
-                  endGreenBar.style.zIndex = '1';
-                  endGreenBar.style.pointerEvents = 'none';
-                  endGreenBar.style.top = '10px';
-                  endGreenBar.style.left = `calc(${leftPercent}% + ${handleOffset}px)`;
-                  endGreenBar.style.width = `calc(${rightPercent - leftPercent}% - ${handleOffset}px)`;
-                  endSliderWrapper.appendChild(endGreenBar);
+      
+                  const createBar = (wrapper, left, right) => {
+                      const bar = document.createElement('div');
+                      bar.className = 'green-range-indicator';
+                      bar.style.position = 'absolute';
+                      bar.style.height = '8px';
+                      bar.style.backgroundColor = 'rgba(16, 185, 45, 0.6)';
+                      bar.style.borderRadius = '4px';
+                      bar.style.zIndex = '1';
+                      bar.style.pointerEvents = 'none';
+                      bar.style.top = '10px';
+                      bar.style.left = `calc(${left}% + ${handleOffset}px)`;
+                      bar.style.width = `calc(${right - left}% - ${handleOffset}px)`;
+                      wrapper.appendChild(bar);
+                  };
+                  createBar(startSliderWrapper, leftPercent, rightPercent);
+                  createBar(endSliderWrapper, leftPercent, rightPercent);
               } else {
-                  // For multi-day: 
-                  // Start slider shows green from start time to end of day (midnight)
                   const startLeftPercent = (startTimeInMinutes / 1440) * 100;
-                  
-                  const startGreenBar = document.createElement('div');
-                  startGreenBar.className = 'green-range-indicator';
-                  startGreenBar.style.position = 'absolute';
-                  startGreenBar.style.height = '8px';
-                  startGreenBar.style.backgroundColor = 'rgba(16, 185, 45, 0.6)';
-                  startGreenBar.style.borderRadius = '4px';
-                  startGreenBar.style.zIndex = '1';
-                  startGreenBar.style.pointerEvents = 'none';
-                  startGreenBar.style.top = '10px';
-                  startGreenBar.style.left = `calc(${startLeftPercent}% + ${handleOffset}px)`;
-                  startGreenBar.style.width = `calc(${100 - startLeftPercent}% - ${handleOffset}px)`;
-                  startGreenBar.style.right = '0';
-                  startSliderWrapper.appendChild(startGreenBar);
-                  
-                  // End slider shows green from start of day to end time
                   const endRightPercent = (endTimeInMinutes / 1440) * 100;
-                  
-                  const endGreenBar = document.createElement('div');
-                  endGreenBar.className = 'green-range-indicator';
-                  endGreenBar.style.position = 'absolute';
-                  endGreenBar.style.height = '8px';
-                  endGreenBar.style.backgroundColor = 'rgba(16, 185, 45, 0.6)';
-                  endGreenBar.style.borderRadius = '4px';
-                  endGreenBar.style.zIndex = '1';
-                  endGreenBar.style.pointerEvents = 'none';
-                  endGreenBar.style.top = '10px';
-                  endGreenBar.style.left = '0';
-                  endGreenBar.style.width = `calc(${endRightPercent}% - ${handleOffset}px)`;
-                  endSliderWrapper.appendChild(endGreenBar);
+      
+                  const startBar = document.createElement('div');
+                  startBar.className = 'green-range-indicator';
+                  startBar.style.position = 'absolute';
+                  startBar.style.height = '8px';
+                  startBar.style.backgroundColor = 'rgba(16, 185, 45, 0.6)';
+                  startBar.style.borderRadius = '4px';
+                  startBar.style.zIndex = '1';
+                  startBar.style.pointerEvents = 'none';
+                  startBar.style.top = '10px';
+                  startBar.style.left = `calc(${startLeftPercent}% + ${handleOffset}px)`;
+                  startBar.style.width = `calc(${100 - startLeftPercent}% - ${handleOffset}px)`;
+                  startSliderWrapper.appendChild(startBar);
+      
+                  const endBar = document.createElement('div');
+                  endBar.className = 'green-range-indicator';
+                  endBar.style.position = 'absolute';
+                  endBar.style.height = '8px';
+                  endBar.style.backgroundColor = 'rgba(16, 185, 45, 0.6)';
+                  endBar.style.borderRadius = '4px';
+                  endBar.style.zIndex = '1';
+                  endBar.style.pointerEvents = 'none';
+                  endBar.style.top = '10px';
+                  endBar.style.left = '0';
+                  endBar.style.width = `calc(${endRightPercent}% - ${handleOffset}px)`;
+                  endSliderWrapper.appendChild(endBar);
               }
-              
-              // Hide the old range indicator
+      
               if (rangeIndicatorEl) rangeIndicatorEl.style.display = 'none';
           }
       
-      
+          // --- Update Summary (same as before) ---
           function updateSummary() {
               const options = { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true };
-      
               if (!modalSelectedCharger) {
                   summaryTextEl.innerHTML = `<span class="summary-placeholder">Select a charger</span>`;
                   applyButton.disabled = true;
@@ -1287,6 +1265,7 @@ h1 span:not(.title-main-part) {
                   updateRangeIndicator();
                   return;
               }
+      
               const isRangeMode = datePicker.config.mode === 'range';
               if (isRangeMode && !endDate) {
                   summaryTextEl.innerHTML = `<span class="summary-placeholder">Select an end date</span>`;
@@ -1294,7 +1273,7 @@ h1 span:not(.title-main-part) {
                   updateRangeIndicator();
                   return;
               }
-              
+      
               const effectiveEndDate = endDate || startDate;
               const finalStart = new Date(startDate);
               finalStart.setHours(Math.floor(startTimeInMinutes / 60), startTimeInMinutes % 60, 0, 0);
@@ -1307,37 +1286,36 @@ h1 span:not(.title-main-part) {
               if (isSingleDaySelection() && endTimeInMinutes === 1440) {
                   finalEnd.setDate(finalEnd.getDate() + 1);
               }
-              
+      
               if (finalEnd <= finalStart) {
                   summaryTextEl.innerHTML = `<span class="summary-placeholder" style="color: #f5365c;">End time must be after start time</span>`;
                   applyButton.disabled = true;
                   updateRangeIndicator();
                   return;
               }
-  
-          let conflictingBooking = null;
-          for (const booking of allEvents) {
-              if (booking.extendedProps.charger === modalSelectedCharger) {
-                  const bookingStart = new Date(booking.start);
-                  const bookingEnd = new Date(booking.end);
-                  if (finalStart < bookingEnd && finalEnd > bookingStart) {
-                      conflictingBooking = booking;
-                      break;
+      
+              let conflictingBooking = null;
+              for (const booking of allEvents) {
+                  if (booking.extendedProps.charger === modalSelectedCharger) {
+                      const bookingStart = new Date(booking.start);
+                      const bookingEnd = new Date(booking.end);
+                      if (finalStart < bookingEnd && finalEnd > bookingStart) {
+                          conflictingBooking = booking;
+                          break;
+                      }
                   }
               }
-          }
-          
+      
               if (conflictingBooking) {
                   const options = { hour: 'numeric', minute: '2-digit', hour12: true };
                   const conflictStartStr = new Date(conflictingBooking.start).toLocaleString('en-US', options);
                   const conflictEndStr = new Date(conflictingBooking.end).toLocaleString('en-US', options);
-                  
                   summaryTextEl.innerHTML = `<span class="summary-placeholder" style="color: #f5365c;">The selected time conflicts with an existing reservation (${conflictStartStr} - ${conflictEndStr}). Please pick a different slot.</span>`;
                   applyButton.disabled = true;
                   updateRangeIndicator();
                   return;
               }
-            
+      
               summaryTextEl.innerText = `${finalStart.toLocaleString('en-US', options)} - ${finalEnd.toLocaleString('en-US', options)}`;
               modalStartEl.value = finalStart.toISOString();
               modalEndEl.value = finalEnd.toISOString();
@@ -1345,19 +1323,21 @@ h1 span:not(.title-main-part) {
               updateRangeIndicator();
           }
       
-          // --- Slider & Date Picker Initialization ---
-          const startSlider = noUiSlider.create(startSliderEl, { 
-              start: startTimeInMinutes, 
-              connect: false, // Changed to false - no connection bar
-              step: 15, 
-              range: { 'min': 0, 'max': 1440 - MINIMUM_SLOT_MINUTES } 
+          // --- Slider Setup ---
+          const startSlider = noUiSlider.create(startSliderEl, {
+              start: startTimeInMinutes,
+              connect: false,
+              step: 15,
+              range: { 'min': 0, 'max': 1440 - MINIMUM_SLOT_MINUTES }
           });
-          const endSlider = noUiSlider.create(endSliderEl, { 
-              start: endTimeInMinutes, 
-              connect: false, // Changed to false - no connection bar
-              step: 15, 
-              range: { 'min': MINIMUM_SLOT_MINUTES, 'max': 1440 } 
+          const endSlider = noUiSlider.create(endSliderEl, {
+              start: endTimeInMinutes,
+              connect: false,
+              step: 15,
+              range: { 'min': MINIMUM_SLOT_MINUTES, 'max': 1440 }
           });
+      
+          // --- Date Picker ---
           const datePicker = flatpickr("#date-calendar", {
               inline: true, minDate: "today", disableMobile: true, mode: 'range',
               onChange: (selectedDates) => {
@@ -1365,34 +1345,79 @@ h1 span:not(.title-main-part) {
                   startDate = selectedDates[0] ? new Date(selectedDates[0].setHours(0,0,0,0)) : null;
                   endDate = selectedDates[1] ? new Date(selectedDates[1].setHours(0,0,0,0)) : null;
                   wasCreatedByMidnight = false;
-                  updateAllBlockedSlots(); 
+                  updateAllBlockedSlots();
                   updateSliderLabels();
                   updateRangeIndicator();
                   updateSummary();
               }
           });
       
-          // --- Event Handlers ---
-         startSlider.on('update', (v) => { 
-              startTimeInMinutes = Number(v[0]); 
+          // --- Slider Handlers ---
+          startSlider.on('update', (v) => {
+              startTimeInMinutes = Number(v[0]);
               updateSliderLabels();
-              if (isSingleDaySelection() && startTimeInMinutes >= endTimeInMinutes) { 
-                  endSlider.set(startTimeInMinutes + MINIMUM_SLOT_MINUTES); 
-              } 
+      
+              if (isSingleDaySelection() && startTimeInMinutes >= endTimeInMinutes) {
+                  endSlider.set(startTimeInMinutes + MINIMUM_SLOT_MINUTES);
+              }
               updateRangeIndicator();
-              updateSummary(); 
+              updateSummary();
           });
-          endSlider.on('update', (v) => { 
-              endTimeInMinutes = Number(v[0]); 
+      
+          endSlider.on('update', (v) => {
+              endTimeInMinutes = Number(v[0]);
               updateSliderLabels();
-              if (isSingleDaySelection() && endTimeInMinutes <= startTimeInMinutes) { 
-                  startSlider.set(endTimeInMinutes - MINIMUM_SLOT_MINUTES); 
-              } 
+      
+              const singleDay = isSingleDaySelection();
+      
+              // --- ✨ Restored Midnight Rollover Logic ✨ ---
+              if (endTimeInMinutes === 1440 && startDate) {
+                  if (singleDay) {
+                      const nextDay = new Date(startDate);
+                      nextDay.setDate(nextDay.getDate() + 1);
+                      isUpdatingCalendar = true;
+                      datePicker.setDate([startDate, nextDay], true);
+                      endDate = nextDay;
+                      wasCreatedByMidnight = true;
+                      isUpdatingCalendar = false;
+                  } else if (!wasCreatedByMidnight && isConsecutiveDays()) {
+                      const dayAfterEnd = new Date(endDate);
+                      dayAfterEnd.setDate(dayAfterEnd.getDate() + 1);
+                      isUpdatingCalendar = true;
+                      datePicker.setDate([startDate, dayAfterEnd], true);
+                      endDate = dayAfterEnd;
+                      wasCreatedByMidnight = true;
+                      isUpdatingCalendar = false;
+                  }
+              } else if (endTimeInMinutes < 1440 && wasCreatedByMidnight) {
+                  if (isConsecutiveDays()) {
+                      isUpdatingCalendar = true;
+                      datePicker.setDate([startDate], true);
+                      endDate = null;
+                      wasCreatedByMidnight = false;
+                      isUpdatingCalendar = false;
+                  } else {
+                      const dayBeforeEnd = new Date(endDate);
+                      dayBeforeEnd.setDate(dayBeforeEnd.getDate() - 1);
+                      isUpdatingCalendar = true;
+                      datePicker.setDate([startDate, dayBeforeEnd], true);
+                      endDate = dayBeforeEnd;
+                      wasCreatedByMidnight = false;
+                      isUpdatingCalendar = false;
+                  }
+              }
+      
+              if (singleDay && endTimeInMinutes <= startTimeInMinutes) {
+                  startSlider.set(endTimeInMinutes - MINIMUM_SLOT_MINUTES);
+              }
+      
               updateRangeIndicator();
-              updateSummary(); 
+              updateSummary();
           });
+      
+          // --- Charger Selection ---
           chargerButtonsModal.forEach(btn => {
-              btn.addEventListener('click', function() {
+              btn.addEventListener('click', function () {
                   chargerButtonsModal.forEach(b => b.classList.remove('selected'));
                   this.classList.add('selected');
                   modalSelectedCharger = this.getAttribute('data-charger');
@@ -1402,7 +1427,7 @@ h1 span:not(.title-main-part) {
               });
           });
       
-          // --- Modal Control Functions ---
+          // --- Modal Control ---
           function openModal() {
               modal.style.display = 'flex';
               const now = new Date();
@@ -1410,16 +1435,16 @@ h1 span:not(.title-main-part) {
               let roundedStartTime = Math.ceil(currentMinutes / 15) * 15;
               let roundedEndTime = roundedStartTime + 60;
               if (roundedEndTime > 1440) { roundedEndTime = 1440; }
-              if (roundedStartTime >= 1440 - MINIMUM_SLOT_MINUTES) { 
-                  roundedStartTime = 1440 - MINIMUM_SLOT_MINUTES; 
-                  roundedEndTime = 1440; 
+              if (roundedStartTime >= 1440 - MINIMUM_SLOT_MINUTES) {
+                  roundedStartTime = 1440 - MINIMUM_SLOT_MINUTES;
+                  roundedEndTime = 1440;
               }
-              
+      
               datePicker.clear();
-              startDate = null; 
+              startDate = null;
               endDate = null;
-              startSlider.set(roundedStartTime); 
-              endSlider.set(roundedEndTime); 
+              startSlider.set(roundedStartTime);
+              endSlider.set(roundedEndTime);
       
               chargerButtonsModal.forEach(b => b.classList.remove('selected'));
               modalSelectedCharger = null;
@@ -1428,9 +1453,10 @@ h1 span:not(.title-main-part) {
               updateRangeIndicator();
               updateSummary();
           }
+      
           function closeModal() { modal.style.display = 'none'; }
       
-          // --- Final Event Listeners ---
+          // --- Event Listeners ---
           mainFormDisplay.addEventListener('click', openModal);
           document.getElementById('closeDateTimePicker').addEventListener('click', closeModal);
           modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
