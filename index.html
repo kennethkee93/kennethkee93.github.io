@@ -662,6 +662,128 @@ h1 span:not(.title-main-part) {
     .error, .success { padding: 10px; border-radius: 10px; margin: 10px 0; display: none; font-weight: bold; text-align: center; }
     .error { background: #ff3333; color: white; }
     .success { background: #00cc66; color: white; }
+    
+    /* ===== REMEMBER ME CHECKBOX ===== */
+        .checkbox-container {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            padding: 0;
+            padding-bottom: 10px;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .save-info-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px 4px;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+            user-select: none;
+            width: 100%;
+        }
+
+        .save-info-label:hover {
+            background-color: #f8f9fa;
+        }
+
+        .save-info-label:active {
+            background-color: #e9ecef;
+        }
+
+        /* Hide default checkbox */
+        .save-info-label input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        /* Custom checkbox */
+        .checkmark {
+            position: relative;
+            height: 15px;
+            min-width: 15px;
+            width: 15px;
+            background-color: #fff;
+            border: 1.5px solid #d1d5db;
+            border-radius: 3px;
+            transition: all 0.2s ease;
+        }
+
+        .save-info-label:hover .checkmark {
+            border-color: #3b82f6;
+        }
+
+        .save-info-label input:checked ~ .checkmark {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        /* Checkmark icon */
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+            left: 5px;
+            top: 1px;
+            width: 5px;
+            height: 9px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .save-info-label input:checked ~ .checkmark:after {
+            display: block;
+        }
+
+        .checkbox-text {
+            flex: 1;
+            font-size: 11px;
+            line-height: 1.4;
+            color: #374151;
+        }
+
+        /* Mobile optimization */
+        @media (max-width: 640px) {
+            .save-info-label {
+                padding: 6px 2px;
+                gap: 6px;
+            }
+
+            .checkmark {
+                height: 15px;
+                min-width: 15px;
+                width: 16px;
+            }
+
+            .checkmark:after {
+                left: 5px;
+                top: 2px;
+                width: 4px;
+                height: 8px;
+            }
+
+            .checkbox-text {
+                font-size: 11px;
+            }
+        }
+
+        /* Extra small screens */
+        @media (max-width: 375px) {
+            body {
+                padding: 12px;
+            }
+
+            .save-info-label {
+                padding: 6px 2px;
+            }
+        }
 
     /* ===== SIDE BUTTONS ===== */
     #sideButtonsWrapper { display: flex; align-items: flex-end; gap: 8px; position: fixed; bottom: calc(80px + env(safe-area-inset-bottom)); right: 20px; z-index: 1000; font-family: Arial, sans-serif; flex-direction: column; }
@@ -931,7 +1053,13 @@ h1 span:not(.title-main-part) {
           <input id="plate" name="license_plate" type="text" placeholder="Car Plate Number" required oninput="this.value = this.value.toUpperCase()" />
           <input id="phone" name="tel" type="tel" placeholder="Phone Number" />
           <input id="email" name="email" type="email" placeholder="Email for Confirmation (Required)" required />
-          <label class="save-info-label"><input type="checkbox" id="rememberMe" />Remember my information for next reservation</label>
+          <div class="checkbox-container">
+              <label class="save-info-label">
+                  <input type="checkbox" id="rememberMe" />
+                    <span class="checkmark"></span>
+                    <span class="checkbox-text">Remember my information for next reservation</span>
+              </label>
+          </div>
           <label for="datetime_display" style="display: flex; align-items: center; gap: 6px;">
             <img src="https://www.svgrepo.com/download/445422/time-solid.svg" alt="Time slot icon" width="18" height="18">
             Charger & Time Slot
