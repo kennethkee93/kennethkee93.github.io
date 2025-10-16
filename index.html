@@ -562,7 +562,7 @@ h1 span:not(.title-main-part) {
     
     /* Base slider styling - grey background for full range */
     .time-slider { 
-        height: 8px; 
+        height: 10px; 
         border: none; 
         background: #e0e0e0 !important; /* Grey default background */
         border-radius: 4px;
@@ -585,24 +585,94 @@ h1 span:not(.title-main-part) {
     .time-slider-wrapper { position: relative; padding: 10px 0; }
     
     /* The handles */
-    .noUi-handle { height: 22px !important; width: 22px !important; top: -9px; right: -11px; border-radius: 50% !important; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.2); cursor: grab; }
+    .noUi-handle {
+    height: 22px !important;
+    width: 22px !important;
+    border-radius: 50% !important;
+    border: 3px solid white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2), 0 0 6px rgba(255, 255, 255, 0.6);
+    cursor: grab;
+    animation: whiteGlow 2.5s ease-in-out infinite; /* ✨ added animation */
+    }
+    
     #start-time-slider .noUi-connect { background: #5ee48d; }
     #end-time-slider .noUi-connect { background: #5ee48d; }
+    
     .noUi-handle:after, .noUi-handle:before { display: none; }
     
+    .noUi-horizontal .noUi-handle { right: -12px; top: -7px; }
+    
+    /* ✨ White glow animation */
+    @keyframes whiteGlow {
+      0%   { box-shadow: 0 2px 6px rgba(0,0,0,0.2), 0 0 6px rgba(255, 255, 255, 0.4); }
+      50%  { box-shadow: 0 2px 6px rgba(0,0,0,0.2), 0 0 14px rgba(255, 255, 255, 0.9); }
+      100% { box-shadow: 0 2px 6px rgba(0,0,0,0.2), 0 0 6px rgba(255, 255, 255, 0.4); }
+    }
+    
+    
     /* Red blocked-slot indicators (unavailable times) */
-    .blocked-slots-container { position: absolute; top: 10px; left: 0; right: 0; height: 8px; z-index: 0; pointer-events: none; } /* CORRECTION: Increased z-index */
-    .blocked-slot { position: absolute; height: 100%; background-color: rgba(255, 82, 82, 0.8); border-radius: 4px; }
+    .blocked-slots-container {
+      position: absolute;
+      top: 10px;
+      left: -1px;
+      right: -1px;
+      height: 10px;
+      z-index: 0; /* consider raising if it's hidden behind other elements */
+      pointer-events: none;
+    }
+    
+    /* Animated red-striped blocked slot */
+    .blocked-slot {
+      position: absolute;
+      height: 100%;
+      border-radius: 4px;
+      background: repeating-linear-gradient(
+        45deg,
+        rgba(255, 82, 82, 0.9),
+        rgba(255, 82, 82, 0.9) 6px,
+        rgba(255, 0, 0, 0.6) 6px,
+        rgba(255, 0, 0, 0.6) 12px
+      );
+      background-size: 40px 40px;
+      animation: moveStripes 2s linear infinite;
+    }
+    
+    /* Animation for the stripe movement */
+    @keyframes moveStripes {
+      0% {
+        background-position: 0 0;
+      }
+      100% {
+        background-position: 40px 0;
+      }
+    }
+
     
     /* Green indicator for selected available range */
     #selected-range-indicator {
-        position: absolute;
-        height: 8px;
-        background-color: rgba(16, 185, 45, 0.1) !important; /* Green for available selected time */
-        border-radius: 4px;
-        pointer-events: none;
-        left: 0;
-        right: 0;
+      position: absolute;
+      height: 8px;
+      border-radius: 6px;
+      background-size: 40px 40px;
+      pointer-events: none;
+      left: -1px;
+      right: -1px;
+      z-index: 1;
+      box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+    }
+    @keyframes greenGlow {
+      0% {
+        background-position: 0% 50%;
+        box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+      }
+      50% {
+        background-position: 100% 50%;
+        box-shadow: 0 0 12px rgba(34, 197, 94, 0.9);
+      }
+      100% {
+        background-position: 0% 50%;
+        box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+      }
     }
     
     /* Summary and Button Styles */
@@ -1326,55 +1396,73 @@ h1 span:not(.title-main-part) {
               const handleOffset = handleWidth / 11;
       
               if (isSingleDaySelection()) {
-                  const leftPercent = (startTimeInMinutes / 1440) * 100;
-                  const rightPercent = (endTimeInMinutes / 1440) * 100;
-      
-                  const createBar = (wrapper, left, right) => {
-                      const bar = document.createElement('div');
-                      bar.className = 'green-range-indicator';
-                      bar.style.position = 'absolute';
-                      bar.style.height = '8px';
-                      bar.style.backgroundColor = 'rgba(16, 185, 45, 0.6)';
-                      bar.style.borderRadius = '4px';
-                      bar.style.zIndex = '1';
-                      bar.style.pointerEvents = 'none';
-                      bar.style.top = '10px';
-                      bar.style.left = `calc(${left}% + ${handleOffset}px)`;
-                      bar.style.width = `calc(${right - left}% - ${handleOffset}px)`;
-                      wrapper.appendChild(bar);
-                  };
-                  createBar(startSliderWrapper, leftPercent, rightPercent);
-                  createBar(endSliderWrapper, leftPercent, rightPercent);
-              } else {
-                  const startLeftPercent = (startTimeInMinutes / 1440) * 100;
-                  const endRightPercent = (endTimeInMinutes / 1440) * 100;
-      
-                  const startBar = document.createElement('div');
-                  startBar.className = 'green-range-indicator';
-                  startBar.style.position = 'absolute';
-                  startBar.style.height = '8px';
-                  startBar.style.backgroundColor = 'rgba(16, 185, 45, 0.6)';
-                  startBar.style.borderRadius = '4px';
-                  startBar.style.zIndex = '1';
-                  startBar.style.pointerEvents = 'none';
-                  startBar.style.top = '10px';
-                  startBar.style.left = `calc(${startLeftPercent}% + ${handleOffset}px)`;
-                  startBar.style.width = `calc(${100 - startLeftPercent}% - ${handleOffset}px)`;
-                  startSliderWrapper.appendChild(startBar);
-      
-                  const endBar = document.createElement('div');
-                  endBar.className = 'green-range-indicator';
-                  endBar.style.position = 'absolute';
-                  endBar.style.height = '8px';
-                  endBar.style.backgroundColor = 'rgba(16, 185, 45, 0.6)';
-                  endBar.style.borderRadius = '4px';
-                  endBar.style.zIndex = '1';
-                  endBar.style.pointerEvents = 'none';
-                  endBar.style.top = '10px';
-                  endBar.style.left = '0';
-                  endBar.style.width = `calc(${endRightPercent}% - ${handleOffset}px)`;
-                  endSliderWrapper.appendChild(endBar);
-              }
+                const leftPercent = (startTimeInMinutes / 1440) * 100;
+                const rightPercent = (endTimeInMinutes / 1440) * 100;
+            
+                const createBar = (wrapper, left, right) => {
+                    const bar = document.createElement('div');
+                    bar.className = 'green-range-indicator';
+                    bar.style.position = 'absolute';
+                    bar.style.height = '10px'; // 🔹 slightly thicker
+                    bar.style.borderRadius = '6px'; // 🔹 softer edges
+                    bar.style.zIndex = '2'; // 🔹 above blocked slots
+                    bar.style.pointerEvents = 'none';
+                    bar.style.top = '10px'; // 🔹 visually centered over track
+            
+                    // 🔹 animated gradient background for emphasis
+                    bar.style.background = `linear-gradient(90deg,
+                        rgba(34, 197, 94, 0.95),
+                        rgba(16, 185, 45, 0.9),
+                        rgba(132, 204, 22, 0.9)
+                    )`;
+                    bar.style.boxShadow = '0 0 8px rgba(34, 197, 94, 0.7)'; // 🔹 subtle glow
+                    bar.style.backgroundSize = '200% 100%';
+                    bar.style.animation = 'greenGlow 3s ease-in-out infinite';
+            
+                    bar.style.left = `calc(${left}% + ${handleOffset}px)`;
+                    bar.style.width = `calc(${right - left}% - ${handleOffset}px)`;
+                    wrapper.appendChild(bar);
+                };
+                createBar(startSliderWrapper, leftPercent, rightPercent);
+                createBar(endSliderWrapper, leftPercent, rightPercent);
+            } else {
+                const startLeftPercent = (startTimeInMinutes / 1440) * 100;
+                const endRightPercent = (endTimeInMinutes / 1440) * 100;
+            
+                const createBar = (wrapper, left, width) => {
+                    const bar = document.createElement('div');
+                    bar.className = 'green-range-indicator';
+                    bar.style.position = 'absolute';
+                    bar.style.height = '10px';
+                    bar.style.borderRadius = '6px';
+                    bar.style.zIndex = '2';
+                    bar.style.pointerEvents = 'none';
+                    bar.style.top = '10px';
+                    bar.style.background = `linear-gradient(90deg,
+                        rgba(34, 197, 94, 0.95),
+                        rgba(16, 185, 45, 0.9),
+                        rgba(132, 204, 22, 0.9)
+                    )`;
+                    bar.style.boxShadow = '0 0 8px rgba(34, 197, 94, 0.7)';
+                    bar.style.backgroundSize = '200% 100%';
+                    bar.style.animation = 'greenGlow 3s ease-in-out infinite';
+            
+                    bar.style.left = left;
+                    bar.style.width = width;
+                    wrapper.appendChild(bar);
+                };
+            
+                createBar(
+                    startSliderWrapper,
+                    `calc(${startLeftPercent}% + ${handleOffset}px)`,
+                    `calc(${100 - startLeftPercent}% - ${handleOffset}px)`
+                );
+                createBar(
+                    endSliderWrapper,
+                    '0',
+                    `calc(${endRightPercent}% - ${handleOffset}px)`
+                );
+            }
       
               if (rangeIndicatorEl) rangeIndicatorEl.style.display = 'none';
           }
@@ -1417,7 +1505,7 @@ h1 span:not(.title-main-part) {
               }
       
               if (finalEnd <= finalStart) {
-                  summaryTextEl.innerHTML = `<span class="summary-placeholder" style="color: #f5365c;">End time must be after start time</span>`;
+                  summaryTextEl.innerHTML = `<span class="summary-placeholder" style="color: #fa7380;">End time must be after start time</span>`;
                   applyButton.disabled = true;
                   updateRangeIndicator();
                   return;
@@ -1439,7 +1527,7 @@ h1 span:not(.title-main-part) {
                   const options = { hour: 'numeric', minute: '2-digit', hour12: true };
                   const conflictStartStr = new Date(conflictingBooking.start).toLocaleString('en-US', options);
                   const conflictEndStr = new Date(conflictingBooking.end).toLocaleString('en-US', options);
-                  summaryTextEl.innerHTML = `<span class="summary-placeholder" style="color: #f5365c;">The selected time conflicts with an existing reservation (${conflictStartStr} - ${conflictEndStr}). Please pick a different slot.</span>`;
+                  summaryTextEl.innerHTML = `<span class="summary-placeholder" style="color: #fa7380;">Time conflict (${conflictStartStr}–${conflictEndStr}). Please choose another slot.</span>`;
                   applyButton.disabled = true;
                   updateRangeIndicator();
                   return;
