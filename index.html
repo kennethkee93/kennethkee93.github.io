@@ -590,25 +590,20 @@ h1 span:not(.title-main-part) {
     width: 22px !important;
     border-radius: 50% !important;
     border: 3px solid white;
+    background: rgba(255, 255, 255, 0.4) !important;
     box-shadow: 0 2px 6px rgba(0,0,0,0.2), 0 0 6px rgba(255, 255, 255, 0.6);
     cursor: grab;
-    animation: whiteGlow 2.5s ease-in-out infinite; /* ✨ added animation */
+    animation: whiteGlow 2.5s ease-in-out infinite; 
     }
-    
     #start-time-slider .noUi-connect { background: #5ee48d; }
     #end-time-slider .noUi-connect { background: #5ee48d; }
-    
     .noUi-handle:after, .noUi-handle:before { display: none; }
-    
     .noUi-horizontal .noUi-handle { right: -12px; top: -7px; }
-    
-    /* ✨ White glow animation */
     @keyframes whiteGlow {
       0%   { box-shadow: 0 2px 6px rgba(0,0,0,0.2), 0 0 6px rgba(255, 255, 255, 0.4); }
       50%  { box-shadow: 0 2px 6px rgba(0,0,0,0.2), 0 0 14px rgba(255, 255, 255, 0.9); }
       100% { box-shadow: 0 2px 6px rgba(0,0,0,0.2), 0 0 6px rgba(255, 255, 255, 0.4); }
     }
-    
     
     /* Red blocked-slot indicators (unavailable times) */
     .blocked-slots-container {
@@ -679,8 +674,9 @@ h1 span:not(.title-main-part) {
     .summary-display { border: 1px solid #dee2e6; border-radius: 8px; padding: 8px; margin: 15px 0; text-align: center; min-height: 50px; display: flex; justify-content: center; align-items: center; }
     .summary-text { font-size: 12px; font-weight: 500; color: #34495e; }
     .summary-placeholder { color: #8898aa; }
-    .apply-button { width: 100%; padding: 10px; background-color: #2dce89; border: none; border-radius: 8px; color: white; font-size: 15px; font-weight: 600; cursor: pointer; }
-    .apply-button:disabled { background-color: #a1e9c9; opacity: 0.7; cursor: not-allowed; }
+    .apply-button { width: 100%; padding: 10px; background: #656b76; color: #e4e5e7; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background-color 0.3s ease; } 
+    .apply-button:hover:not(:disabled) { background: #111827; } 
+    .apply-button:disabled { opacity: 0.6; cursor: not-allowed; }
     
     /* Wrapper for the slider container to position the range indicator */
     .slider-container-wrapper {
@@ -1169,7 +1165,7 @@ h1 span:not(.title-main-part) {
                     <strong>Join the Community!</strong><br>
                     Connect with other EV owners in Emerald Hills by joining our WhatsApp group:<br>
                     <a href="https://chat.whatsapp.com/Ja1eSJSGug20nj1Wqk3OtP" target="_blank" rel="noopener noreferrer">Emerald Hills EV Owners Group</a><br><br><br><br>
-                  © <span id="copyrightYear"></span>. Version 2.0
+                  © <span id="copyrightYear"></span>. Version 2.1
               </div>
           </div>
           <div class="side-button-group">
