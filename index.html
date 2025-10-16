@@ -2472,10 +2472,13 @@ h1 span:not(.title-main-part) {
         const ownerName = event.title.split(' - ')[0];
     
         const dateTimeOptions = {
-            hour: 'numeric', minute: '2-digit', hour12: true
+        hour: 'numeric',
+        minute: '2-digit',
+        weekday: 'short', // added for the short day name
+        hour12: true
         };
-        const startStr = start.toLocaleTimeString('en-US', dateTimeOptions);
-        const endStr = end.toLocaleTimeString('en-US', dateTimeOptions);
+        const startStr = start.toLocaleString('en-US', dateTimeOptions);
+        const endStr = end.toLocaleString('en-US', dateTimeOptions);
         
         const totalDuration = end - start;
         const elapsedDuration = now - start;
@@ -2551,10 +2554,13 @@ h1 span:not(.title-main-part) {
         const ownerName = event.title.split(' - ')[0];
         
         const dateTimeOptions = {
-            hour: 'numeric', minute: '2-digit', hour12: true
+        hour: 'numeric',
+        minute: '2-digit',
+        weekday: 'short', // added for the short day name
+        hour12: true
         };
-        const startStr = start.toLocaleTimeString('en-US', dateTimeOptions);
-        const endStr = end.toLocaleTimeString('en-US', dateTimeOptions);
+        const startStr = start.toLocaleString('en-US', dateTimeOptions);
+        const endStr = end.toLocaleString('en-US', dateTimeOptions);
         
         let startsInText = '';
         const timeUntilStart = start.getTime() - now.getTime();
@@ -2602,14 +2608,14 @@ h1 span:not(.title-main-part) {
                 </div>
                 <div class="upcoming-time-info">
                     <div class="time-slot">
-                        <span class="time-label">Start Time</span>
+                        <span class="time-label">Start</span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="9 18 15 12 9 6"></polyline>
                         </svg>
                         <span class="time-value">${startStr}</span>
                     </div>
                     <div class="time-slot">
-                        <span class="time-label">End Time</span>
+                        <span class="time-label">Ends</span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="9 18 15 12 9 6"></polyline>
                         </svg>
