@@ -2234,8 +2234,9 @@ document.getElementById('bookingForm').addEventListener('submit', async function
     .then(async (res) => {
         if (res.status === 'success' && res.newEvent) {
             ev.target.reset();
-            document.getElementById('start_display').value = '';
-            document.getElementById('end_display').value = '';
+            document.getElementById('start_datetime').value = '';
+            document.getElementById('end_datetime').value = '';
+            document.getElementById('datetime_display').value = ''; // optional: clear user-visible display
             document.querySelectorAll('#bookingForm .charger-btn.selected').forEach(btn => btn.classList.remove('selected'));
             
             showMessage('success', res.message);
