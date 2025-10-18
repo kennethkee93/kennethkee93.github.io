@@ -875,6 +875,9 @@ h1 span:not(.title-main-part) {
         align-items: center;
         justify-content: center;
         z-index: 10000;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        cursor: default;
     }
     .modal-content {
         width: calc(100% - 20px);
@@ -885,6 +888,7 @@ h1 span:not(.title-main-part) {
         box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
         box-sizing: border-box;
         position: relative;
+        touch-action: auto;
     }
     .modal-content h2 { text-align: center; margin-top: 0; font-weight: 600; color: #2c3e50; }
     .close-button {
@@ -899,6 +903,7 @@ h1 span:not(.title-main-part) {
         cursor: pointer;
         margin-bottom: 10px; 
         font-size: 18px;
+        touch-action: manipulation;
     }
     
     /* Style for charger buttons inside the modal */
@@ -2044,8 +2049,16 @@ h1 span:not(.title-main-part) {
       
           // --- Event Listeners ---
           mainFormDisplay.addEventListener('click', openModal);
-          document.getElementById('closeDateTimePicker').addEventListener('click', closeModal);
+          const closeBtn = document.getElementById('closeDateTimePicker');
+          // Always keep the click handler (fallback) but also listen for pointerup/touchend for iOS.
+          closeBtn.addEventListener('click', closeModal);
+          closeBtn.addEventListener('pointerup', (e) => { e.preventDefault(); closeModal(); });
+          closeBtn.addEventListener('touchend', (e) => { e.preventDefault(); closeModal(); }, { passive: false });
+
+          // Close when tapping the backdrop — handle pointerup/touchend to be reliable on iOS
           modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+          modal.addEventListener('pointerup', (e) => { if (e.target === modal) { e.preventDefault(); closeModal(); }});
+          modal.addEventListener('touchend', (e) => { if (e.target === modal) { e.preventDefault(); closeModal(); }}, { passive: false });
       
           applyButton.addEventListener('click', () => {
               if (!applyButton.disabled) {
