@@ -2893,33 +2893,56 @@ document.getElementById('bookingForm').addEventListener('submit', async function
 
     // Firebase for live notifications
     document.addEventListener('DOMContentLoaded', () => {
-      const updateBanner = document.getElementById('update-notification');
-      const hammer = new Hammer(updateBanner);
-      hammer.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
-      hammer.on('swipeup swipedown', () => { updateBanner.style.display = 'none'; });
+      // Initialize Firebase
       const firebaseConfig = {
-		  apiKey: "AIzaSyAlb8aLl1kRafLO7GY5rarVly-Z1wMDbz0",
-		  authDomain: "bookingsync-ff9bd.firebaseapp.com",
-		  databaseURL: "https://bookingsync-ff9bd-default-rtdb.asia-southeast1.firebasedatabase.app",
-		  projectId: "bookingsync-ff9bd",
-		  storageBucket: "bookingsync-ff9bd.firebasestorage.app",
-		  messagingSenderId: "269992391466",
-		  appId: "1:269992391466:web:b65bc168c948de21796453"
+    		  apiKey: "AIzaSyAlb8aLl1kRafLO7GY5rarVly-Z1wMDbz0",
+    		  authDomain: "bookingsync-ff9bd.firebaseapp.com",
+    		  databaseURL: "https://bookingsync-ff9bd-default-rtdb.asia-southeast1.firebasedatabase.app",
+    		  projectId: "bookingsync-ff9bd",
+    		  storageBucket: "bookingsync-ff9bd.firebasestorage.app",
+    		  messagingSenderId: "269992391466",
+    		  appId: "1:269992391466:web:b65bc168c948de21796453"
       };
+    
       firebase.initializeApp(firebaseConfig);
       const db = firebase.database();
-      let lastSeenTimestamp = null;
-      db.ref('server/lastUpdate').on('value', (snapshot) => {
-        const timestamp = snapshot.val();
-        if (!timestamp) return;
-        if (lastSeenTimestamp === null) { lastSeenTimestamp = timestamp; return; }
-        if (timestamp !== lastSeenTimestamp) {
-          lastSeenTimestamp = timestamp;
-          updateBanner.style.display = 'block';
-        }
+    
+      // --- 🔥 Firebase background listener for bookings ---
+      const bookingsRef = db.ref('bookings');
+    
+      // Trigger when a new booking is added
+      bookingsRef.on('child_added', (snapshot) => {
+        console.log('[Firebase] New booking detected:', snapshot.key);
+        handleBookingChange();
       });
-      window.refreshPage = () => { window.location.reload(); };
+    
+      // Trigger when an existing booking changes
+      bookingsRef.on('child_changed', (snapshot) => {
+        console.log('[Firebase] Booking updated:', snapshot.key);
+        handleBookingChange();
+      });
+    
+      // Trigger when a booking is deleted
+      bookingsRef.on('child_removed', (snapshot) => {
+        console.log('[Firebase] Booking removed:', snapshot.key);
+        handleBookingChange();
+      });
+    
+      // A small debounce helper to avoid rapid reloads if multiple updates occur
+      let firebaseReloadTimeout;
+      function handleBookingChange() {
+        if (!navigator.onLine) return; // Don’t trigger if offline
+        clearTimeout(firebaseReloadTimeout);
+        firebaseReloadTimeout = setTimeout(() => {
+          console.log('[Firebase] Reloading bookings...');
+          loadBookings();
+        }, 3000); // Wait 3 seconds in case multiple updates come in together
+      }
+    
+      // --- ✅ Initial load ---
+      loadBookings();
     });
+
     
     document.addEventListener('DOMContentLoaded', () => {
       const header = document.getElementById('appHeader');
