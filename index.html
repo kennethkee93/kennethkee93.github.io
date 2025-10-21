@@ -40,296 +40,310 @@
     }
     
     /* ===== LOADER STYLES ===== */
-#top-status-container {
-  position: fixed;
-  top: 8px;
-  right: 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 8px;
-  z-index: 10000;
-  font-family: sans-serif;
-}
-
-.app-status-dot {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  cursor: pointer;
-  position: relative;
-  transition: background-color 0.3s ease-in-out, transform 0.2s ease;
-}
-
-.app-status-dot--green {
-  background-color: #28a745;
-  box-shadow: 0 0 8px 2px rgba(40, 167, 69, 0.3), 0 0 12px 4px rgba(40, 167, 69, 0.5);
-}
-
-.app-status-dot--orange {
-  background-color: #fd7e14;
-  box-shadow: 0 0 8px 2px rgba(253, 126, 20, 0.9), 0 0 12px 4px rgba(253, 126, 20, 0.5);
-}
-
-.app-status-dot--grey {
-  background-color: #6c757d;
-  box-shadow: 0 0 8px 2px rgba(108, 117, 125, 0.1), 0 0 12px 4px rgba(108, 117, 125, 0.1);
-}
-
-.app-status-dot:hover {
-  transform: scale(1.2);
-}
-
-.app-status-dot::before,
-.app-status-dot::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  animation-iteration-count: infinite;
-  animation-timing-function: ease-out;
-  z-index: -1;
-}
-
-.app-status-dot--green::before,
-.app-status-dot--green::after {
-  background-color: rgba(40, 167, 69, 0.7);
-  animation-name: pulse-orange; /* Changed from pulse to pulse-orange */
-}
-
-.app-status-dot--orange::before,
-.app-status-dot--orange::after {
-  background-color: rgba(253, 126, 20, 0.7);
-  animation-name: pulse-orange; /* Use a separate keyframes for wider pulse */
-}
-
-
-.app-status-dot::before {
-  animation-duration: 1.8s;
-}
-
-.app-status-dot::after {
-  animation-duration: 1.8s;
-  animation-delay: 0.4s;
-}
-
-/* Standard pulse for green and grey */
-@keyframes pulse {
-  0% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.8;
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(2);
-    opacity: 0.4;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(3);
-    opacity: 0;
-  }
-}
-
-/* Wider pulse for orange (loading state) */
-@keyframes pulse-orange {
-  0% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.8;
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(2); /* Wider midpoint */
-    opacity: 0.4;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(3); /* Wider final scale */
-    opacity: 0;
-  }
-}
-
-/* Make the main wrapper a full-height flex container */
-#mainAppWrapper {
-        display: flex; 
-        flex-direction: column;
-        height: 100vh; /* Full viewport height */
-        height: 100dvh; /* Dynamic viewport height for mobile */
-        overflow: hidden;
-}
+    #top-status-container {
+      position: fixed;
+      right: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 8px;
+      z-index: 10000;
+      font-family: sans-serif;
+    }
     
-    /* ===== HEADER STYLES (Unchanged, but included for context) ===== */
-#appHeader {
-    display: flex;
-    flex: 0 0 auto;
-    justify-content: left;
-    align-items: center;
-    padding: 5px;
-    text-align: center;
-    z-index: 10;
-    overflow: hidden;
-    /* Enhanced transition with cubic-bezier for smoother feel */
-    transition: 
-        padding 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        box-shadow 0.3s ease-out;
-    /* Add backdrop blur for modern effect when shrunk */
-    backdrop-filter: blur(0px);
-    -webkit-backdrop-filter: blur(0px);
-}
-
-/* Enhanced shrunk header state - REMOVED shadow and backdrop effects */
-#appHeader.header-shrink {
-    padding-top: 5px;
-    padding-bottom: 5px;
-    /* REMOVED: box-shadow, backdrop-filter, and background-color */
-}
-
-/* Enhanced container transitions */
-#appHeader > div {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    /* Smoother transition with staggered timing */
-    transition: 
-        gap 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        transform 0.3s ease-out;
-}
-
-/* Enhanced image container transitions */
-#appHeader .image-container {
-    width: 60px;
-    flex-shrink: 0;
-    /* Multi-property transition with different timings */
-    transition: 
-        width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        transform 0.3s ease-out,
-        opacity 0.2s ease-in-out;
-    /* Prevent layout shift during transition */
-    transform-origin: center;
-}
-
-/* Enhanced logo transitions */
-#appHeader .icon-large {
-    max-width: 60px;
-    max-height: 60px;
-    /* Smooth size and transform transitions */
-    transition: 
-        max-width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        max-height 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        transform 0.3s ease-out;
-    transform-origin: center;
-    /* Ensure crisp rendering during transitions */
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-}
-
-/* Enhanced H1 base styles */
-h1 {
-    color: #111827;
-    margin: 20px 0;
-    text-align: center;
-    line-height: 1.1;
-    /* Comprehensive text transition */
-    transition: 
-        font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        margin 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        line-height 0.3s ease-out,
-        font-weight 0.2s ease-out;
-    /* Prevent text rendering issues during transitions */
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-/* Title part transitions */
-h1 .title-main-part {
-    font-weight: 600;
-    transition: font-weight 0.2s ease-out;
-}
-
-h1 span:not(.title-main-part) {
-    display: block;
-    font-weight: 280;
-    /* Smooth transition for span elements */
-    transition: 
-        display 0.1s ease-out,
-        font-weight 0.2s ease-out,
-        opacity 0.3s ease-out;
-}
-
-/* --- ENHANCED SHRUNK STATE TRANSITIONS --- */
-
-/* Shrunk container with subtle scaling effect */
-#appHeader.header-shrink > div {
-    gap: 8px;
-    /* Optional: subtle scale effect for polish */
-    transform: scale(0.98);
-}
-
-/* Enhanced shrunk image container */
-#appHeader.header-shrink .image-container {
-    width: 24px;
-    /* Slightly faster opacity transition for responsiveness */
-    opacity: 0.9;
-}
-
-/* Enhanced shrunk logo with micro-animation */
-#appHeader.header-shrink .icon-large {
-    min-width: 0;
-    min-height: 0;
-    max-width: 24px;
-    max-height: 24px;
-    /* Subtle scale adjustment for visual balance */
-    transform: scale(1.05);
-}
-
-/* Enhanced shrunk H1 with better text flow */
-#appHeader.header-shrink h1 {
-    font-size: 0.9em;
-    line-height: 1;
-    margin: 0;
-    font-weight: 500;
-    /* REMOVED: text-shadow for cleaner look */
-}
-
-#appHeader.header-shrink h1 .title-main-part {
-    font-weight: 600;
-    /* Smooth weight transition */
-    transition: font-weight 0.2s ease-out;
-}
-
-/* Enhanced span transition for inline display */
-#appHeader.header-shrink h1 span {
-    display: inline;
-    font-weight: 280;
-    /* Smooth transition when changing from block to inline */
-    transition: all 0.3s ease-out;
-}
-
-/* Space addition with smooth transition */
-#appHeader.header-shrink h1 span::before {
-    content: " ";
-    /* Animate the space insertion */
-    opacity: 1;
-    transition: opacity 0.2s ease-in;
-}
-
-/* --- ADDITIONAL ENHANCEMENTS --- */
-
-/* Add hover effects for interactive feel */
-#appHeader:not(.header-shrink):hover .icon-large {
-    transform: scale(1.05);
-}
-
-#appHeader.header-shrink:hover .icon-large {
-    transform: scale(1.1);
-}
-
-/* Smooth focus states for accessibility */
-#appHeader:focus-within {
-    outline: 2px solid rgba(59, 130, 246, 0.5);
-    outline-offset: 2px;
-    transition: outline 0.2s ease-out;
-}
+    #top-status-container {
+      top: 20px;
+      transition: top 0.3s ease-in-out;
+    }
+    
+    /* Moves it up when the header shrinks */
+    #top-status-container.status-up {
+      top: 10px; /* adjust as needed */
+    }
+    
+    .app-status-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      cursor: pointer;
+      position: relative;
+      transition: background-color 0.3s ease-in-out, transform 0.2s ease;
+    }
+    
+    .app-status-dot--green {
+      background-color: #28a745;
+      box-shadow: 0 0 8px 2px rgba(40, 167, 69, 0.3), 0 0 12px 4px rgba(40, 167, 69, 0.5);
+    }
+    
+    .app-status-dot--orange {
+      background-color: #fd7e14;
+      box-shadow: 0 0 8px 2px rgba(253, 126, 20, 0.9), 0 0 12px 4px rgba(253, 126, 20, 0.5);
+    }
+    
+    .app-status-dot--grey {
+      background-color: #6c757d;
+      box-shadow: 0 0 8px 2px rgba(108, 117, 125, 0.1), 0 0 12px 4px rgba(108, 117, 125, 0.1);
+    }
+    
+    .app-status-dot:hover {
+      transform: scale(1.2);
+    }
+    
+    .app-status-dot::before,
+    .app-status-dot::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-out;
+      z-index: -1;
+    }
+    
+    .app-status-dot--green::before,
+    .app-status-dot--green::after {
+      background-color: rgba(40, 167, 69, 0.7);
+      animation-name: pulse-orange; /* Changed from pulse to pulse-orange */
+    }
+    
+    .app-status-dot--orange::before,
+    .app-status-dot--orange::after {
+      background-color: rgba(253, 126, 20, 0.7);
+      animation-name: pulse-orange; /* Use a separate keyframes for wider pulse */
+    }
+    
+    
+    .app-status-dot::before {
+      animation-duration: 1.8s;
+    }
+    
+    .app-status-dot::after {
+      animation-duration: 1.8s;
+      animation-delay: 0.4s;
+    }
+    
+    /* Standard pulse for green and grey */
+    @keyframes pulse {
+      0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.8;
+      }
+      50% {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 0.4;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(3);
+        opacity: 0;
+      }
+    }
+    
+    /* Wider pulse for orange (loading state) */
+    @keyframes pulse-orange {
+      0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.8;
+      }
+      50% {
+        transform: translate(-50%, -50%) scale(2); /* Wider midpoint */
+        opacity: 0.4;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(3); /* Wider final scale */
+        opacity: 0;
+      }
+    }
+    
+    #appHeader.header-shrink ~ #top-status-container {
+      top: 10px; /* Move up from 8px to 2px (adjust as needed) */
+      transition: top 0.3s ease-in-out;
+    }
+    
+    /* Make the main wrapper a full-height flex container */
+    #mainAppWrapper {
+            display: flex; 
+            flex-direction: column;
+            height: 100vh; /* Full viewport height */
+            height: 100dvh; /* Dynamic viewport height for mobile */
+            overflow: hidden;
+    }
+        
+        /* ===== HEADER STYLES (Unchanged, but included for context) ===== */
+    #appHeader {
+        display: flex;
+        flex: 0 0 auto;
+        justify-content: center;
+        align-items: center;
+        padding: 10px;
+        text-align: center;
+        z-index: 10;
+        overflow: hidden;
+        /* Enhanced transition with cubic-bezier for smoother feel */
+        transition: 
+            padding 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+            box-shadow 0.3s ease-out;
+        /* Add backdrop blur for modern effect when shrunk */
+        backdrop-filter: blur(0px);
+        -webkit-backdrop-filter: blur(0px);
+    }
+    
+    /* Enhanced shrunk header state - REMOVED shadow and backdrop effects */
+    #appHeader.header-shrink {
+        padding-top: 5px;
+        padding-bottom: 5px;
+        /* REMOVED: box-shadow, backdrop-filter, and background-color */
+    }
+    
+    /* Enhanced container transitions */
+    #appHeader > div {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        /* Smoother transition with staggered timing */
+        transition: 
+            gap 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+            transform 0.3s ease-out;
+    }
+    
+    /* Enhanced image container transitions */
+    #appHeader .image-container {
+        width: 60px;
+        flex-shrink: 0;
+        /* Multi-property transition with different timings */
+        transition: 
+            width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+            transform 0.3s ease-out,
+            opacity 0.2s ease-in-out;
+        /* Prevent layout shift during transition */
+        transform-origin: center;
+    }
+    
+    /* Enhanced logo transitions */
+    #appHeader .icon-large {
+        max-width: 60px;
+        max-height: 60px;
+        /* Smooth size and transform transitions */
+        transition: 
+            max-width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+            max-height 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+            transform 0.3s ease-out;
+        transform-origin: center;
+        /* Ensure crisp rendering during transitions */
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+    }
+    
+    /* Enhanced H1 base styles */
+    h1 {
+        color: #111827;
+        margin: 20px 0;
+        text-align: center;
+        line-height: 1.2;
+        /* Comprehensive text transition */
+        transition: 
+            font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+            margin 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+            line-height 0.3s ease-out,
+            font-weight 0.2s ease-out;
+        /* Prevent text rendering issues during transitions */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* Title part transitions */
+    h1 .title-main-part {
+        font-weight: 600;
+        transition: font-weight 0.2s ease-out;
+    }
+    
+    h1 span:not(.title-main-part) {
+        display: block;
+        font-weight: 280;
+        /* Smooth transition for span elements */
+        transition: 
+            display 0.1s ease-out,
+            font-weight 0.2s ease-out,
+            opacity 0.3s ease-out;
+    }
+    
+    /* --- ENHANCED SHRUNK STATE TRANSITIONS --- */
+    
+    /* Shrunk container with subtle scaling effect */
+    #appHeader.header-shrink > div {
+        gap: 8px;
+        /* Optional: subtle scale effect for polish */
+        transform: scale(0.98);
+    }
+    
+    /* Enhanced shrunk image container */
+    #appHeader.header-shrink .image-container {
+        width: 24px;
+        /* Slightly faster opacity transition for responsiveness */
+        opacity: 0.9;
+    }
+    
+    /* Enhanced shrunk logo with micro-animation */
+    #appHeader.header-shrink .icon-large {
+        min-width: 0;
+        min-height: 0;
+        max-width: 24px;
+        max-height: 24px;
+        /* Subtle scale adjustment for visual balance */
+        transform: scale(1.05);
+    }
+    
+    /* Enhanced shrunk H1 with better text flow */
+    #appHeader.header-shrink h1 {
+        font-size: 0.9em;
+        line-height: 1;
+        margin: 0;
+        font-weight: 500;
+        /* REMOVED: text-shadow for cleaner look */
+    }
+    
+    #appHeader.header-shrink h1 .title-main-part {
+        font-weight: 600;
+        /* Smooth weight transition */
+        transition: font-weight 0.2s ease-out;
+    }
+    
+    /* Enhanced span transition for inline display */
+    #appHeader.header-shrink h1 span {
+        display: inline;
+        font-weight: 280;
+        /* Smooth transition when changing from block to inline */
+        transition: all 0.3s ease-out;
+    }
+    
+    /* Space addition with smooth transition */
+    #appHeader.header-shrink h1 span::before {
+        content: " ";
+        /* Animate the space insertion */
+        opacity: 1;
+        transition: opacity 0.2s ease-in;
+    }
+    
+    /* --- ADDITIONAL ENHANCEMENTS --- */
+    
+    /* Add hover effects for interactive feel */
+    #appHeader:not(.header-shrink):hover .icon-large {
+        transform: scale(1.05);
+    }
+    
+    #appHeader.header-shrink:hover .icon-large {
+        transform: scale(1.1);
+    }
+    
+    /* Smooth focus states for accessibility */
+    #appHeader:focus-within {
+        outline: 2px solid rgba(59, 130, 246, 0.5);
+        outline-offset: 2px;
+        transition: outline 0.2s ease-out;
+    }
 
         
     /* ===== TAB SYSTEM (Revised for Safe Area) ===== */
@@ -2868,7 +2882,23 @@ document.getElementById('bookingForm').addEventListener('submit', async function
       });
       window.refreshPage = () => { window.location.reload(); };
     });
-  </script>
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      const header = document.getElementById('appHeader');
+      const statusContainer = document.getElementById('top-status-container');
+    
+      // Watch for the header shrink class being added/removed
+      const observer = new MutationObserver(() => {
+        if (header.classList.contains('header-shrink')) {
+          statusContainer.classList.add('status-up');
+        } else {
+          statusContainer.classList.remove('status-up');
+        }
+      });
+    
+      observer.observe(header, { attributes: true, attributeFilter: ['class'] });
+    });
+</script>
   
       // timepickr and nouislider 
   <div id="dateTimePickerModal" class="modal-overlay" style="display: none;">
