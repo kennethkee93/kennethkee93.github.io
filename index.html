@@ -913,8 +913,9 @@
     
     /* Style for charger buttons inside the modal */
     #chargerButtonsModal { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; gap: 6px; }
-    .charger-btn { padding: 8px 12px; font-size: 13px; border-radius: 8px; color: #fff; border: 2px solid transparent; cursor: pointer; transition: all 0.2s ease; }
-    .charger-btn.selected { border-color: #000; transform: scale(1.05); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .charger-btn { flex: 0 0 90px; padding: 8px 12px; font-size: 13px; border-radius: 8px; color: #fff; border: 2px solid transparent; cursor: pointer; transition: all 0.2s ease; }
+    .charger-btn:hover { box-shadow: 0 0 0 2px #545454, 0 0 0 4px #fff; }
+    .charger-btn.selected { outline: 1px solid #000000; box-shadow: 0 0 0 2px #545454, 0 0 0 4px #fff; transform: translateY(-2px); }
     .filter-btn-a { background-color: #3B82F6; }
     .filter-btn-b { background-color: #10B981; }
     .filter-btn-club { background-color: #F59E0B; }
@@ -943,6 +944,18 @@
     .time-selector-group { margin-top: 15px; }
     .time-selector-group label { display: block; font-size: 14px; font-weight: 500; color: #34495e; margin-bottom: 15px; }
     .time-selector-group label span { float: right; font-weight: 600; background-color: #f0f3f5; padding: 3px 8px; border-radius: 5px; }
+    
+    @media (max-width: 768px) {
+      .modal-content h2 {
+        font-size:18px;
+      }
+        
+      .flatpickr-calendar {
+        transform: scale(0.95);
+        transform-origin: top center;
+        padding
+      }
+    }
     
     /* --- FIXED SLIDER STYLES --- */
     
@@ -1057,7 +1070,7 @@
     }
 
     /* Summary and Button Styles */
-    .summary-display { border: 1px solid #dee2e6; border-radius: 8px; padding: 8px; margin: 15px 0; text-align: center; min-height: 50px; display: flex; justify-content: center; align-items: center; }
+    .summary-display { border: 1px solid #dee2e6; border-radius: 8px; padding: 4px; margin: 15px 0; text-align: center; min-height: 42px; display: flex; justify-content: center; align-items: center; }
     .summary-text { font-size: 12px; font-weight: 500; color: #34495e; }
     .summary-placeholder { color: #8898aa; }
     .apply-button { width: 100%; padding: 10px; background: #2dce89; color: #FFFFFF; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background-color 0.3s ease; } 
@@ -1068,6 +1081,64 @@
     .slider-container-wrapper {
         position: relative;
     }
+    
+  @media (max-width: 768px) {
+    #eventModal > div {
+      max-width: 90%; /* shrink modal width */
+      padding: 15px;  /* less padding for small screens */
+      border-radius: 8px;
+      font-size: 14px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+  
+    #modalTitle {
+      font-size: 15px; /* smaller title text */
+    }
+  
+    #modalContent {
+      font-size: 12px;
+    }
+  
+    #closeModal {
+      font-size: 18px; /* slightly smaller close icon */
+      top: 8px;
+      right: 8px;
+    }
+  
+    .modal-content {
+      width: 95%; /* almost full width for mobile */
+      max-width: 350px;
+      padding: 15px;
+      border-radius: 12px;
+    }
+  
+    .time-selector-group label {
+      font-size: 13px;
+    }
+  
+    .apply-button {
+      font-size: 14px;
+      padding: 8px;
+    }
+  }
+  
+  @media (max-width: 400px) {
+    #eventModal > div,
+    .modal-content {
+      width: 92%;
+      padding: 12px;
+      border-radius: 10px;
+    }
+  
+    #modalTitle {
+      font-size: 13px;
+    }
+  
+    #modalContent {
+      font-size: 11px;
+    }
+  }
 
     /* ===== CALENDAR SYSTEM ===== */
     .calendarfilter-container, .calendar-container { width: 100%; max-width: 1200px; margin: 0 auto; box-sizing: border-box; overflow: hidden; flex-shrink: 0; position: relative; }
@@ -1096,20 +1167,6 @@
     #bookingForm input, #bookingForm select, #bookingForm button { padding: 10px; margin: 8px 0; width: 100%; border-radius: 10px; border: none; box-sizing: border-box; font-size: 15px; }
     #bookingForm input, #bookingForm select { font-family: 'Poppins', Arial, sans-serif; background: #e8e9eb; color: #545454; }
     #bookingForm input::placeholder { color: #aaa; }
-    #bookingForm .charger-btn.filter-btn-a { background-color: #3B82F6; color: #FFFFFF; }
-    #bookingForm .charger-btn.filter-btn-b { background-color: #10B981; color: #FFFFFF; }
-    #bookingForm .charger-btn.filter-btn-club { background-color: #F59E0B; color: #FFFFFF; }
-    #bookingForm .charger-btn.filter-btn-N1 { background-color: #b11879; color: #FFFFFF; }
-    #bookingForm .charger-btn.filter-btn-N2 { background-color: #ff3032; color: #FFFFFF; }
-    #chargerButtons { margin: 0 auto; display: flex; flex-direction: column; gap: 8px; padding: 0 5px; }
-    .row { display: flex; gap: 8px; }
-    .row-top, .row-bottom { justify-content: center; }
-    .charger-btn { display: inline-flex; justify-content: center; align-items: center; text-align: center; padding: 10px 16px; border-radius: 12px; border: none; cursor: pointer; font-weight: bold; font-size: 14px; user-select: none; transition: all 0.3s ease; }
-    .charger-btn:hover { box-shadow: 0 0 0 2px #545454, 0 0 0 4px #fff; }
-    .charger-btn.selected { outline: 3px solid #000000; box-shadow: 0 0 0 2px #545454, 0 0 0 4px #fff; transform: translateY(-2px); }
-    .save-info-label { display: flex !important; align-items: center; justify-content: center; margin: 10px auto; width: fit-content; gap: 4px; }
-    .save-info-label input[type="checkbox"] { margin: 0 !important; width: auto !important; height: 14px; flex-shrink: 0; }
-    .save-info-label span { white-space: nowrap; }
     #bookingForm button { background: #2dce89; color: #FFFFFF; font-size: 15px; font-weight: 600; cursor: pointer; transition: background-color 0.3s ease; }
     #bookingForm button:hover:not(:disabled) { background: #21b575; }
     #bookingForm button:disabled { opacity: 0.6; cursor: not-allowed; }
@@ -1268,7 +1325,7 @@
     .side-btn:hover {
       background-color: #4a90e2;
       color: white;
-      transform: scale(1.1) rotate(5deg);
+      transform: scale(1.1);
       box-shadow: 0 0 12px rgba(74, 144, 226, 0.6);
     }
     
@@ -1301,7 +1358,20 @@
     form#feedbackForm legend { font-weight: bold; padding: 0 6px; }
     form#feedbackForm textarea { width: 100%; resize: vertical; font-family: inherit; font-size: 14px; padding: 6px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
     form#feedbackForm label { cursor: pointer; margin-right: 10px; }
-    #feedbackSubmitBtn { width: 100%; margin-top: 10px; background: #111827; color: #e4e5e7; cursor: pointer; transition: background-color 0.3s ease; }
+    #feedbackSubmitBtn {
+      animation: disabled;
+      width: 150px; /* smaller fixed width */
+      margin: 10px auto; /* centers horizontally */
+      display: block; /* required for margin auto to work */
+      background: #111827;
+      color: #e4e5e7;
+      cursor: pointer;
+      padding: 8px 12px; /* controls height and spacing */
+      border: none;
+      border-radius: 6px; /* optional, for smoother corners */
+      transition: background-color 0.3s ease;
+      text-align: center; /* ensures text is centered */
+    }
     #feedbackMessage { margin-top: 10px; min-height: 18px; font-weight: 600; }
     #helpPanel a { color: #18db80; text-decoration: underline; transition: color 0.2s ease; }
     #helpPanel a:hover { color: #06806b; text-decoration: none; }
@@ -1340,10 +1410,6 @@
       .form-and-status-wrapper { width: 100%; max-width: 100%; box-sizing: border-box; padding: 0; }
       #bookingForm { width: 100%; max-width: 100%; padding: 15px; border-radius: 8px; overflow-x: hidden; }
       #bookingForm input, #bookingForm select, #bookingForm button { font-size: 12px; padding: 12px; margin: 6px 0; border-radius: 8px; }
-      #chargerButtons { max-width: 768px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; padding: 0 5px; }
-      .row { display: flex; gap: 8px; }
-      .row-top, .row-bottom { justify-content: center; }
-      .charger-btn { width: 100px; flex: 0 0 100px; padding: 10px; font-size: 12px; border-radius: 8px; }
       #eventModal>div { margin: 10px; padding: 15px; max-width: none; width: calc(100% - 20px); border-radius: 8px; }
       #modalTitle { font-size: 1.1em; padding-right: 30px; }
       #modalContent { font-size: 13px; line-height: 1.4; }
@@ -1867,6 +1933,7 @@
           // --- Date Picker ---
           const datePicker = flatpickr("#date-calendar", {
               inline: true, minDate: "today", disableMobile: true, mode: 'range',
+              locale: { firstDayOfWeek: 1 }, // Monday as the first day
               onChange: (selectedDates) => {
                   if (isUpdatingCalendar) return;
                   startDate = selectedDates[0] ? new Date(selectedDates[0].setHours(0,0,0,0)) : null;
