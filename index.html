@@ -2886,15 +2886,15 @@ document.getElementById('bookingForm').addEventListener('submit', async function
 
     // Firebase for live notifications
     document.addEventListener('DOMContentLoaded', () => {
-      // Initialize Firebase
+      // --- Initialize Firebase ---
       const firebaseConfig = {
-    		  apiKey: "AIzaSyAlb8aLl1kRafLO7GY5rarVly-Z1wMDbz0",
-    		  authDomain: "bookingsync-ff9bd.firebaseapp.com",
-    		  databaseURL: "https://bookingsync-ff9bd-default-rtdb.asia-southeast1.firebasedatabase.app",
-    		  projectId: "bookingsync-ff9bd",
-    		  storageBucket: "bookingsync-ff9bd.firebasestorage.app",
-    		  messagingSenderId: "269992391466",
-    		  appId: "1:269992391466:web:b65bc168c948de21796453"
+        apiKey: "AIzaSyAlb8aLl1kRafLO7GY5rarVly-Z1wMDbz0",
+        authDomain: "bookingsync-ff9bd.firebaseapp.com",
+        databaseURL: "https://bookingsync-ff9bd-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "bookingsync-ff9bd",
+        storageBucket: "bookingsync-ff9bd.firebasestorage.app",
+        messagingSenderId: "269992391466",
+        appId: "1:269992391466:web:b65bc168c948de21796453"
       };
     
       firebase.initializeApp(firebaseConfig);
@@ -2903,31 +2903,59 @@ document.getElementById('bookingForm').addEventListener('submit', async function
       let lastSeenTimestamp = null;
       let updateTimeout = null;
     
+      // --- Firebase listener for background updates ---
       db.ref('server/lastUpdate').on('value', (snapshot) => {
         const timestamp = snapshot.val();
         if (!timestamp) return;
     
-        // First load – set reference timestamp and do nothing
+        // First load — just record timestamp
         if (lastSeenTimestamp === null) {
           lastSeenTimestamp = timestamp;
           console.log('[Firebase] Initial timestamp:', timestamp);
           return;
         }
     
-        // If new update detected
+        // If a new update is detected
         if (timestamp !== lastSeenTimestamp) {
           console.log('[Firebase] Change detected, triggering background sync...');
           lastSeenTimestamp = timestamp;
     
-          // Debounce to prevent multiple triggers in quick succession
+          // Debounce to prevent multiple triggers close together
           clearTimeout(updateTimeout);
           updateTimeout = setTimeout(() => {
             if (navigator.onLine) {
-              loadBookings(); // 🔥 trigger your existing function
+              loadBookings(); // 🔥 trigger your main refresh function
             } else {
-              console.warn('[Firebase] Update skipped: offline');
+              console.warn('[Firebase] Update skipped — offline.');
             }
-          }, 2000); // wait 2 seconds to batch updates if needed
+          }, 2000);
+        }
+      });
+    
+      // --- Visibility trigger (tab comes back to foreground) ---
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          console.log('[App] Tab became active again.');
+          if (navigator.onLine) {
+            firebase.database().goOnline(); // Ensure Firebase reconnects
+            loadBookings(); // Refresh data
+          } else {
+            console.warn('[App] Skipped refresh — offline.');
+          }
+        } else {
+          // Optional: pause Firebase to save bandwidth
+          firebase.database().goOffline();
+        }
+      });
+    
+      // --- Focus trigger (window regains focus) ---
+      window.addEventListener('focus', () => {
+        console.log('[App] Window focused — checking for updates...');
+        if (navigator.onLine) {
+          firebase.database().goOnline(); // Reconnect Firebase if needed
+          loadBookings();
+        } else {
+          console.warn('[App] Skipped refresh — offline.');
         }
       });
     
