@@ -1446,7 +1446,13 @@
   <div id="appHeader">
     <div style="display: flex; align-items: center; gap: 30px;">
       <div class="image-container">
-        <img class="icon icon-large" src="https://github.com/emeraldevbooking/emeraldevbooking.github.io/blob/main/assets/images/favicons/android-chrome-192x192.png?raw=true" alt="Main Icon">
+        <img 
+          id="installPwaButton"
+          class="icon icon-large" 
+          src="https://github.com/emeraldevbooking/emeraldevbooking.github.io/blob/main/assets/images/favicons/android-chrome-192x192.png?raw=true" 
+          alt="Install App"
+          style="cursor: pointer;" 
+        >
       </div>
       <h1 style="margin: 0; white-space: nowrap;">
             <span class="title-main-part">Emerald Hills</span>
@@ -3043,7 +3049,35 @@ document.getElementById('bookingForm').addEventListener('submit', async function
     
       observer.observe(header, { attributes: true, attributeFilter: ['class'] });
     });
+    
+    let deferredPrompt;
+    window.addEventListener("beforeinstallprompt", (e) => {
+      // Prevent Chrome’s default mini-infobar
+      e.preventDefault();
+      deferredPrompt = e;
+      console.log("PWA install prompt saved");
+    });
+    
+    // Logo click triggers installation
+    document.getElementById("installPwaButton").addEventListener("click", async () => {
+      if (!deferredPrompt) {
+        alert("The app can’t be installed right now — try again later.");
+        return;
+      }
+    
+      // Show the install prompt
+      deferredPrompt.prompt();
+    
+      // Wait for user’s choice
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`User response to install prompt: ${outcome}`);
+    
+      // Clear it so it doesn’t show again automatically
+      deferredPrompt = null;
+    });
 </script>
+
+
   
       // timepickr and nouislider 
   <div id="dateTimePickerModal" class="modal-overlay" style="display: none;">
