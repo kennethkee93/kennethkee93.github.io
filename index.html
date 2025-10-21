@@ -39,158 +39,112 @@
     box-sizing: border-box;
     }
     
-        /* ===== LOADER STYLES ===== */
-    #top-status-container {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(255, 255, 255, 0.9);
-      border-radius: 8px;
-      padding: 4px 8px;
-      z-index: 10000;
-      font-family: sans-serif;
-    }
-    
-    /* Refresh button */
-    .refresh-button {
-      background: transparent;
-      border: none;
-      border-radius: 50%;
-      width: 28px;
-      height: 28px;
-      cursor: pointer;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: #333; /* Icon color */
-      transition: transform 0.2s ease-in-out;
-    }
-    
-    .refresh-button:hover {
-      transform: rotate(40deg); /* subtle hover twist */
-    }
-    
-    .refresh-button:focus {
-      outline: none; /* removes focus border */
-      box-shadow: none;
-    }
-    
-    .refresh-button svg {
-      fill: #444; /* normal */
-    }
-    
-    .refresh-button:hover svg {
-      fill: #000; /* darker on hover */
-    }
-    
-    /* Text styling */
-    .last-updated-label {
-      font-size: 12px;
-      color: #444;
-      white-space: nowrap;
-    }
-    
-    /* Loader smaller and centered vertically */
-    .loader-overlay {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 28px;
-      height: 28px;
-    }
+    /* ===== LOADER STYLES ===== */
+#top-status-container {
+  position: fixed;
+  top: 8px;
+  right: 28px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  padding: 8px 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+  font-family: sans-serif;
+}
 
-    .loader {
-      position: relative;
-      width: 23px;
-      height: 23px;
-      border-radius: 10px;
-    }
-    
-    .loader div {
-      width: 8%;
-      height: 24%;
-      background: rgb(128, 128, 128);
-      position: absolute;
-      left: 50%;
-      top: 30%;
-      opacity: 0;
-      border-radius: 50px;
-      box-shadow: 0 0 3px rgba(0,0,0,0.2);
-      animation: fade458 1s linear infinite;
-    }
-    
-    @keyframes fade458 {
-      from {
-        opacity: 1;
-      }
-    
-      to {
-        opacity: 0.25;
-      }
-    }
-    
-    .loader .bar1 {
-      transform: rotate(0deg) translate(0, -130%);
-      animation-delay: 0s;
-    }
-    
-    .loader .bar2 {
-      transform: rotate(30deg) translate(0, -130%);
-      animation-delay: -1.1s;
-    }
-    
-    .loader .bar3 {
-      transform: rotate(60deg) translate(0, -130%);
-      animation-delay: -1s;
-    }
-    
-    .loader .bar4 {
-      transform: rotate(90deg) translate(0, -130%);
-      animation-delay: -0.9s;
-    }
-    
-    .loader .bar5 {
-      transform: rotate(120deg) translate(0, -130%);
-      animation-delay: -0.8s;
-    }
-    
-    .loader .bar6 {
-      transform: rotate(150deg) translate(0, -130%);
-      animation-delay: -0.7s;
-    }
-    
-    .loader .bar7 {
-      transform: rotate(180deg) translate(0, -130%);
-      animation-delay: -0.6s;
-    }
-    
-    .loader .bar8 {
-      transform: rotate(210deg) translate(0, -130%);
-      animation-delay: -0.5s;
-    }
-    
-    .loader .bar9 {
-      transform: rotate(240deg) translate(0, -130%);
-      animation-delay: -0.4s;
-    }
-    
-    .loader .bar10 {
-      transform: rotate(270deg) translate(0, -130%);
-      animation-delay: -0.3s;
-    }
-    
-    .loader .bar11 {
-      transform: rotate(300deg) translate(0, -130%);
-      animation-delay: -0.2s;
-    }
-    
-    .loader .bar12 {
-      transform: rotate(330deg) translate(0, -130%);
-      animation-delay: -0.1s;
-    }
+.app-status-dot {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.3s ease-in-out, transform 0.2s ease;
+}
+
+.app-status-dot--green {
+  background-color: #28a745;
+  box-shadow: 0 0 8px 2px rgba(40, 167, 69, 0.9), 0 0 12px 4px rgba(40, 167, 69, 0.5);
+}
+
+.app-status-dot--orange {
+  background-color: #fd7e14;
+  box-shadow: 0 0 8px 2px rgba(253, 126, 20, 0.9), 0 0 12px 4px rgba(253, 126, 20, 0.5);
+}
+
+.app-status-dot--grey {
+  background-color: #6c757d;
+  box-shadow: 0 0 8px 2px rgba(108, 117, 125, 0.9), 0 0 12px 4px rgba(108, 117, 125, 0.5);
+}
+
+.app-status-dot:hover {
+  transform: scale(1.2);
+}
+
+.app-status-dot::before,
+.app-status-dot::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-out;
+  z-index: -1;
+}
+
+.app-status-dot--orange::before,
+.app-status-dot--orange::after {
+  background-color: rgba(253, 126, 20, 0.7);
+  animation-name: pulse-orange; /* Use a separate keyframes for wider pulse */
+}
+
+
+.app-status-dot::before {
+  animation-duration: 1.8s;
+}
+
+.app-status-dot::after {
+  animation-duration: 1.8s;
+  animation-delay: 0.4s;
+}
+
+/* Standard pulse for green and grey */
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(2.8);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(4);
+    opacity: 0;
+  }
+}
+
+/* Wider pulse for orange (loading state) */
+@keyframes pulse-orange {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(2); /* Wider midpoint */
+    opacity: 0.4;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(3); /* Wider final scale */
+    opacity: 0;
+  }
+}
 
 /* Make the main wrapper a full-height flex container */
 #mainAppWrapper {
@@ -207,7 +161,7 @@
     flex: 0 0 auto;
     justify-content: left;
     align-items: center;
-    padding: 10px;
+    padding: 5px;
     text-align: center;
     z-index: 10;
     overflow: hidden;
@@ -1428,34 +1382,10 @@ h1 span:not(.title-main-part) {
 </head>
 <body>
     <!-- START: Loader HTML -->
-<div id="top-status-container">
-  <!-- Left: Last updated -->
-  <div id="last-updated" class="last-updated-label">Last updated: --</div>
-
-  <!-- Middle: Loader -->
-  <div id="loader-container" class="loader-overlay" style="display: none;">
-    <div class="loader">
-      <div class="bar1"></div>
-      <div class="bar2"></div>
-      <div class="bar3"></div>
-      <div class="bar4"></div>
-      <div class="bar5"></div>
-      <div class="bar6"></div>
-      <div class="bar7"></div>
-      <div class="bar8"></div>
-      <div class="bar9"></div>
-      <div class="bar10"></div>
-      <div class="bar11"></div>
-      <div class="bar12"></div>
-    </div>
+  <div id="top-status-container">
+    <!-- Unified Status Dot / Refresh Button -->
+  <div id="app-status-dot" class="app-status-dot" title="Refresh Bookings" aria-label="Refresh"></div>
   </div>
-  <!-- Right: Refresh button -->
-  <button id="refresh-btn" class="refresh-button" title="Refresh Bookings" aria-label="Refresh">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="18" height="18" fill="currentColor">
-      <path d="M27.1 14.313V5.396L24.158 8.34c-2.33-2.325-5.033-3.503-8.11-3.503C9.902 4.837 4.901 9.847 4.899 16c.001 6.152 5.003 11.158 11.15 11.16 4.276 0 9.369-2.227 10.836-8.478l.028-.122h-3.23l-.022.068c-1.078 3.242-4.138 5.421-7.613 5.421a8 8 0 0 1-5.691-2.359A7.993 7.993 0 0 1 8 16.001c0-4.438 3.611-8.049 8.05-8.049 2.069 0 3.638.58 5.924 2.573l-3.792 3.789H27.1z"/>
-    </svg>
-  </button>
-</div>
 
   <!-- END: Loader HTML -->
   
@@ -2316,15 +2246,16 @@ h1 span:not(.title-main-part) {
     function convertToTitleCase(input) { input.value = input.value.toLowerCase().replace(/\b\w/g, char => char.toUpperCase()); }
 
     // loadBookings - REFACTORED to use fetch()
-	// loadBookings - REFACTORED to use fetch() and show a loader
-    async function loadBookings() {
-      const loader = document.getElementById('loader-container');
-      const refreshBtn = document.getElementById('refresh-btn');
-      const lastUpdatedEl = document.getElementById('last-updated');
+    document.getElementById('app-status-dot').addEventListener('click', loadBookings);
     
-      // Hide the refresh button and show loader
-      refreshBtn.style.display = 'none';
-      loader.style.display = 'flex';
+    // Refactored loadBookings function to control the status dot
+    async function loadBookings() {
+      const statusDot = document.getElementById('app-status-dot');
+      const lastUpdatedEl = document.getElementById('last-updated');
+      let isDataStale = false; // Flag to track data state
+    
+      // Set to orange (loading)
+      statusDot.className = 'app-status-dot app-status-dot--orange';
     
       console.groupCollapsed(`[Booking Loader] Starting update @ ${new Date().toLocaleTimeString()}`);
       let cachedEvents = [];
@@ -2343,72 +2274,65 @@ h1 span:not(.title-main-part) {
       } catch (err) {
         console.error('Error loading from IndexedDB:', err);
         showMessage('error', 'Error loading cached bookings.');
-        loader.style.display = 'none';
-        refreshBtn.style.display = 'inline-block';
+        statusDot.className = 'app-status-dot app-status-dot--grey'; // Set to grey on error
         console.groupEnd();
         return;
       }
     
-      console.log('Step 2: Fetching from server...');
-      fetch(`${WEB_APP_URL}?action=getBookings`)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`Network response was not ok: ${response.statusText}`);
-          }
-          return response.json();
-        })
-        .then(async serverResponse => {
-          console.group('[Server Response]');
-          if (serverResponse.status !== 'success') {
-            throw new Error(serverResponse.message || 'Server returned an error status.');
-          }
-          const eventsFromServer = serverResponse.data;
-          console.info(`Success: Received ${eventsFromServer.length} events.`);
+      try {
+        console.log('Step 2: Fetching from server...');
+        const response = await fetch(`${WEB_APP_URL}?action=getBookings`);
+        if (!response.ok) {
+          throw new Error(`Network response was not ok: ${response.statusText}`);
+        }
+        const serverResponse = await response.json();
     
-          const serverIds = eventsFromServer.map(e => e.id).sort().join(',');
-          const cachedIds = cachedEvents.map(e => e.id).sort().join(',');
+        console.group('[Server Response]');
+        if (serverResponse.status !== 'success') {
+          throw new Error(serverResponse.message || 'Server returned an error status.');
+        }
+        const eventsFromServer = serverResponse.data;
+        console.info(`Success: Received ${eventsFromServer.length} events.`);
     
-          if (serverIds !== cachedIds) {
-            console.info('%cChange detected. Updating local data.', 'color: blue; font-weight: bold;');
-            allEvents = eventsFromServer;
-            await saveEventsToIDB(eventsFromServer);
-            console.info(`%cSaved ${eventsFromServer.length} new events to IndexedDB.`, 'color: green;');
-            renderCalendar(allEvents);
-            updateChargerStatus();
-          } else {
-            console.log('No changes detected.');
-          }
-          console.groupEnd();
-        })
-        .catch(err => {
-          console.error('Server load failed:', err.message || err);
-          if (allEvents.length === 0) {
-            showMessage('error', 'Could not load calendar: ' + err.message);
-          }
-        })
-        .finally(() => {
-          // Hide loader and show refresh button
-          loader.style.display = 'none';
-          refreshBtn.style.display = 'inline-block';
+        const serverIds = eventsFromServer.map(e => e.id).sort().join(',');
+        const cachedIds = cachedEvents.map(e => e.id).sort().join(',');
     
-          // Update "Last updated" time in short format
-          const now = new Date();
-          const shortDate = now.toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-          });
-          const shortTime = now.toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-          });
-          lastUpdatedEl.textContent = `Last updated: ${shortDate}, ${shortTime}`;
+        if (serverIds !== cachedIds) {
+          console.info('%cChange detected. Updating local data.', 'color: blue; font-weight: bold;');
+          allEvents = eventsFromServer;
+          await saveEventsToIDB(eventsFromServer);
+          console.info(`%cSaved ${eventsFromServer.length} new events to IndexedDB.`, 'color: green;');
+          renderCalendar(allEvents);
+          updateChargerStatus();
+        } else {
+          console.log('No changes detected.');
+        }
+        console.groupEnd();
+        
+        // Data is now up-to-date
+        statusDot.className = 'app-status-dot app-status-dot--green';
     
-          console.groupEnd();
-        });
+      } catch (err) {
+        console.error('Server load failed:', err.message || err);
+        if (allEvents.length === 0) {
+          showMessage('error', 'Could not load calendar: ' + err.message);
+        }
+        // Set to grey because we couldn't confirm the data is fresh
+        statusDot.className = 'app-status-dot app-status-dot--grey';
+        isDataStale = true;
+    
+      } finally {
+        // Update "Last updated" time
+        const now = new Date();
+        const shortDate = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+        const shortTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        lastUpdatedEl.textContent = isDataStale 
+          ? `Update failed at: ${shortTime}` 
+          : `Last updated: ${shortDate}, ${shortTime}`;
+        
+        console.groupEnd();
+      }
     }
-    
-    // 🟢 Add click handler for the refresh button
-    document.getElementById('refresh-btn').addEventListener('click', loadBookings);
 
     function renderCalendar(events) {
                 const calendarEl = document.getElementById('calendar');
