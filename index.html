@@ -3051,28 +3051,45 @@ document.getElementById('bookingForm').addEventListener('submit', async function
     });
     
     let deferredPrompt;
+    
+    // Detect iOS and standalone mode
+    function isIos() {
+      return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+    }
+    
+    function isInStandaloneMode() {
+      return ('standalone' in window.navigator) && window.navigator.standalone;
+    }
+    
+    // Listen for the beforeinstallprompt event (Android / Desktop)
     window.addEventListener("beforeinstallprompt", (e) => {
-      // Prevent Chrome’s default mini-infobar
       e.preventDefault();
       deferredPrompt = e;
       console.log("PWA install prompt saved");
+    
+      // Optionally show the install logo only when available
+      document.getElementById("installPwaButton").style.display = "block";
     });
     
-    // Logo click triggers installation
+    // Handle click on the logo
     document.getElementById("installPwaButton").addEventListener("click", async () => {
+      // --- Handle iOS Safari ---
+      if (isIos() && !isInStandaloneMode()) {
+        alert("To install this app on your iPhone or iPad:\n\n1. Tap the Share icon\n2. Select 'Add to Home Screen'");
+        return;
+      }
+    
+      // --- Handle Android/Desktop ---
       if (!deferredPrompt) {
         alert("The app can’t be installed right now — try again later.");
         return;
       }
     
-      // Show the install prompt
       deferredPrompt.prompt();
     
-      // Wait for user’s choice
       const { outcome } = await deferredPrompt.userChoice;
       console.log(`User response to install prompt: ${outcome}`);
     
-      // Clear it so it doesn’t show again automatically
       deferredPrompt = null;
     });
 </script>
