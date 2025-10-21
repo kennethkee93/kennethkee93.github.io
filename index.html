@@ -40,21 +40,72 @@
     }
     
         /* ===== LOADER STYLES ===== */
-    .loader-overlay {
+    #top-status-container {
       position: fixed;
-      top: 10x;           /* Add units (px) */
-      right: 10px;         /* Add this to anchor it to the right */
-      width: auto;         /* Don't stretch full width */
-      height: auto;        /* Don't stretch full height */
-      z-index: 10001;      /* Keep it above other elements */
-      padding: 20px;       /* Optional padding around loader */
-      border-radius: 8px;  /* Optional styling */
+      top: 10px;
+      right: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 8px;
+      padding: 4px 8px;
+      z-index: 10000;
+      font-family: sans-serif;
+    }
+    
+    /* Refresh button */
+    .refresh-button {
+      background: transparent;
+      border: none;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #333; /* Icon color */
+      transition: transform 0.2s ease-in-out;
+    }
+    
+    .refresh-button:hover {
+      transform: rotate(40deg); /* subtle hover twist */
+    }
+    
+    .refresh-button:focus {
+      outline: none; /* removes focus border */
+      box-shadow: none;
+    }
+    
+    .refresh-button svg {
+      fill: #444; /* normal */
+    }
+    
+    .refresh-button:hover svg {
+      fill: #000; /* darker on hover */
+    }
+    
+    /* Text styling */
+    .last-updated-label {
+      font-size: 12px;
+      color: #444;
+      white-space: nowrap;
+    }
+    
+    /* Loader smaller and centered vertically */
+    .loader-overlay {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 28px;
+      height: 28px;
     }
 
     .loader {
       position: relative;
-      width: 30px;
-      height: 30px;
+      width: 23px;
+      height: 23px;
       border-radius: 10px;
     }
     
@@ -140,21 +191,21 @@
       transform: rotate(330deg) translate(0, -130%);
       animation-delay: -0.1s;
     }
-    
-    /* Make the main wrapper a full-height flex container */
-    #mainAppWrapper {
+
+/* Make the main wrapper a full-height flex container */
+#mainAppWrapper {
         display: flex; 
         flex-direction: column;
         height: 100vh; /* Full viewport height */
         height: 100dvh; /* Dynamic viewport height for mobile */
         overflow: hidden;
-    }
+}
     
     /* ===== HEADER STYLES (Unchanged, but included for context) ===== */
 #appHeader {
     display: flex;
     flex: 0 0 auto;
-    justify-content: center;
+    justify-content: left;
     align-items: center;
     padding: 10px;
     text-align: center;
@@ -1377,22 +1428,35 @@ h1 span:not(.title-main-part) {
 </head>
 <body>
     <!-- START: Loader HTML -->
+<div id="top-status-container">
+  <!-- Left: Last updated -->
+  <div id="last-updated" class="last-updated-label">Last updated: --</div>
+
+  <!-- Middle: Loader -->
   <div id="loader-container" class="loader-overlay" style="display: none;">
     <div class="loader">
-        <div class="bar1"></div>
-        <div class="bar2"></div>
-        <div class="bar3"></div>
-        <div class="bar4"></div>
-        <div class="bar5"></div>
-        <div class="bar6"></div>
-        <div class="bar7"></div>
-        <div class="bar8"></div>
-        <div class="bar9"></div>
-        <div class="bar10"></div>
-        <div class="bar11"></div>
-        <div class="bar12"></div>
+      <div class="bar1"></div>
+      <div class="bar2"></div>
+      <div class="bar3"></div>
+      <div class="bar4"></div>
+      <div class="bar5"></div>
+      <div class="bar6"></div>
+      <div class="bar7"></div>
+      <div class="bar8"></div>
+      <div class="bar9"></div>
+      <div class="bar10"></div>
+      <div class="bar11"></div>
+      <div class="bar12"></div>
     </div>
   </div>
+  <!-- Right: Refresh button -->
+  <button id="refresh-btn" class="refresh-button" title="Refresh Bookings" aria-label="Refresh">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="18" height="18" fill="currentColor">
+      <path d="M27.1 14.313V5.396L24.158 8.34c-2.33-2.325-5.033-3.503-8.11-3.503C9.902 4.837 4.901 9.847 4.899 16c.001 6.152 5.003 11.158 11.15 11.16 4.276 0 9.369-2.227 10.836-8.478l.028-.122h-3.23l-.022.068c-1.078 3.242-4.138 5.421-7.613 5.421a8 8 0 0 1-5.691-2.359A7.993 7.993 0 0 1 8 16.001c0-4.438 3.611-8.049 8.05-8.049 2.069 0 3.638.58 5.924 2.573l-3.792 3.789H27.1z"/>
+    </svg>
+  </button>
+</div>
+
   <!-- END: Loader HTML -->
   
   <!-- The main app UI now lives here, NOT in an iframe -->
@@ -1560,7 +1624,7 @@ h1 span:not(.title-main-part) {
      *                  CRITICAL CONFIGURATION                      *
      *   PASTE THE WEB APP URL YOU COPIED FROM STEP 2 BELOW         *
      ****************************************************************/
-    const WEB_APP_URL = 'https://script.google.com/macros/s/A/exec'; // <-- PASTE YOUR URL HERE!
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzgLMpLsD26Nilh9NPf7QiDVjscIcpHPh1REfZVKWVnpXVpK488prqJsRF0NKN4FdtI/exec'; // <-- PASTE YOUR URL HERE!
 
 
     /* =================================================================
@@ -2253,76 +2317,98 @@ h1 span:not(.title-main-part) {
 
     // loadBookings - REFACTORED to use fetch()
 	// loadBookings - REFACTORED to use fetch() and show a loader
-	  async function loadBookings() {
-        const loader = document.getElementById('loader-container');
-        loader.style.display = 'flex'; // Show the loader
-
-        console.groupCollapsed(`[Booking Loader] Starting update @ ${new Date().toLocaleTimeString()}`);
-        let cachedEvents = [];
-        try {
-            console.log('Step 1: Loading from IndexedDB...');
-            cachedEvents = await loadEventsFromIDB();
-            if (cachedEvents && cachedEvents.length > 0) {
-                console.info(`%cSuccess: Loaded ${cachedEvents.length} events from cache.`, 'color: green;');
-                allEvents = cachedEvents;
-                renderCalendar(allEvents);
-                updateChargerStatus();
-            } else { 
-                console.warn('No cached events found.'); 
-            }
-        } catch (err) {
-            console.error('Error loading from IndexedDB:', err);
-            showMessage('error', 'Error loading cached bookings.');
-            loader.style.display = 'none'; // Hide loader on error
-            console.groupEnd(); // End group immediately on critical cache error
-            return;
+    async function loadBookings() {
+      const loader = document.getElementById('loader-container');
+      const refreshBtn = document.getElementById('refresh-btn');
+      const lastUpdatedEl = document.getElementById('last-updated');
+    
+      // Hide the refresh button and show loader
+      refreshBtn.style.display = 'none';
+      loader.style.display = 'flex';
+    
+      console.groupCollapsed(`[Booking Loader] Starting update @ ${new Date().toLocaleTimeString()}`);
+      let cachedEvents = [];
+    
+      try {
+        console.log('Step 1: Loading from IndexedDB...');
+        cachedEvents = await loadEventsFromIDB();
+        if (cachedEvents && cachedEvents.length > 0) {
+          console.info(`%cSuccess: Loaded ${cachedEvents.length} events from cache.`, 'color: green;');
+          allEvents = cachedEvents;
+          renderCalendar(allEvents);
+          updateChargerStatus();
+        } else {
+          console.warn('No cached events found.');
         }
-
-        console.log('Step 2: Fetching from server...');
-        fetch(`${WEB_APP_URL}?action=getBookings`)
-            .then(response => {
-                if (!response.ok) {
-                    // If response is not 2xx, throw an error to be caught by .catch()
-                    throw new Error(`Network response was not ok: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then(async serverResponse => {
-                console.group('[Server Response]');
-                if (serverResponse.status !== 'success') {
-                    throw new Error(serverResponse.message || 'Server returned an error status.');
-                }
-                const eventsFromServer = serverResponse.data;
-                console.info(`Success: Received ${eventsFromServer.length} events.`);
-
-                const serverIds = eventsFromServer.map(e => e.id).sort().join(',');
-                const cachedIds = cachedEvents.map(e => e.id).sort().join(',');
-
-                if (serverIds !== cachedIds) {
-                    console.info('%cChange detected. Updating local data.', 'color: blue; font-weight: bold;');
-                    allEvents = eventsFromServer;
-                    await saveEventsToIDB(eventsFromServer);
-                    console.info(`%cSaved ${eventsFromServer.length} new events to IndexedDB.`, 'color: green;');
-                    renderCalendar(allEvents);
-                    updateChargerStatus();
-                } else { 
-                    console.log('No changes detected.'); 
-                }
-                console.groupEnd(); // Closes [Server Response] group
-            })
-            .catch(err => {
-                console.error('Server load failed:', err.message || err);
-                if (allEvents.length === 0) {
-                    showMessage('error', 'Could not load calendar: ' + err.message);
-                }
-            })
-            .finally(() => {
-                // This block runs regardless of success or failure.
-                // It's the perfect place to close the main console group.
-                loader.style.display = 'none'; // Hide the loader
-                console.groupEnd(); // Closes [Booking Loader] group
-            });
+      } catch (err) {
+        console.error('Error loading from IndexedDB:', err);
+        showMessage('error', 'Error loading cached bookings.');
+        loader.style.display = 'none';
+        refreshBtn.style.display = 'inline-block';
+        console.groupEnd();
+        return;
+      }
+    
+      console.log('Step 2: Fetching from server...');
+      fetch(`${WEB_APP_URL}?action=getBookings`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Network response was not ok: ${response.statusText}`);
+          }
+          return response.json();
+        })
+        .then(async serverResponse => {
+          console.group('[Server Response]');
+          if (serverResponse.status !== 'success') {
+            throw new Error(serverResponse.message || 'Server returned an error status.');
+          }
+          const eventsFromServer = serverResponse.data;
+          console.info(`Success: Received ${eventsFromServer.length} events.`);
+    
+          const serverIds = eventsFromServer.map(e => e.id).sort().join(',');
+          const cachedIds = cachedEvents.map(e => e.id).sort().join(',');
+    
+          if (serverIds !== cachedIds) {
+            console.info('%cChange detected. Updating local data.', 'color: blue; font-weight: bold;');
+            allEvents = eventsFromServer;
+            await saveEventsToIDB(eventsFromServer);
+            console.info(`%cSaved ${eventsFromServer.length} new events to IndexedDB.`, 'color: green;');
+            renderCalendar(allEvents);
+            updateChargerStatus();
+          } else {
+            console.log('No changes detected.');
+          }
+          console.groupEnd();
+        })
+        .catch(err => {
+          console.error('Server load failed:', err.message || err);
+          if (allEvents.length === 0) {
+            showMessage('error', 'Could not load calendar: ' + err.message);
+          }
+        })
+        .finally(() => {
+          // Hide loader and show refresh button
+          loader.style.display = 'none';
+          refreshBtn.style.display = 'inline-block';
+    
+          // Update "Last updated" time in short format
+          const now = new Date();
+          const shortDate = now.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+          });
+          const shortTime = now.toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+          lastUpdatedEl.textContent = `Last updated: ${shortDate}, ${shortTime}`;
+    
+          console.groupEnd();
+        });
     }
+    
+    // 🟢 Add click handler for the refresh button
+    document.getElementById('refresh-btn').addEventListener('click', loadBookings);
 
     function renderCalendar(events) {
                 const calendarEl = document.getElementById('calendar');
