@@ -2907,42 +2907,38 @@ document.getElementById('bookingForm').addEventListener('submit', async function
       firebase.initializeApp(firebaseConfig);
       const db = firebase.database();
     
-      // --- 🔥 Firebase background listener for bookings ---
-      const bookingsRef = db.ref('bookings');
+      let lastSeenTimestamp = null;
+      let updateTimeout = null;
     
-      // Trigger when a new booking is added
-      bookingsRef.on('child_added', (snapshot) => {
-        console.log('[Firebase] New booking detected:', snapshot.key);
-        handleBookingChange();
+      db.ref('server/lastUpdate').on('value', (snapshot) => {
+        const timestamp = snapshot.val();
+        if (!timestamp) return;
+    
+        // First load – set reference timestamp and do nothing
+        if (lastSeenTimestamp === null) {
+          lastSeenTimestamp = timestamp;
+          console.log('[Firebase] Initial timestamp:', timestamp);
+          return;
+        }
+    
+        // If new update detected
+        if (timestamp !== lastSeenTimestamp) {
+          console.log('[Firebase] Change detected, triggering background sync...');
+          lastSeenTimestamp = timestamp;
+    
+          // Debounce to prevent multiple triggers in quick succession
+          clearTimeout(updateTimeout);
+          updateTimeout = setTimeout(() => {
+            if (navigator.onLine) {
+              loadBookings(); // 🔥 trigger your existing function
+            } else {
+              console.warn('[Firebase] Update skipped: offline');
+            }
+          }, 2000); // wait 2 seconds to batch updates if needed
+        }
       });
     
-      // Trigger when an existing booking changes
-      bookingsRef.on('child_changed', (snapshot) => {
-        console.log('[Firebase] Booking updated:', snapshot.key);
-        handleBookingChange();
-      });
-    
-      // Trigger when a booking is deleted
-      bookingsRef.on('child_removed', (snapshot) => {
-        console.log('[Firebase] Booking removed:', snapshot.key);
-        handleBookingChange();
-      });
-    
-      // A small debounce helper to avoid rapid reloads if multiple updates occur
-      let firebaseReloadTimeout;
-      function handleBookingChange() {
-        if (!navigator.onLine) return; // Don’t trigger if offline
-        clearTimeout(firebaseReloadTimeout);
-        firebaseReloadTimeout = setTimeout(() => {
-          console.log('[Firebase] Reloading bookings...');
-          loadBookings();
-        }, 3000); // Wait 3 seconds in case multiple updates come in together
-      }
-    
-      // --- ✅ Initial load ---
-      loadBookings();
     });
-
     
     document.addEventListener('DOMContentLoaded', () => {
       const header = document.getElementById('appHeader');
