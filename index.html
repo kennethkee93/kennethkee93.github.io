@@ -2422,7 +2422,41 @@
     
         // Update or create stats section
         updateStatsSection(availableCount, occupiedCount, todaysSessions);
+        attachChargerIconListeners();
     }
+    
+    function attachChargerIconListeners() {
+        document.querySelectorAll('.charger-book-btn').forEach(icon => {
+            icon.addEventListener('click', e => {
+                const chargerName = e.target.closest('.charger-icon')?.dataset.charger;
+                if (!chargerName) return;
+    
+                // 1️⃣ Switch to the booking form tab
+                showTab('form');
+    
+                // 2️⃣ Wait for tab animation to finish (~400ms)
+                setTimeout(() => {
+                    const dateTimeModal = document.getElementById('dateTimePickerModal');
+                    if (!dateTimeModal) return;
+    
+                    // 3️⃣ Open the main booking modal overlay
+                    dateTimeModal.style.display = 'flex';
+                    dateTimeModal.classList.add('active'); // optional for fade-in effect
+    
+                    // 4️⃣ Preselect the correct charger button inside it
+                    const modalButtons = dateTimeModal.querySelectorAll('.charger-btn');
+                    modalButtons.forEach(btn => {
+                        btn.classList.remove('active');
+                        if (btn.dataset.charger === chargerName) {
+                            btn.classList.add('active');
+                            btn.click(); // triggers your normal charger selection logic
+                        }
+                    });
+                }, 450);
+            });
+        });
+    }
+
     
     function generateChargerCardHTML(chargerName, status, now) {
         const statusClass = status.occupied ? 'occupied' : 'available';
@@ -2448,12 +2482,16 @@
                             <span>${statusText}</span>
                         </div>
                     </div>
-                    <div class="charger-icon ${statusClass}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                        </svg>
+                      <div class="charger-icon ${statusClass}" data-charger="${chargerName}">
+                          <svg xmlns="http://www.w3.org/2000/svg" 
+                               width="24" height="24" viewBox="0 0 24 24" 
+                               fill="none" stroke="white" stroke-width="2" 
+                               stroke-linecap="round" stroke-linejoin="round" 
+                               class="charger-book-btn">
+                              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                          </svg>
+                      </div>
                     </div>
-                </div>
                 ${currentSessionHTML}
                 ${upcomingSessionHTML}
             </div>
