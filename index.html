@@ -43,21 +43,18 @@
 #top-status-container {
   position: fixed;
   top: 8px;
-  right: 28px;
+  right: 10px;
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 8px;
   padding: 8px 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   z-index: 10000;
   font-family: sans-serif;
 }
 
 .app-status-dot {
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   cursor: pointer;
   position: relative;
@@ -66,7 +63,7 @@
 
 .app-status-dot--green {
   background-color: #28a745;
-  box-shadow: 0 0 8px 2px rgba(40, 167, 69, 0.9), 0 0 12px 4px rgba(40, 167, 69, 0.5);
+  box-shadow: 0 0 8px 2px rgba(40, 167, 69, 0.3), 0 0 12px 4px rgba(40, 167, 69, 0.5);
 }
 
 .app-status-dot--orange {
@@ -76,7 +73,7 @@
 
 .app-status-dot--grey {
   background-color: #6c757d;
-  box-shadow: 0 0 8px 2px rgba(108, 117, 125, 0.9), 0 0 12px 4px rgba(108, 117, 125, 0.5);
+  box-shadow: 0 0 8px 2px rgba(108, 117, 125, 0.1), 0 0 12px 4px rgba(108, 117, 125, 0.1);
 }
 
 .app-status-dot:hover {
@@ -96,6 +93,12 @@
   animation-iteration-count: infinite;
   animation-timing-function: ease-out;
   z-index: -1;
+}
+
+.app-status-dot--green::before,
+.app-status-dot--green::after {
+  background-color: rgba(40, 167, 69, 0.7);
+  animation-name: pulse-orange; /* Changed from pulse to pulse-orange */
 }
 
 .app-status-dot--orange::before,
@@ -121,11 +124,11 @@
     opacity: 0.8;
   }
   50% {
-    transform: translate(-50%, -50%) scale(2.8);
+    transform: translate(-50%, -50%) scale(2);
     opacity: 0.4;
   }
   100% {
-    transform: translate(-50%, -50%) scale(4);
+    transform: translate(-50%, -50%) scale(3);
     opacity: 0;
   }
 }
@@ -225,7 +228,7 @@ h1 {
     color: #111827;
     margin: 20px 0;
     text-align: center;
-    line-height: 1.2;
+    line-height: 1.1;
     /* Comprehensive text transition */
     transition: 
         font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
@@ -328,28 +331,6 @@ h1 span:not(.title-main-part) {
     transition: outline 0.2s ease-out;
 }
 
-/* Reduce motion for users who prefer it */
-@media (prefers-reduced-motion: reduce) {
-    #appHeader,
-    #appHeader > div,
-    #appHeader .image-container,
-    #appHeader .icon-large,
-    h1,
-    h1 .title-main-part,
-    h1 span:not(.title-main-part) {
-        transition-duration: 0.1s;
-    }
-    
-    #appHeader.header-shrink > div {
-        transform: none;
-    }
-    
-    #appHeader.header-shrink .icon-large,
-    #appHeader:hover .icon-large,
-    #appHeader.header-shrink:hover .icon-large {
-        transform: none;
-    }
-}
         
     /* ===== TAB SYSTEM (Revised for Safe Area) ===== */
     #tabButtons {
@@ -1386,7 +1367,6 @@ h1 span:not(.title-main-part) {
     <!-- Unified Status Dot / Refresh Button -->
   <div id="app-status-dot" class="app-status-dot" title="Refresh Bookings" aria-label="Refresh"></div>
   </div>
-
   <!-- END: Loader HTML -->
   
   <!-- The main app UI now lives here, NOT in an iframe -->
@@ -2245,14 +2225,20 @@ h1 span:not(.title-main-part) {
 
     function convertToTitleCase(input) { input.value = input.value.toLowerCase().replace(/\b\w/g, char => char.toUpperCase()); }
 
-    // loadBookings - REFACTORED to use fetch()
+    // Add event listener to the status dot
     document.getElementById('app-status-dot').addEventListener('click', loadBookings);
     
     // Refactored loadBookings function to control the status dot
     async function loadBookings() {
       const statusDot = document.getElementById('app-status-dot');
-      const lastUpdatedEl = document.getElementById('last-updated');
-      let isDataStale = false; // Flag to track data state
+    
+      // Check for offline status before doing anything
+      if (!navigator.onLine) {
+        console.warn('Offline: Cannot start update.');
+        showMessage('error', 'You are currently offline. Cannot refresh data.');
+        statusDot.className = 'app-status-dot app-status-dot--grey';
+        return; // Stop the function
+      }
     
       // Set to orange (loading)
       statusDot.className = 'app-status-dot app-status-dot--orange';
@@ -2319,20 +2305,37 @@ h1 span:not(.title-main-part) {
         }
         // Set to grey because we couldn't confirm the data is fresh
         statusDot.className = 'app-status-dot app-status-dot--grey';
-        isDataStale = true;
     
       } finally {
-        // Update "Last updated" time
-        const now = new Date();
-        const shortDate = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
-        const shortTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        lastUpdatedEl.textContent = isDataStale 
-          ? `Update failed at: ${shortTime}` 
-          : `Last updated: ${shortDate}, ${shortTime}`;
-        
         console.groupEnd();
       }
     }
+    
+    // Add event listeners to automatically detect connection changes
+    function updateOnlineStatus() {
+      const statusDot = document.getElementById('app-status-dot');
+    
+      if (navigator.onLine) {
+        console.log('Connection restored. Automatically refreshing data.');
+        // When connection returns, automatically try to get the latest data
+        loadBookings();
+      } else {
+        console.warn('Connection lost. The application is now offline.');
+        statusDot.className = 'app-status-dot app-status-dot--grey';
+        showMessage('error', 'You are offline. Displayed data may be outdated.');
+      }
+    }
+    
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    
+    // Set the initial status when the page first loads
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!navigator.onLine) {
+            // If starting offline, set the UI accordingly
+            updateOnlineStatus();
+        }
+    });
 
     function renderCalendar(events) {
                 const calendarEl = document.getElementById('calendar');
