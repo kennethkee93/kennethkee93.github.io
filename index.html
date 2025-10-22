@@ -252,26 +252,10 @@
         -webkit-backface-visibility: hidden;
     }
     
-    @keyframes glowPulse {
-      0% {
-        box-shadow: 0 0 5px rgba(59, 130, 246, 0.5), 0 0 10px rgba(59, 130, 246, 0.3);
-        transform: scale(1);
-      }
-      50% {
-        box-shadow: 0 0 20px rgba(59, 130, 246, 0.8), 0 0 40px rgba(59, 130, 246, 0.6);
-        transform: scale(1.05);
-      }
-      100% {
-        box-shadow: 0 0 5px rgba(59, 130, 246, 0.5), 0 0 10px rgba(59, 130, 246, 0.3);
-        transform: scale(1);
-      }
-    }
-    
+    /* 💡 Static glow effect without any border box */
     .install-glow {
-      animation: glowPulse 1.5s ease-in-out infinite;
-      border-radius: 50%;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      cursor: pointer;
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.8), 0 0 24px rgba(59, 130, 246, 0.4);
+      transition: box-shadow 0.3s ease, transform 0.3s ease;
     }
     
     /* Enhanced H1 base styles */
@@ -3087,27 +3071,27 @@ document.getElementById('bookingForm').addEventListener('submit', async function
       observer.observe(header, { attributes: true, attributeFilter: ['class'] });
     });
     
+    // PWA Install Button on App Header Icon 
     let deferredPrompt;
     
+    // Platform checks
     function isIos() {
       return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
     }
-    
     function isInStandaloneMode() {
       return ('standalone' in window.navigator) && window.navigator.standalone;
     }
-    
     function isPwaInstalled() {
       return window.matchMedia('(display-mode: standalone)').matches || isInStandaloneMode();
     }
     
+    // Always show the logo (even when installed)
     window.addEventListener("load", () => {
       const installBtn = document.getElementById("installPwaButton");
-      if (isPwaInstalled()) {
-        installBtn.style.display = "none";
-      }
+      installBtn.style.display = "block";
     });
     
+    // Listen for install availability
     window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault();
       deferredPrompt = e;
@@ -3115,25 +3099,27 @@ document.getElementById('bookingForm').addEventListener('submit', async function
     
       const installBtn = document.getElementById("installPwaButton");
       if (!isPwaInstalled()) {
-        installBtn.style.display = "block";
-        installBtn.classList.add("install-glow"); // ✨ start glowing
+        installBtn.classList.add("install-glow"); // ✨ Add static glow
       }
     });
     
+    // Handle button click
     document.getElementById("installPwaButton").addEventListener("click", async () => {
       const installBtn = document.getElementById("installPwaButton");
     
+      // If already installed, just do nothing
       if (isPwaInstalled()) {
-        installBtn.style.display = "none";
-        installBtn.classList.remove("install-glow");
+        console.log("PWA already installed — icon stays but does nothing");
         return;
       }
     
+      // Handle iOS Safari case
       if (isIos() && !isInStandaloneMode()) {
         alert("To install this app on your iPhone or iPad:\n\n1. Tap the Share icon\n2. Select 'Add to Home Screen'");
         return;
       }
     
+      // Handle Android/Desktop PWA install
       if (!deferredPrompt) {
         alert("The app can’t be installed right now — try again later.");
         return;
@@ -3143,9 +3129,9 @@ document.getElementById('bookingForm').addEventListener('submit', async function
       const { outcome } = await deferredPrompt.userChoice;
       console.log(`User response to install prompt: ${outcome}`);
     
-      if (outcome === "accepted") {
-        installBtn.classList.remove("install-glow"); // ✅ stop glowing
-        installBtn.style.display = "none";
+      // Once user accepts or dismisses, remove glow
+      if (outcome === "accepted" || outcome === "dismissed") {
+        installBtn.classList.remove("install-glow");
       }
     
       deferredPrompt = null;
