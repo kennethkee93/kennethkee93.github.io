@@ -49,6 +49,10 @@
       padding: 8px 8px;
       z-index: 10000;
       font-family: sans-serif;
+      /* MODIFIED: Use calc() to push it down from the notch for webkit */
+      top: calc(10px + env(safe-area-inset-top));
+      transition: top 0.3s ease-in-out;
+    }
     }
     
     #top-status-container {
@@ -189,12 +193,24 @@
         /* Add backdrop blur for modern effect when shrunk */
         backdrop-filter: blur(0px);
         -webkit-backdrop-filter: blur(0px);
+        /* MODIFIED: Adjust top and bottom padding, respecting the safe area for WebKit */
+        padding: calc(10px + env(safe-area-inset-top)) 10px 10px 10px;
+        /* Retaining WebKit performance optimizations */
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        transition: padding 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
     
     /* Enhanced shrunk header state - REMOVED shadow and backdrop effects */
     #appHeader.header-shrink {
+        padding-top: calc(5px + env(safe-area-inset-top));
         padding-top: 5px;
         padding-bottom: 5px;
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        background-color: rgba(255, 255, 255, 0.8);
         /* REMOVED: box-shadow, backdrop-filter, and background-color */
     }
     
