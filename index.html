@@ -55,13 +55,13 @@
     }
     
     #top-status-container {
-      top: 20px;
+      top: 22px;
       transition: top 0.3s ease-in-out;
     }
     
     /* Moves it up when the header shrinks */
     #top-status-container.status-up {
-      top: 10px; /* adjust as needed */
+      top: 8px; /* adjust as needed */
     }
     
     .app-status-dot {
@@ -133,7 +133,7 @@
     @keyframes pulse {
       0% {
         transform: translate(-50%, -50%) scale(1);
-        opacity: 0.8;
+        opacity: 0.6;
       }
       50% {
         transform: translate(-50%, -50%) scale(2);
@@ -149,14 +149,14 @@
     @keyframes pulse-orange {
       0% {
         transform: translate(-50%, -50%) scale(1);
-        opacity: 0.8;
+        opacity: 0.6;
       }
       50% {
-        transform: translate(-50%, -50%) scale(2); /* Wider midpoint */
+        transform: translate(-50%, -50%) scale(2);
         opacity: 0.4;
       }
       100% {
-        transform: translate(-50%, -50%) scale(3); /* Wider final scale */
+        transform: translate(-50%, -50%) scale(3);
         opacity: 0;
       }
     }
@@ -2457,11 +2457,11 @@
             'Clubhouse': { elementId: 'statusClubhouse' }
         };
     
-        const statusMap = Object.keys(chargers).reduce((acc, name) => ({ 
-            ...acc, 
-            [name]: { occupied: false, event: null, upcomingEvent: null } 
+        const statusMap = Object.keys(chargers).reduce((acc, name) => ({
+            ...acc,
+            [name]: { occupied: false, event: null, upcomingEvent: null }
         }), {});
-        
+    
         const now = new Date();
     
         allEvents.forEach(event => {
@@ -2469,7 +2469,7 @@
             if (!statusMap[charger]) return;
             const start = new Date(event.start);
             const end = new Date(event.end);
-            
+    
             if (now >= start && now < end) {
                 statusMap[charger].occupied = true;
                 statusMap[charger].event = event;
@@ -2478,28 +2478,74 @@
             }
         });
     
-        // Calculate statistics
         const totalChargers = Object.keys(chargers).length;
         const occupiedCount = Object.values(statusMap).filter(s => s.occupied).length;
         const availableCount = totalChargers - occupiedCount;
-        const todaysSessions = allEvents.filter(event => {
-            const eventDate = new Date(event.start);
-            return eventDate.toDateString() === now.toDateString();
-        }).length;
+        const todaysSessions = allEvents.filter(event => new Date(event.start).toDateString() === now.toDateString()).length;
     
-        // Update each charger card
         Object.entries(statusMap).forEach(([chargerName, status]) => {
-            const div = document.getElementById(chargers[chargerName].elementId);
-            if (!div) return;
-            
-            let html = generateChargerCardHTML(chargerName, status, now);
-            
-            if (div.innerHTML !== html) {
-                div.innerHTML = html;
+            const containerDiv = document.getElementById(chargers[chargerName].elementId);
+            if (!containerDiv) return;
+    
+            const existingCard = containerDiv.querySelector('.charger-card');
+            const existingUpcomingEventId = existingCard ? existingCard.dataset.upcomingEventId : null;
+            const newUpcomingEventId = status.upcomingEvent ? status.upcomingEvent.id : '';
+    
+            let needsFullRender = false;
+            if (!existingCard) {
+                needsFullRender = true; // Card doesn't exist yet
+            } else if (existingCard.classList.contains('occupied') !== status.occupied) {
+                needsFullRender = true; // Status changed (e.g., occupied -> available)
+            } else if (existingUpcomingEventId !== newUpcomingEventId) {
+                needsFullRender = true; // Upcoming session was added, removed, or changed
+            }
+    
+            if (needsFullRender) {
+                // Perform a full re-render only when major state changes occur
+                containerDiv.innerHTML = generateChargerCardHTML(chargerName, status, now);
+            } else {
+                // Otherwise, just update the specific text content that changes
+                if (status.occupied && status.event) {
+                    // Targeted update for occupied card's progress and time
+                    const start = new Date(status.event.start);
+                    const end = new Date(status.event.end);
+                    const totalDuration = end - start;
+                    const elapsedDuration = now - start;
+                    const progress = Math.min(100, Math.max(0, (elapsedDuration / totalDuration) * 100));
+                    const remainingMs = end - now;
+                    const remainingMinutes = Math.floor(remainingMs / 60000);
+                    const hoursLeft = Math.floor(remainingMinutes / 60);
+                    const minutesLeft = remainingMinutes % 60;
+                    const timeLeftText = remainingMs > 0 ? (hoursLeft > 0 ? `${hoursLeft}h ${minutesLeft}m` : `${minutesLeft}m`) : 'Soon';
+    
+                    existingCard.querySelector('.progress-bar-fill').style.width = `${progress}%`;
+                    existingCard.querySelector('.progress-percent').textContent = `${Math.round(progress)}%`;
+                    const timeRemainingEl = existingCard.querySelector('.time-remaining');
+                    if (timeRemainingEl.textContent !== timeLeftText) timeRemainingEl.textContent = timeLeftText;
+    
+                } else if (status.upcomingEvent) {
+                    // Targeted update for available card's "starts in" text
+                    const start = new Date(status.upcomingEvent.start);
+                    const timeUntilStart = start.getTime() - now.getTime();
+                    let startsInText = 'Soon';
+                    if (timeUntilStart > 0) {
+                        const totalMinutes = Math.floor(timeUntilStart / (1000 * 60));
+                        const days = Math.floor(totalMinutes / (60 * 24));
+                        const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+                        const minutes = totalMinutes % 60;
+                        if (days > 0) startsInText = `${days}d ${hours}h`;
+                        else if (hours > 0) startsInText = `${hours}h ${minutes}m`;
+                        else startsInText = `${minutes}m`;
+                    }
+    
+                    const startsInEl = existingCard.querySelector('.starts-in');
+                    if (startsInEl && startsInEl.textContent !== startsInText) {
+                        startsInEl.textContent = startsInText;
+                    }
+                }
             }
         });
     
-        // Update or create stats section
         updateStatsSection(availableCount, occupiedCount, todaysSessions);
         attachChargerIconListeners();
     }
@@ -2540,19 +2586,22 @@
     function generateChargerCardHTML(chargerName, status, now) {
         const statusClass = status.occupied ? 'occupied' : 'available';
         const statusText = status.occupied ? 'Charging' : 'Available';
-        
+        const upcomingEventId = status.upcomingEvent ? status.upcomingEvent.id : ''; // Get ID for tracking
+    
         let currentSessionHTML = '';
         if (status.occupied && status.event) {
             currentSessionHTML = generateCurrentSessionHTML(status.event, now);
         }
-        
+    
         let upcomingSessionHTML = '';
         if (status.upcomingEvent) {
             upcomingSessionHTML = generateUpcomingSessionHTML(status.upcomingEvent, now);
         }
     
+        // --- MODIFIED LINE ---
+        // Added data-upcoming-event-id="${upcomingEventId}"
         return `
-            <div class="charger-card ${statusClass}">
+            <div class="charger-card ${statusClass}" data-upcoming-event-id="${upcomingEventId}">
                 <div class="charger-header">
                     <div class="charger-title">
                         <h3 class="charger-name">${chargerName}</h3>
@@ -2562,10 +2611,10 @@
                         </div>
                     </div>
                       <div class="charger-icon ${statusClass}" data-charger="${chargerName}">
-                          <svg xmlns="http://www.w3.org/2000/svg" 
-                               width="24" height="24" viewBox="0 0 24 24" 
-                               fill="none" stroke="white" stroke-width="2" 
-                               stroke-linecap="round" stroke-linejoin="round" 
+                          <svg xmlns="http://www.w3.org/2000/svg"
+                               width="24" height="24" viewBox="0 0 24 24"
+                               fill="none" stroke="white" stroke-width="2"
+                               stroke-linecap="round" stroke-linejoin="round"
                                class="charger-book-btn">
                               <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                           </svg>
