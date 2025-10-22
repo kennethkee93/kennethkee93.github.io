@@ -252,12 +252,6 @@
         -webkit-backface-visibility: hidden;
     }
     
-    /* 💡 Static glow effect without any border box */
-    .install-glow {
-      box-shadow: 0 0 12px rgba(59, 130, 246, 0.8), 0 0 24px rgba(59, 130, 246, 0.4);
-      transition: box-shadow 0.3s ease, transform 0.3s ease;
-    }
-    
     /* Enhanced H1 base styles */
     h1 {
         color: #111827;
@@ -974,7 +968,6 @@
       .flatpickr-calendar {
         transform: scale(0.95);
         transform-origin: top center;
-        padding
       }
     }
     
@@ -3074,67 +3067,58 @@ document.getElementById('bookingForm').addEventListener('submit', async function
     // PWA Install Button on App Header Icon 
     let deferredPrompt;
     
-    // Platform checks
+    // Detect platform
     function isIos() {
       return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
     }
+    
     function isInStandaloneMode() {
       return ('standalone' in window.navigator) && window.navigator.standalone;
     }
+    
     function isPwaInstalled() {
       return window.matchMedia('(display-mode: standalone)').matches || isInStandaloneMode();
     }
     
-    // Always show the logo (even when installed)
+    // Always keep the icon visible
     window.addEventListener("load", () => {
       const installBtn = document.getElementById("installPwaButton");
       installBtn.style.display = "block";
     });
     
-    // Listen for install availability
+    // Save the install prompt when available
     window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault();
       deferredPrompt = e;
       console.log("PWA install prompt saved");
-    
-      const installBtn = document.getElementById("installPwaButton");
-      if (!isPwaInstalled()) {
-        installBtn.classList.add("install-glow"); // ✨ Add static glow
-      }
     });
     
-    // Handle button click
+    // Handle click on logo
     document.getElementById("installPwaButton").addEventListener("click", async () => {
-      const installBtn = document.getElementById("installPwaButton");
-    
-      // If already installed, just do nothing
+      // Already installed → do nothing
       if (isPwaInstalled()) {
-        console.log("PWA already installed — icon stays but does nothing");
+        console.log("PWA already installed — icon is inert.");
         return;
       }
     
-      // Handle iOS Safari case
+      // iOS users → show manual install guide
       if (isIos() && !isInStandaloneMode()) {
         alert("To install this app on your iPhone or iPad:\n\n1. Tap the Share icon\n2. Select 'Add to Home Screen'");
         return;
       }
     
-      // Handle Android/Desktop PWA install
+      // If install not available yet
       if (!deferredPrompt) {
         alert("The app can’t be installed right now — try again later.");
         return;
       }
     
+      // Show Chrome/Edge install prompt
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       console.log(`User response to install prompt: ${outcome}`);
     
-      // Once user accepts or dismisses, remove glow
-      if (outcome === "accepted" || outcome === "dismissed") {
-        installBtn.classList.remove("install-glow");
-      }
-    
-      deferredPrompt = null;
+      deferredPrompt = null; // Clean up
     });
 </script>
 
