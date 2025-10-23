@@ -178,14 +178,14 @@
    /* ===== HEADER STYLES (Unchanged, but included for context) ===== */
    
     #appHeader {
-        position: relative;
+        position: fixed;
         top: 0;
         left: 0;
         right: 0;
         display: flex;
         justify-content: center;
         align-items: center;
-        padding: calc(5px + env(safe-area-inset-top)) 10px 15px 10px;
+        padding: calc(10px + env(safe-area-inset-top)) 10px 15px 10px;
         text-align: center;
         z-index: 100;
         overflow: hidden;
@@ -373,6 +373,11 @@
         opacity: 0;
         pointer-events: none;
         z-index: 0;
+    
+        /* === THE CORRECT FIX IS HERE === */
+        padding-top: 70px; /* Adjust this value as needed */
+        box-sizing: border-box; /* Ensures padding is calculated correctly */
+    
         /* CRITICAL: Prevents content from being hidden behind the bottom tab bar */
         padding-bottom: calc(90px + env(safe-area-inset-bottom));
     }
