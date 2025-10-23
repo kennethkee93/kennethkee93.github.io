@@ -1230,31 +1230,7 @@
 
     /* ===== SIDE BUTTON CSS ===== */
         /* Main wrapper */
-        #sideMenuWrapper {
-            position: fixed;
-            top: max(20px, env(safe-area-inset-top, 20px));
-            left: max(20px, env(safe-area-inset-left, 20px));
-            z-index: 1000;
-            display: flex;
-            flex-direction: column-reverse;
-            align-items: flex-start;
-            gap: 12px;
-            transition: top 0.3s ease-in-out;
-            width: fit-content;
-            pointer-events: none;
-        }
-
-        /* Re-enable pointer events for children */
-        #sideMenuWrapper > * {
-            pointer-events: auto;
-        }
-
-        /* Shrink state when header shrinks */
-        #sideMenuWrapper.menu-shrink {
-            top: max(3px, calc(env(safe-area-inset-top, 20px) - 10px));
-        }
-
-        /* Toggle button */
+        /* Main wrapper */
         #sideMenuWrapper {
             position: fixed;
             top: max(20px, env(safe-area-inset-top, 20px));
@@ -1295,9 +1271,10 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
-            overflow: hidden;
+            overflow: visible;
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
+            pointer-events: auto;
         }
 
         #menuToggleBtn:hover {
@@ -1333,54 +1310,63 @@
             width: 18px;
             height: 14px;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             transition: transform 0.3s ease;
-            z-index: 1;
+            z-index: 2;
+            pointer-events: none;
         }
 
         .menu-icon span {
             display: block;
-            position: absolute;
+            position: relative;
             height: 2px;
             width: 100%;
-            background: #667eea;
+            background-color: #667eea;
             border-radius: 1px;
-            opacity: 1;
-            left: 0;
             transition: all 0.3s ease;
             /* iOS Safari fixes */
             -webkit-transform: translateZ(0);
             transform: translateZ(0);
             -webkit-backface-visibility: hidden;
             backface-visibility: hidden;
-            will-change: transform, opacity;
         }
 
-        .menu-icon span:nth-child(1) {
-            top: 0;
+        /* Repositioned for absolute positioning when active */
+        #menuToggleBtn:not(.active) .menu-icon span:nth-child(1) {
+            position: relative;
         }
 
-        .menu-icon span:nth-child(2) {
-            top: 6px;
+        #menuToggleBtn:not(.active) .menu-icon span:nth-child(2) {
+            position: relative;
         }
 
-        .menu-icon span:nth-child(3) {
-            top: 12px;
+        #menuToggleBtn:not(.active) .menu-icon span:nth-child(3) {
+            position: relative;
+        }
+
+        /* Active state - convert to absolute positioning for X */
+        #menuToggleBtn.active .menu-icon {
+            justify-content: center;
+        }
+
+        #menuToggleBtn.active .menu-icon span {
+            position: absolute;
         }
 
         #menuToggleBtn.active .menu-icon span:nth-child(1) {
-            top: 6px;
             -webkit-transform: rotate(45deg) translateZ(0);
             transform: rotate(45deg) translateZ(0);
         }
 
         #menuToggleBtn.active .menu-icon span:nth-child(2) {
             opacity: 0;
-            -webkit-transform: translateX(-60px) translateZ(0);
-            transform: translateX(-60px) translateZ(0);
+            -webkit-transform: scale(0) translateZ(0);
+            transform: scale(0) translateZ(0);
         }
 
         #menuToggleBtn.active .menu-icon span:nth-child(3) {
-            top: 6px;
             -webkit-transform: rotate(-45deg) translateZ(0);
             transform: rotate(-45deg) translateZ(0);
         }
@@ -1527,7 +1513,8 @@
 
         /* Feedback form styles */
         #feedbackForm {
-            padding: 0;
+            padding: 0px;
+            padding-bottom: 60px;
         }
 
         #feedbackForm fieldset {
