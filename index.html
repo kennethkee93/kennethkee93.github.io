@@ -55,13 +55,13 @@
     }
     
     #top-status-container {
-      top: 22px;
+      top: 18px;
       transition: top 0.3s ease-in-out;
     }
     
     /* Moves it up when the header shrinks */
     #top-status-container.status-up {
-      top: 8px; /* adjust as needed */
+      top: 4px; /* adjust as needed */
     }
     
     .app-status-dot {
@@ -175,87 +175,79 @@
             overflow: hidden;
     }
         
-        /* ===== HEADER STYLES (Unchanged, but included for context) ===== */
+   /* ===== HEADER STYLES (Unchanged, but included for context) ===== */
+   
     #appHeader {
+        position: relative; /* 👈 keeps header out of document flow */
+        top: 0;
+        left: 0;
+        right: 0;
         display: flex;
-        flex: 0 0 auto;
         justify-content: center;
         align-items: center;
-        padding: 10px;
+        padding: calc(5px + env(safe-area-inset-top)) 10px 15px 10px;
         text-align: center;
-        z-index: 10;
+        z-index: 100; /* stays above content */
         overflow: hidden;
-        /* Enhanced transition with cubic-bezier for smoother feel */
-        transition: 
-            padding 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-            box-shadow 0.3s ease-out;
-        /* Add backdrop blur for modern effect when shrunk */
         backdrop-filter: blur(0px);
         -webkit-backdrop-filter: blur(0px);
-        /* MODIFIED: Adjust top and bottom padding, respecting the safe area for WebKit */
-        padding: calc(10px + env(safe-area-inset-top)) 10px 10px 10px;
-        /* Retaining WebKit performance optimizations */
-        -webkit-transform: translate3d(0, 0, 0);
+        background-color: rgba(255, 255, 255, 0);
+        transition: 
+            transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+            padding-bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+            backdrop-filter 0.4s ease,
+            background-color 0.4s ease,
+            opacity 0.3s ease;
         transform: translate3d(0, 0, 0);
+        -webkit-transform: translate3d(0, 0, 0);
         -webkit-backface-visibility: hidden;
         backface-visibility: hidden;
-        transition: padding 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
     
-    /* Enhanced shrunk header state - REMOVED shadow and backdrop effects */
+    /* Slight shrink on scroll */
     #appHeader.header-shrink {
-        padding-top: calc(5px + env(safe-area-inset-top));
-        padding-top: 5px;
-        padding-bottom: 5px;
-        -webkit-backdrop-filter: blur(10px);
-        backdrop-filter: blur(10px);
-        background-color: rgba(255, 255, 255, 0.8);
-        /* REMOVED: box-shadow, backdrop-filter, and background-color */
+        transform: translateY(-10px);
+        position: fixed;
+        padding-bottom: 0px;
+        backdrop-filter: blur(5px) saturate(80%);
+        -webkit-backdrop-filter: blur(20px) saturate(100%);
+        background-color: rgba(255, 255, 255, 0.1);
     }
     
-    /* Enhanced container transitions */
+    /* Rest of your logo/layout styles */
     #appHeader > div {
         display: flex;
         align-items: center;
         gap: 15px;
-        /* Smoother transition with staggered timing */
-        transition: 
-            gap 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-            transform 0.3s ease-out;
+        transition: transform 0.3s ease-out, gap 0.3s ease-out;
     }
     
-    /* Enhanced image container transitions */
     #appHeader .image-container {
-        width: 60px;
+        width: 45px;
         flex-shrink: 0;
-        /* Multi-property transition with different timings */
-        transition: 
-            width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-            transform 0.3s ease-out,
-            opacity 0.2s ease-in-out;
-        /* Prevent layout shift during transition */
+        transition: opacity 0.3s ease, transform 0.3s ease-out;
         transform-origin: center;
     }
     
-    /* Enhanced logo transitions */
     #appHeader .icon-large {
-        max-width: 60px;
-        max-height: 60px;
-        /* Smooth size and transform transitions */
-        transition: 
-            max-width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-            max-height 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-            transform 0.3s ease-out;
+        max-width: 45px;
+        max-height: 45px;
+        transition: transform 0.3s ease-out;
         transform-origin: center;
-        /* Ensure crisp rendering during transitions */
         backface-visibility: hidden;
         -webkit-backface-visibility: hidden;
     }
     
+    #appHeader .icon-large:hover {
+        transform: scale(1.1);
+        cursor: pointer;
+    }
+    
     /* Enhanced H1 base styles */
     h1 {
+        font-size: 22px;
         color: #111827;
-        margin: 20px 0;
+        margin: 10px 0;
         text-align: center;
         line-height: 1.2;
         /* Comprehensive text transition */
@@ -283,81 +275,6 @@
             display 0.1s ease-out,
             font-weight 0.2s ease-out,
             opacity 0.3s ease-out;
-    }
-    
-    /* --- ENHANCED SHRUNK STATE TRANSITIONS --- */
-    
-    /* Shrunk container with subtle scaling effect */
-    #appHeader.header-shrink > div {
-        gap: 8px;
-        /* Optional: subtle scale effect for polish */
-        transform: scale(0.98);
-    }
-    
-    /* Enhanced shrunk image container */
-    #appHeader.header-shrink .image-container {
-        width: 24px;
-        /* Slightly faster opacity transition for responsiveness */
-        opacity: 0.9;
-    }
-    
-    /* Enhanced shrunk logo with micro-animation */
-    #appHeader.header-shrink .icon-large {
-        min-width: 0;
-        min-height: 0;
-        max-width: 24px;
-        max-height: 24px;
-        /* Subtle scale adjustment for visual balance */
-        transform: scale(1.05);
-    }
-    
-    /* Enhanced shrunk H1 with better text flow */
-    #appHeader.header-shrink h1 {
-        font-size: 0.9em;
-        line-height: 1;
-        margin: 0;
-        font-weight: 500;
-        /* REMOVED: text-shadow for cleaner look */
-    }
-    
-    #appHeader.header-shrink h1 .title-main-part {
-        font-weight: 600;
-        /* Smooth weight transition */
-        transition: font-weight 0.2s ease-out;
-    }
-    
-    /* Enhanced span transition for inline display */
-    #appHeader.header-shrink h1 span {
-        display: inline;
-        font-weight: 280;
-        /* Smooth transition when changing from block to inline */
-        transition: all 0.3s ease-out;
-    }
-    
-    /* Space addition with smooth transition */
-    #appHeader.header-shrink h1 span::before {
-        content: " ";
-        /* Animate the space insertion */
-        opacity: 1;
-        transition: opacity 0.2s ease-in;
-    }
-    
-    /* --- ADDITIONAL ENHANCEMENTS --- */
-    
-    /* Add hover effects for interactive feel */
-    #appHeader:not(.header-shrink):hover .icon-large {
-        transform: scale(1.05);
-    }
-    
-    #appHeader.header-shrink:hover .icon-large {
-        transform: scale(1.1);
-    }
-    
-    /* Smooth focus states for accessibility */
-    #appHeader:focus-within {
-        outline: 2px solid rgba(59, 130, 246, 0.5);
-        outline-offset: 2px;
-        transition: outline 0.2s ease-out;
     }
 
         
@@ -463,14 +380,6 @@
     .tab-panel.slide-out-left { transform: translateX(-100%); opacity: 0; }
     .tab-panel.slide-out-right { transform: translateX(100%); opacity: 0; }
 
-    /* ===== COMMON ELEMENTS ===== */
-    .image-container { width: 100%; }
-    .icon { width: 32px; height: 32px; margin: 0px; }
-    .icon-charging { width: 14px; height: 14px; margin: 0px; }
-    .icon-large {
-        min-width: 50px; min-height: 50px; width: 100%; height: auto;
-        max-width: 70px; max-height: 70px; display: block; margin: 0 auto;
-    }
 
     /* ===== CHARGER STATUS ===== */
     #chargerStatusContainer {
@@ -1310,85 +1219,363 @@
             }
         }
 
-    /* ===== SIDE BUTTONS ===== */
-    #sideButtonsWrapper { display: flex; align-items: flex-end; gap: 8px; position: fixed; bottom: calc(80px + env(safe-area-inset-bottom)); right: 20px; z-index: 1000; font-family: Arial, sans-serif; flex-direction: column; }
-    #sideButtonsExpandedGroup { display: flex; flex-direction: column; gap: 8px; transition: all 0.3s ease-out; opacity: 0; transform: translateY(50px); pointer-events: none; max-height: 0; overflow: hidden; align-items: flex-end; }
-    #sideButtonsExpandedGroup.show-expanded { opacity: 1; transform: translateY(0); pointer-events: auto; max-height: 500px; overflow: visible; }
-    .side-button-group { position: relative; }
-    .side-btn {
-      background-color: white;
-      color: #333;
-      border: none;
-      font-size: 16px;
-      padding: 4px 6px;
-      border-radius: 8px;
-      cursor: pointer;
-      user-select: none;
-      min-width: 44px;
-      min-height: 44px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      transition: 
-        background-color 0.4s ease,
-        transform 0.2s ease,
-        box-shadow 0.3s ease;
-    }
-    
-    /* Subtle hover animation */
-    .side-btn:hover {
-      background-color: #4a90e2;
-      color: white;
-      transform: scale(1.1);
-      box-shadow: 0 0 12px rgba(74, 144, 226, 0.6);
-    }
-    
-    /* Click (active) feedback */
-    .side-btn:active {
-      transform: scale(0.95);
-      box-shadow: 0 0 6px rgba(74, 144, 226, 0.4);
-    }
-    
-    /* Optional idle animation (gentle pulse) */
-    @keyframes gentlePulse {
-      0%, 100% {
-        transform: scale(1);
-        box-shadow: 0 0 0 rgba(74, 144, 226, 0);
-      }
-      50% {
-        transform: scale(1.05);
-        box-shadow: 0 0 10px rgba(74, 144, 226, 0.4);
-      }
-    }
-    
-    /* Apply the idle pulse only when not hovered */
-    .side-btn:not(:hover) {
-      animation: gentlePulse 3s ease-in-out infinite;
-    }
-    .side-btn:hover, .side-btn:focus { background-color: #ededed; opacity: 1; outline: none; animation: rotate360 0.6s ease; }
-    .side-panel { display: none; position: absolute; bottom: 50px; right: 0; width: 320px; max-width: 90vw; background: white; border: 1px solid #ccc; border-radius: 8px; padding: 15px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); font-size: 14px; color: #333; z-index: 1001; max-height: 400px; overflow-y: auto; }
-    .side-panel.show { display: block; }
-    form#feedbackForm fieldset { border: 1px solid #ddd; margin-bottom: 12px; padding: 10px; border-radius: 6px; }
-    form#feedbackForm legend { font-weight: bold; padding: 0 6px; }
-    form#feedbackForm textarea { width: 100%; resize: vertical; font-family: inherit; font-size: 14px; padding: 6px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
-    form#feedbackForm label { cursor: pointer; margin-right: 10px; }
-    #feedbackSubmitBtn {
-      animation: disabled;
-      width: 150px; /* smaller fixed width */
-      margin: 10px auto; /* centers horizontally */
-      display: block; /* required for margin auto to work */
-      background: #111827;
-      color: #e4e5e7;
-      cursor: pointer;
-      padding: 8px 12px; /* controls height and spacing */
-      border: none;
-      border-radius: 6px; /* optional, for smoother corners */
-      transition: background-color 0.3s ease;
-      text-align: center; /* ensures text is centered */
-    }
-    #feedbackMessage { margin-top: 10px; min-height: 18px; font-weight: 600; }
-    #helpPanel a { color: #18db80; text-decoration: underline; transition: color 0.2s ease; }
-    #helpPanel a:hover { color: #06806b; text-decoration: none; }
+    /* ===== SIDE BUTTON CSS ===== */
+        /* Main wrapper */
+        #sideMenuWrapper {
+            position: fixed;
+            top: max(20px, env(safe-area-inset-top, 20px));
+            left: max(20px, env(safe-area-inset-left, 20px));
+            z-index: 1000;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: flex-start;
+            gap: 12px;
+            transition: top 0.3s ease-in-out;
+            width: fit-content;
+            pointer-events: none;
+        }
+
+        /* Re-enable pointer events for children */
+        #sideMenuWrapper > * {
+            pointer-events: auto;
+        }
+
+        /* Shrink state when header shrinks */
+        #sideMenuWrapper.menu-shrink {
+            top: max(3px, calc(env(safe-area-inset-top, 20px) - 10px));
+        }
+
+        /* Toggle button */
+        #menuToggleBtn {
+            background: white;
+            color: #667eea;
+            border: 2px solid #e5e7eb;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        #menuToggleBtn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+        }
+
+        #menuToggleBtn:active {
+            transform: scale(0.95);
+        }
+
+        #menuToggleBtn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        #menuToggleBtn:hover::before {
+            width: 60px;
+            height: 60px;
+        }
+
+        /* Menu icon animation */
+        .menu-icon {
+            width: 18px;
+            height: 18px;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-icon span {
+            display: block;
+            position: absolute;
+            height: 2px;
+            width: 100%;
+            background: #667eea;
+            border-radius: 1px;
+            opacity: 1;
+            left: 0;
+            transition: all 0.3s ease;
+        }
+
+        .menu-icon span:nth-child(1) {
+            top: 0;
+        }
+
+        .menu-icon span:nth-child(2) {
+            top: 6px;
+        }
+
+        .menu-icon span:nth-child(3) {
+            top: 12px;
+        }
+
+        #menuToggleBtn.active .menu-icon span:nth-child(1) {
+            top: 6px;
+            transform: rotate(45deg);
+        }
+
+        #menuToggleBtn.active .menu-icon span:nth-child(2) {
+            opacity: 0;
+            left: -60px;
+        }
+
+        #menuToggleBtn.active .menu-icon span:nth-child(3) {
+            top: 6px;
+            transform: rotate(-45deg);
+        }
+
+        /* Expandable panel */
+        #expandablePanel {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            width: 360px;
+            max-width: calc(100vw - 40px);
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(-20px);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        #expandablePanel.show {
+            max-height: min(600px, calc(100vh - env(safe-area-inset-top, 20px) - env(safe-area-inset-bottom, 20px) - 100px));
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Panel sections */
+        .panel-section {
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .panel-section:last-child {
+            border-bottom: none;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .section-header:hover {
+            background-color: #f9fafb;
+        }
+
+        .section-icon {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+        }
+
+        .section-title {
+            flex: 1;
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 15px;
+        }
+
+        .section-arrow {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease;
+            color: #6b7280;
+        }
+
+        .panel-section.active .section-arrow {
+            transform: rotate(180deg);
+        }
+
+        .section-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background-color: #f9fafb;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .panel-section.active .section-content {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        /* Custom scrollbar for section content */
+        .section-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .section-content::-webkit-scrollbar-track {
+            background: #e5e7eb;
+            border-radius: 3px;
+        }
+
+        .section-content::-webkit-scrollbar-thumb {
+            background: #9ca3af;
+            border-radius: 3px;
+        }
+
+        .section-content::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+
+        .section-content-inner {
+            padding: 16px 20px;
+            font-size: 14px;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        .section-content-inner strong {
+            color: #1f2937;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .section-content-inner a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .section-content-inner a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        /* Feedback form styles */
+        #feedbackForm {
+            padding: 0;
+        }
+
+        #feedbackForm fieldset {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        #feedbackForm legend {
+            font-weight: 600;
+            color: #1f2937;
+            padding: 0 8px;
+            font-size: 13px;
+        }
+
+        #feedbackForm label {
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            margin-right: 16px;
+            font-size: 14px;
+        }
+
+        #feedbackForm input[type="radio"] {
+            margin-right: 6px;
+            cursor: pointer;
+        }
+
+        #feedbackForm textarea {
+            width: 100%;
+            margin-top: 8px;
+            padding: 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.2s ease;
+        }
+
+        #feedbackForm textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        #feedbackSubmitBtn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 12px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        #feedbackSubmitBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        #feedbackSubmitBtn:active {
+            transform: translateY(0);
+        }
+
+        #feedbackSubmitBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #feedbackMessage {
+            margin-top: 12px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            min-height: 18px;
+        }
+
+        #feedbackMessage.success {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        #feedbackMessage.error {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .copyright {
+            text-align: center;
+            padding: 12px 20px;
+            font-size: 12px;
+            color: #9ca3af;
+            background-color: #f9fafb;
+            border-radius: 0 0 16px 16px;
+        }
     
     /* ===== PWA UPDATE & FIREBASE NOTIFICATIONS (from original github.io file) ===== */
     #updateToast { display: none; position: fixed; bottom: 200px; left: 50%; transform: translateX(-50%); background-color: #333; color: #fff; padding: 14px 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); z-index: 1000; font-family: sans-serif; text-align: center; max-width: 90vw; box-sizing: border-box; }
@@ -1400,9 +1587,7 @@
       .tab-icon { width: 20px; height: 20px; }
       .tab-btn { padding: 5px 0px; font-size: 10px; }
       #tabContent { width: 100%; max-width: 1200px; margin-bottom: 20px; }
-      .icon-large { width: 35px; height: 35px; max-width: 35px; max-height: 35px; }
-      .icon-charging { width: 12px; height: 12px; }
-      h1 { font-size: 1.3em; margin-bottom: 15px; line-height: 1.3; }
+      h1 { font-size: 1.2em; margin-bottom: 15px; line-height: 1.3; }
       #calendar { padding: 8px; }
       .fc .fc-toolbar { flex-direction: row; gap: 3px; }
       .fc .fc-toolbar .fc-button-group { display: flex; justify-content: center; }
@@ -1431,7 +1616,7 @@
     }
     @media (max-width: 480px) {
       body { padding: 8px; }
-      h1 { font-size: 1.2em; margin-bottom: 12px; }
+      h1 { font-size: 1.1em; margin-bottom: 12px; }
       #calendar { padding: 5px; }
       .fc .fc-toolbar { flex-wrap: nowrap; flex-direction: row; align-items: center; justify-content: space-between; gap: 1px; }
       .fc .fc-toolbar .fc-button-group { display: flex; flex-direction: row; flex-wrap: nowrap; gap: 0px; }
@@ -1441,9 +1626,6 @@
       .filter-btn { padding: 6px; font-size: 11px; max-width: none; }
       #bookingForm { padding: 12px; }
       #bookingForm input, #bookingForm select, #bookingForm button { font-size: 11px; padding: 10px; }
-      #sideButtonsWrapper { bottom: calc(80px + env(safe-area-inset-bottom)); right: 10px; gap: 6px; }
-      .side-btn { font-size: 14px; min-width: 36px; min-height: 36px; border-radius: 8px; }
-      .side-panel { bottom: 60px; left: 45%; transform: translateX(-100%); width: calc(80vw - 50px); max-height: 350px; font-size: 12px; }
       #eventModal>div { margin: 5px; padding: 12px; width: calc(100% - 10px); }
     }
   </style>
@@ -1456,8 +1638,120 @@
   </div>
   <!-- END: Loader HTML -->
   
+    <!-- Side Buttons and Panels -->
+    <div id="sideMenuWrapper">
+        <div id="expandablePanel">
+            <!-- App Title Section -->
+            <div class="app-title-section">
+                <h1 class="app-title">
+                    <span class="title-main-part">Emerald Hills</span>
+                    <span class="title-sub-part">EV Charger Reservation</span>
+                </h1>
+            </div>
+
+            <!-- Help Section -->
+            <div class="panel-section" data-section="help">
+                <div class="section-header">
+                    <img class="section-icon" src="https://cdn-icons-gif.flaticon.com/11688/11688376.gif" alt="Help">
+                    <span class="section-title">Help & Support</span>
+                    <svg class="section-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
+                <div class="section-content">
+                    <div class="section-content-inner">
+                        <strong>Reservation Cancellation Notice</strong>
+                        If you wish to cancel a reservation you made, please use the cancellation link provided in your booking confirmation email.<br><br>
+                        
+                        <strong>Having issues with Your Reservation?</strong>
+                        Contact us via WhatsApp:<br>
+                        Ken - <a href="https://wa.link/2j8nrw" target="_blank" rel="noopener noreferrer">Chat with Ken</a><br>
+                        Max - <a href="https://wa.link/soelvy" target="_blank" rel="noopener noreferrer">Chat with Max</a><br><br>
+                        
+                        We're happy to assist with any modifications or cancellations to your reservation.<br><br>
+                        
+                        <strong>Join the Community!</strong>
+                        Connect with other EV owners in Emerald Hills by joining our WhatsApp group:<br>
+                        <a href="https://chat.whatsapp.com/Ja1eSJSGug20nj1Wqk3OtP" target="_blank" rel="noopener noreferrer">Emerald Hills EV Owners Group</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Section -->
+            <div class="panel-section" data-section="faq">
+                <div class="section-header">
+                    <img class="section-icon" src="https://cdn-icons-gif.flaticon.com/12205/12205155.gif" alt="FAQ">
+                    <span class="section-title">FAQ</span>
+                    <svg class="section-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
+                <div class="section-content">
+                    <div class="section-content-inner">
+                        <strong>Q: Who created this web app?</strong>
+                        This web app was developed by members of the Emerald Hills EV community to support efficient scheduling and communication regarding EV charger reservations.<br><br>
+                        
+                        <strong>Q: Is this web app affiliated with Emerald Hills Management?</strong>
+                        No, this web app is independent and is not affiliated with Emerald Hills Management in any way.<br><br>
+                        
+                        <strong>Q: What is the purpose of this web app?</strong>
+                        The primary goal of this web app is to facilitate better communication and planning among EV owners regarding charger availability.<br><br>
+                        
+                        <strong>Q: How do I cancel a reservation?</strong>
+                        To cancel a reservation, please use the unique cancellation link provided in your booking confirmation email.<br><br>
+                        
+                        <strong>Q: How do I modify my reservation?</strong>
+                        To make changes to an existing reservation, please cancel your current booking using the cancellation link, then submit a new reservation.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feedback Section -->
+            <div class="panel-section" data-section="feedback">
+                <div class="section-header">
+                    <img class="section-icon" src="https://cdn-icons-gif.flaticon.com/15370/15370746.gif" alt="Feedback">
+                    <span class="section-title">Feedback</span>
+                    <svg class="section-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
+                <div class="section-content">
+                    <div class="section-content-inner">
+                        <form id="feedbackForm" novalidate>
+                            <fieldset>
+                                <legend>Bug Reporting</legend>
+                                <label><input type="radio" name="bugEncountered" value="Yes" required> Yes</label>
+                                <label><input type="radio" name="bugEncountered" value="No" required> No</label>
+                                <textarea name="bugDetails" placeholder="Please describe the bug" rows="3"></textarea>
+                            </fieldset>
+                            <fieldset>
+                                <legend>Suggestions</legend>
+                                <textarea name="suggestions" placeholder="What features would you like to see?" rows="3"></textarea>
+                            </fieldset>
+                            <button type="submit" id="feedbackSubmitBtn">Submit Feedback</button>
+                            <div id="feedbackMessage"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="copyright">
+                © <span id="copyrightYear"></span> Version 2.1
+            </div>
+        </div>
+
+        <button id="menuToggleBtn" aria-label="Toggle menu" aria-expanded="false">
+            <div class="menu-icon">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </button>
+    </div>
+  
   <!-- The main app UI now lives here, NOT in an iframe -->
-  <div id="appHeader">
+
+  <header id="appHeader">
     <div style="display: flex; align-items: center; gap: 30px;">
       <div class="image-container">
         <img 
@@ -1468,12 +1762,9 @@
           style="cursor: pointer;" 
         >
       </div>
-      <h1 style="margin: 0; white-space: nowrap;">
-            <span class="title-main-part">Emerald Hills</span>
-         <span>EV Charger Reservation</span>
-      </h1>
     </div>
-  </div>
+  </header>
+  <div id="appHeaderSpacer"></div>
 
   <div id="mainAppWrapper">
     <div id="tabContent">
@@ -1547,57 +1838,6 @@
     <button class="tab-btn active" onclick="showTab('status')"><img src="https://cdn-icons-png.flaticon.com/128/10024/10024154.png" class="tab-icon"><span>Status</span></button>
     <button class="tab-btn" onclick="showTab('calendar')"><img src="https://cdn-icons-png.flaticon.com/128/18349/18349398.png" class="tab-icon"><span>Calendar</span></button>
     <button class="tab-btn" onclick="showTab('form')"><img src="https://cdn-icons-png.flaticon.com/128/16491/16491307.png" class="tab-icon"><span>Reserve</span></button>
-  </div>
-
-  <!-- Side Buttons and Panels -->
-  <div id="sideButtonsWrapper">
-      <div id="sideButtonsExpandedGroup">
-          <div class="side-button-group">
-              <button id="helpBtn" class="side-btn"><img class="icon" src="https://cdn-icons-gif.flaticon.com/11688/11688376.gif" alt="Help"></button>
-              <div id="helpPanel" class="side-panel">
-                    <strong>Reservation Cancellation Notice</strong><br>
-                    If you wish to cancel a reservation you made, please use the cancellation link provided in your booking confirmation email. <br><br>
-                    <strong>Having issues with Your Reservation?</strong><br>
-                    <span style="font-size:1.2em;"><img class="icon" src="https://cdn-icons-png.flaticon.com/128/13670/13670447.png" alt="Whatsapp Icon" style="width:15px; height:auto;">
-                    </span> Contact us via WhatsApp:<br>
-                    Ken - <a href="https://wa.link/2j8nrw" target="_blank" rel="noopener noreferrer">Chat with Ken</a><br>
-                    Max - <a href="https://wa.link/soelvy" target="_blank" rel="noopener noreferrer">Chat with Max</a><br><br>
-                    We're happy to assist with any modifications or cancellations to your reservation.<br><br>
-                    <strong>Join the Community!</strong><br>
-                    Connect with other EV owners in Emerald Hills by joining our WhatsApp group:<br>
-                    <a href="https://chat.whatsapp.com/Ja1eSJSGug20nj1Wqk3OtP" target="_blank" rel="noopener noreferrer">Emerald Hills EV Owners Group</a><br><br><br><br>
-                  © <span id="copyrightYear"></span>. Version 2.1
-              </div>
-          </div>
-          <div class="side-button-group">
-              <button id="faqBtn" class="side-btn"><img class="icon" src="https://cdn-icons-gif.flaticon.com/12205/12205155.gif" alt="FAQ"></button>
-              <div id="faqPanel" class="side-panel">
-                    <strong>Frequently Asked Questions (FAQ)</strong><br><br>
-                    <strong>Q: Who created this web app?</strong><br>
-                    This web app was developed by members of the Emerald Hills EV community to support efficient scheduling and communication regarding EV charger reservations.<br><br>
-                    <strong>Q: Is this web app affiliated with Emerald Hills Management?</strong><br>
-                    No, this web app is independent and is not affiliated with Emerald Hills Management in any way.<br><br>
-                    <strong>Q: What is the purpose of this web app?</strong><br>
-                    The primary goal of this web app is to facilitate better communication and planning among EV owners regarding charger availability.<br><br>
-                    <strong>Q: How do I cancel a reservation?</strong><br>
-                    To cancel a reservation, please use the unique cancellation link provided in your booking confirmation email.<br><br>
-                    <strong>Q: How do I modify my reservation?</strong><br>
-                    To make changes to an existing reservation, please cancel your current booking using the cancellation link, then submit a new reservation.
-                </div>
-          </div>
-          <div class="side-button-group">
-              <button id="feedbackBtn" class="side-btn"><img class="icon" src="https://cdn-icons-gif.flaticon.com/15370/15370746.gif" alt="Feedback"></button>
-              <div id="feedbackPanel" class="side-panel">
-                  <form id="feedbackForm" novalidate>
-                      <fieldset><legend>Bug Reporting</legend><label><input type="radio" name="bugEncountered" value="Yes" required> Yes</label> <label><input type="radio" name="bugEncountered" value="No" required> No</label><br><textarea name="bugDetails" placeholder="Please describe the bug" rows="3"></textarea></fieldset>
-                      <fieldset><legend>Suggestions</legend><textarea name="suggestions" placeholder="What features would you like to see?" rows="3"></textarea></fieldset>
-                      <button type="submit" id="feedbackSubmitBtn" class="side-btn">Submit</button>
-                      <div id="feedbackMessage"></div>
-                  </form>
-              </div>
-          </div>
-      </div>
-      <button id="moreBtn" class="side-btn"><img class="icon" src="https://cdn-icons-gif.flaticon.com/16046/16046406.gif" alt="More Options"></button>
   </div>
   
   <!-- Event Modal -->
@@ -2187,40 +2427,100 @@
         });
     
         // Side buttons logic
-        const buttons = [{ btnId: 'helpBtn', panelId: 'helpPanel' }, { btnId: 'faqBtn', panelId: 'faqPanel' }, { btnId: 'feedbackBtn', panelId: 'feedbackPanel' }];
-        const moreBtn = document.getElementById('moreBtn');
-        const expandedGroup = document.getElementById('sideButtonsExpandedGroup');
-        let openPanel = null;
-        function closeAllIndividualPanels() {
-            buttons.forEach(({ btnId, panelId }) => {
-                document.getElementById(btnId).setAttribute('aria-expanded', 'false');
-                const panel = document.getElementById(panelId);
-                panel.classList.remove('show');
-                panel.setAttribute('aria-hidden', 'true');
+        // Set copyright year
+        document.getElementById('copyrightYear').textContent = new Date().getFullYear();
+
+        // Sync side menu with header shrink state
+        const appHeader = document.getElementById('appHeader');
+        const sideMenuWrapper = document.getElementById('sideMenuWrapper');
+        
+        if (appHeader && sideMenuWrapper) {
+            // Create a MutationObserver to watch for class changes on appHeader
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        if (appHeader.classList.contains('header-shrink')) {
+                            sideMenuWrapper.classList.add('menu-shrink');
+                        } else {
+                            sideMenuWrapper.classList.remove('menu-shrink');
+                        }
+                    }
+                });
             });
-            openPanel = null;
+            
+            // Start observing
+            observer.observe(appHeader, { attributes: true });
+            
+            // Check initial state
+            if (appHeader.classList.contains('header-shrink')) {
+                sideMenuWrapper.classList.add('menu-shrink');
+            }
         }
-        buttons.forEach(({ btnId, panelId }) => {
-            const button = document.getElementById(btnId);
-            const panel = document.getElementById(panelId);
-            button.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const isExpanded = button.getAttribute('aria-expanded') === 'true';
-                buttons.forEach(b => { if (b.btnId !== btnId) { document.getElementById(b.btnId).setAttribute('aria-expanded', 'false'); document.getElementById(b.panelId).classList.remove('show'); } });
-                if (!isExpanded) { button.setAttribute('aria-expanded', 'true'); panel.classList.add('show'); panel.setAttribute('aria-hidden', 'false'); panel.focus(); openPanel = panel; } else { closeAllIndividualPanels(); }
+
+        // Toggle main menu
+        const menuToggleBtn = document.getElementById('menuToggleBtn');
+        const expandablePanel = document.getElementById('expandablePanel');
+
+        menuToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isExpanded = menuToggleBtn.getAttribute('aria-expanded') === 'true';
+            
+            if (!isExpanded) {
+                expandablePanel.classList.add('show');
+                menuToggleBtn.classList.add('active');
+                menuToggleBtn.setAttribute('aria-expanded', 'true');
+            } else {
+                expandablePanel.classList.remove('show');
+                menuToggleBtn.classList.remove('active');
+                menuToggleBtn.setAttribute('aria-expanded', 'false');
+                // Close all sections when menu closes
+                document.querySelectorAll('.panel-section').forEach(section => {
+                    section.classList.remove('active');
+                });
+            }
+        });
+
+        // Toggle sections
+        document.querySelectorAll('.section-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const section = header.parentElement;
+                const isActive = section.classList.contains('active');
+                
+                // Close all other sections
+                document.querySelectorAll('.panel-section').forEach(s => {
+                    if (s !== section) {
+                        s.classList.remove('active');
+                    }
+                });
+                
+                // Toggle current section
+                if (!isActive) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
             });
         });
-        moreBtn.addEventListener('click', (e) => { e.stopPropagation(); const isExpanded = moreBtn.getAttribute('aria-expanded') === 'true'; if (!isExpanded) { expandedGroup.classList.add('show-expanded'); moreBtn.setAttribute('aria-expanded', 'true'); } else { expandedGroup.classList.remove('show-expanded'); moreBtn.setAttribute('aria-expanded', 'false'); closeAllIndividualPanels(); } });
-        document.addEventListener('mousedown', (e) => { if (expandedGroup.classList.contains('show-expanded') && !expandedGroup.contains(e.target) && !moreBtn.contains(e.target)) { expandedGroup.classList.remove('show-expanded'); moreBtn.setAttribute('aria-expanded', 'false'); closeAllIndividualPanels(); } else if (openPanel && !openPanel.contains(e.target) && !buttons.some(({ btnId }) => document.getElementById(btnId).contains(e.target))) { closeAllIndividualPanels(); } });
-        document.getElementById('copyrightYear').textContent = new Date().getFullYear();
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!expandablePanel.contains(e.target) && !menuToggleBtn.contains(e.target)) {
+                expandablePanel.classList.remove('show');
+                menuToggleBtn.classList.remove('active');
+                menuToggleBtn.setAttribute('aria-expanded', 'false');
+                document.querySelectorAll('.panel-section').forEach(section => {
+                    section.classList.remove('active');
+                });
+            }
+        });
         
-            // ** NEW ** Logic for shrinking the header on scroll
+        // ** NEW ** Logic for shrinking the header on scroll
         const header = document.getElementById('appHeader');
         const scrollablePanels = document.querySelectorAll('.tab-panel');
         
         scrollablePanels.forEach(panel => {
             panel.addEventListener('scroll', () => {
-                if (panel.scrollTop > 50) {
+                if (panel.scrollTop > 80) {
                     header.classList.add('header-shrink');
                     tabHeaderState[panel.id] = true; // Save state: this panel is shrunk
                 } else {
