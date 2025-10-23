@@ -177,51 +177,51 @@
         
    /* ===== HEADER STYLES (Unchanged, but included for context) ===== */
    
-#appHeader {
-    position: relative;
-    top: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: calc(5px + env(safe-area-inset-top)) 10px 15px 10px;
-    text-align: center;
-    z-index: 100;
-    overflow: hidden;
-    backdrop-filter: blur(0px) saturate(100%);
-    -webkit-backdrop-filter: blur(0px) saturate(100%);
-    background-color: rgba(255, 255, 255, 0);
-    transition: 
-        transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
-        padding-bottom 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
-        backdrop-filter 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
-        -webkit-backdrop-filter 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
-        background-color 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
-        position 0s linear 0s;
-    transform: translate3d(0, 0, 0);
-    -webkit-transform: translate3d(0, 0, 0);
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    will-change: transform, backdrop-filter, background-color;
-}
-
-/* Slight shrink on scroll */
-#appHeader.header-shrink {
-    transform: translateY(-10px);
-    position: fixed;
-    padding-bottom: 0px;
-    backdrop-filter: blur(2px) saturate(180%);
-    -webkit-backdrop-filter: blur(1px) saturate(180%);
-    background-color: rgba(255, 255, 255, 0.2);
-    transition: 
-        transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
-        padding-bottom 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
-        backdrop-filter 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
-        -webkit-backdrop-filter 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
-        background-color 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
-        position 0s linear 0s;
-}
+    #appHeader {
+        position: relative;
+        top: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: calc(5px + env(safe-area-inset-top)) 10px 15px 10px;
+        text-align: center;
+        z-index: 100;
+        overflow: hidden;
+        backdrop-filter: blur(0px) saturate(100%);
+        -webkit-backdrop-filter: blur(0px) saturate(100%);
+        background-color: rgba(255, 255, 255, 0);
+        transition: 
+            transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+            padding-bottom 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+            backdrop-filter 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+            -webkit-backdrop-filter 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+            background-color 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+            position 0s linear 0s;
+        transform: translate3d(0, 0, 0);
+        -webkit-transform: translate3d(0, 0, 0);
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        will-change: transform, backdrop-filter, background-color;
+    }
+    
+    /* Slight shrink on scroll */
+    #appHeader.header-shrink {
+        transform: translateY(-8px);
+        position: fixed;
+        padding-bottom: 0px;
+        backdrop-filter: blur(2px) saturate(180%);
+        -webkit-backdrop-filter: blur(1px) saturate(180%);
+        background-color: rgba(255, 255, 255, 0.2);
+        transition: 
+            transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+            padding-bottom 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+            backdrop-filter 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+            -webkit-backdrop-filter 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+            background-color 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+            position 0s linear 0s;
+    }
     
     /* Rest of your logo/layout styles */
     #appHeader > div {
@@ -1251,7 +1251,7 @@
 
         /* Shrink state when header shrinks */
         #sideMenuWrapper.menu-shrink {
-            top: max(10px, calc(env(safe-area-inset-top, 20px) - 10px));
+            top: max(2px, calc(env(safe-area-inset-top, 20px) - 10px));
         }
 
         /* Toggle button */
@@ -2809,7 +2809,16 @@
         const totalChargers = Object.keys(chargers).length;
         const occupiedCount = Object.values(statusMap).filter(s => s.occupied).length;
         const availableCount = totalChargers - occupiedCount;
-        const todaysSessions = allEvents.filter(event => new Date(event.start).toDateString() === now.toDateString()).length;
+        // Define today's start and end boundaries
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        const endOfToday = new Date();
+        endOfToday.setHours(23, 59, 59, 999);
+        const todaysSessions = allEvents.filter(event => {
+          const eventStart = new Date(event.start);
+          const eventEnd = new Date(event.end || event.start); // fallback if no end time
+          return eventEnd >= startOfToday && eventStart <= endOfToday;
+        }).length;
     
         Object.entries(statusMap).forEach(([chargerName, status]) => {
             const containerDiv = document.getElementById(chargers[chargerName].elementId);
