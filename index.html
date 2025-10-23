@@ -55,7 +55,7 @@
     }
     
     #top-status-container {
-      top: 18px;
+      top: 20px;
       transition: top 0.3s ease-in-out;
     }
     
@@ -1255,6 +1255,31 @@
         }
 
         /* Toggle button */
+        #sideMenuWrapper {
+            position: fixed;
+            top: max(20px, env(safe-area-inset-top, 20px));
+            left: max(20px, env(safe-area-inset-left, 20px));
+            z-index: 1000;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: flex-start;
+            gap: 12px;
+            transition: top 0.3s ease-in-out;
+            width: fit-content;
+            pointer-events: none;
+        }
+
+        /* Re-enable pointer events for children */
+        #sideMenuWrapper > * {
+            pointer-events: auto;
+        }
+
+        /* Shrink state when header shrinks */
+        #sideMenuWrapper.menu-shrink {
+            top: max(10px, calc(env(safe-area-inset-top, 20px) - 10px));
+        }
+
+        /* Toggle button */
         #menuToggleBtn {
             background: white;
             color: #667eea;
@@ -1306,9 +1331,10 @@
         /* Menu icon animation */
         .menu-icon {
             width: 18px;
-            height: 18px;
+            height: 14px;
             position: relative;
             transition: transform 0.3s ease;
+            z-index: 1;
         }
 
         .menu-icon span {
@@ -1321,6 +1347,12 @@
             opacity: 1;
             left: 0;
             transition: all 0.3s ease;
+            /* iOS Safari fixes */
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            will-change: transform, opacity;
         }
 
         .menu-icon span:nth-child(1) {
@@ -1337,17 +1369,20 @@
 
         #menuToggleBtn.active .menu-icon span:nth-child(1) {
             top: 6px;
-            transform: rotate(45deg);
+            -webkit-transform: rotate(45deg) translateZ(0);
+            transform: rotate(45deg) translateZ(0);
         }
 
         #menuToggleBtn.active .menu-icon span:nth-child(2) {
             opacity: 0;
-            left: -60px;
+            -webkit-transform: translateX(-60px) translateZ(0);
+            transform: translateX(-60px) translateZ(0);
         }
 
         #menuToggleBtn.active .menu-icon span:nth-child(3) {
             top: 6px;
-            transform: rotate(-45deg);
+            -webkit-transform: rotate(-45deg) translateZ(0);
+            transform: rotate(-45deg) translateZ(0);
         }
 
         /* Expandable panel */
@@ -1372,6 +1407,19 @@
         }
 
         /* Panel sections */
+        .app-title-section {
+            padding: 20px 20px 16px 20px;
+            border-bottom: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .app-title {
+            margin: 0;
+            text-align: center;
+            line-height: 1.3;
+        }
+
         .panel-section {
             border-bottom: 1px solid #e5e7eb;
         }
