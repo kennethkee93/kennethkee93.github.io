@@ -1273,6 +1273,8 @@
             position: relative;
             overflow: visible;
             -webkit-tap-highlight-color: transparent;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
             touch-action: manipulation;
             pointer-events: auto;
         }
@@ -1316,6 +1318,8 @@
             transition: transform 0.3s ease;
             z-index: 2;
             pointer-events: none;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
         }
 
         .menu-icon span {
@@ -1326,11 +1330,12 @@
             background-color: #667eea;
             border-radius: 1px;
             transition: all 0.3s ease;
-            /* iOS Safari fixes */
-            -webkit-transform: translateZ(0);
-            transform: translateZ(0);
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
+            will-change: transform;
+            transform-origin: center;
+            background-clip: content-box;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 1;
         }
 
         /* Repositioned for absolute positioning when active */
