@@ -208,7 +208,7 @@
     
     /* Slight shrink on scroll */
     #appHeader.header-shrink {
-        transform: translateY(-8px);
+        transform: translateY(-65px);
         position: fixed;
         padding-bottom: 0px;
         backdrop-filter: blur(2px) saturate(180%);
@@ -239,8 +239,8 @@
     }
     
     #appHeader .icon-large {
-        max-width: 45px;
-        max-height: 45px;
+        max-width: 48px;
+        max-height: 48px;
         transition: transform 0.3s ease-out;
         transform-origin: center;
         backface-visibility: hidden;
@@ -1661,7 +1661,24 @@
   </style>
 </head>
 <body>
-    <!-- START: Loader HTML -->
+  <!-- The main app UI now lives here, NOT in an iframe -->
+
+  <header id="appHeader">
+    <div style="display: flex; align-items: center; gap: 30px;">
+      <div class="image-container">
+        <img 
+          id="installPwaButton"
+          class="icon icon-large" 
+          src="https://github.com/emeraldevbooking/emeraldevbooking.github.io/blob/main/assets/images/favicons/android-chrome-192x192.png?raw=true" 
+          alt="Install App"
+          style="cursor: pointer;" 
+        >
+      </div>
+    </div>
+  </header>
+
+  <div id="mainAppWrapper">
+        <!-- START: Loader HTML -->
   <div id="top-status-container">
     <!-- Unified Status Dot / Refresh Button -->
   <div id="app-status-dot" class="app-status-dot" title="Refresh Bookings" aria-label="Refresh"></div>
@@ -1780,25 +1797,6 @@
             </div>
         </button>
     </div>
-  
-  <!-- The main app UI now lives here, NOT in an iframe -->
-
-  <header id="appHeader">
-    <div style="display: flex; align-items: center; gap: 30px;">
-      <div class="image-container">
-        <img 
-          id="installPwaButton"
-          class="icon icon-large" 
-          src="https://github.com/emeraldevbooking/emeraldevbooking.github.io/blob/main/assets/images/favicons/android-chrome-192x192.png?raw=true" 
-          alt="Install App"
-          style="cursor: pointer;" 
-        >
-      </div>
-    </div>
-  </header>
-  <div id="appHeaderSpacer"></div>
-
-  <div id="mainAppWrapper">
     <div id="tabContent">
       <div id="statusPanel" class="tab-panel active">
         <div id="chargerStatusContainer">
