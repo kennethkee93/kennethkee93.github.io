@@ -397,14 +397,13 @@
 
     /* ===== CHARGER STATUS ===== */
     #chargerStatusContainer {
-        padding: 20px;
         padding-bottom: 100px;
         box-sizing: border-box;
         max-width: 1200px;
         display: flex;
         flex-direction: column;
         gap: 20px;
-        margin: 10px auto;
+        margin: 0px auto;
         overflow: hidden;
     }
     
@@ -3028,17 +3027,14 @@
                 </div>
                 <div class="time-info">
                     <div class="time-slot">
-                        <span class="time-label">Started</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="9 18 15 12 9 6"></polyline>
-                        </svg>
+                        <span class="time-label">Started </span>
                         <span class="time-value">${startStr}</span>
                     </div>
-                    <div class="time-slot">
-                        <span class="time-label">Ends</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="9 18 15 12 9 6"></polyline>
-                        </svg>
+                    </svg>
+                    <div class="time-slot">
+                        <span class="time-label">Ends </span>
                         <span class="time-value">${endStr}</span>
                     </div>
                     <div class="time-slot">
@@ -3112,17 +3108,14 @@
                 </div>
                 <div class="upcoming-time-info">
                     <div class="time-slot">
-                        <span class="time-label">Start</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="9 18 15 12 9 6"></polyline>
-                        </svg>
+                        <span class="time-label">Start </span>
                         <span class="time-value">${startStr}</span>
                     </div>
-                    <div class="time-slot">
-                        <span class="time-label">Ends</span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="9 18 15 12 9 6"></polyline>
                         </svg>
+                    <div class="time-slot">
+                        <span class="time-label">Ends </span>
                         <span class="time-value">${endStr}</span>
                     </div>
                     <div class="time-slot">
