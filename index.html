@@ -49,19 +49,23 @@
       padding: 8px 8px;
       z-index: 10000;
       font-family: sans-serif;
-      /* MODIFIED: Use calc() to push it down from the notch for webkit */
       top: calc(10px + env(safe-area-inset-top));
-      transition: top 0.3s ease-in-out;
+      transition: top 0.3s ease-in-out, right 0.8s ease-in-out, transform 0.8s ease-in-out;
     }
     
     #top-status-container {
       top: 20px;
-      transition: top 0.3s ease-in-out;
+      transition: top 0.3s ease-in-out, right 0.8s ease-in-out, transform 0.8s ease-in-out;
     }
     
-    /* Moves it up when the header shrinks */
+    /* Moves it up and slides right when the header shrinks */
     #top-status-container.status-up {
-      top: 4px; /* adjust as needed */
+      transform: translateX(28px); /* Slide 10px to the right */
+    }
+        
+    #appHeader.header-shrink ~ #top-status-container {
+      transform: translateX(28px); /* Slide 10px to the right */
+      transition: top 0.3s ease-in-out, right 0.5s ease-in-out, transform 0.5s ease-in-out;
     }
     
     .app-status-dot {
@@ -159,11 +163,7 @@
         opacity: 0;
       }
     }
-    
-    #appHeader.header-shrink ~ #top-status-container {
-      top: 10px; /* Move up from 8px to 2px (adjust as needed) */
-      transition: top 0.3s ease-in-out;
-    }
+
     
     /* Make the main wrapper a full-height flex container */
     #mainAppWrapper {
@@ -737,7 +737,7 @@
     /* Mobile Responsive */
     @media (max-width: 768px) {
         #chargerStatusContainer {
-            padding: 15px;
+            padding: 0px;
             gap: 15px;
         }
         
@@ -1097,17 +1097,18 @@
     .filter-btn-club { background-color: #F59E0B; color: #FFFFFF; }
 
     /* ===== BOOKING FORM ===== */
-    .form-and-status-wrapper { display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; width: 100%; max-width: 1200px; margin: 20px auto; }
-    #bookingForm { width: 100%; max-width: 1200px; flex-grow: 1; flex-shrink: 0; background: #FFFFFF; padding: 20px; padding-bottom: 100px; border-radius: 10px; box-sizing: border-box; color: #545454; box-shadow: 2px 2px 5px rgba(0,0,0,0.2); overflow: hidden; margin: 0 auto; }
-    #bookingForm input, #bookingForm select, #bookingForm button { padding: 10px; margin: 8px 0; width: 100%; border-radius: 10px; border: none; box-sizing: border-box; font-size: 15px; }
-    #bookingForm input, #bookingForm select { font-family: 'Poppins', Arial, sans-serif; background: #e8e9eb; color: #545454; }
-    #bookingForm input::placeholder { color: #aaa; }
-    #bookingForm button { background: #2dce89; color: #FFFFFF; font-size: 15px; font-weight: 600; cursor: pointer; transition: background-color 0.3s ease; }
+    .form-and-status-wrapper { display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; width: 100%; max-width: 1200px; padding-top: 50px; margin: 20px auto; }
+    #bookingForm { width: 100%; max-width: 1200px; flex-grow: 1; flex-shrink: 0; background: #FFFFFF; padding: 20px; padding-bottom: 100px; border-radius: 16px; box-sizing: border-box; color: #545454; border: 2px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); overflow: hidden; margin: 0 auto; }
+    #bookingForm input, #bookingForm select, #bookingForm button { font-family: 'Poppins', Arial, sans-serif; background: #f3f4f6; color: #111827; padding: 10px; margin: 8px 0; width: 100%; border-radius: 10px; border: none; box-sizing: border-box; font-size: 15px; }
+    #bookingForm input::placeholder { color: #d0d0d0; }
+    #bookingForm input:focus { outline: none; border-color: #3b82f6; background: #eff6ff; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+    #bookingForm button { width: 100%; padding: 10px; background: #2dce89; color: #FFFFFF; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background-color 0.3s ease; } 
     #bookingForm button:hover:not(:disabled) { background: #21b575; }
     #bookingForm button:disabled { opacity: 0.6; cursor: not-allowed; }
     .error, .success { padding: 10px; border-radius: 10px; margin: 10px 0; display: none; font-weight: bold; text-align: center; }
     .error { background: #ff3333; color: white; }
     .success { background: #00cc66; color: white; }
+    #bookingForm label { color: #2c3e50; padding-bottom:10px; font-weight:800; }
     
     /* ===== REMEMBER ME CHECKBOX ===== */
         .checkbox-container {
@@ -1115,7 +1116,7 @@
             max-width: 600px;
             background: white;
             padding: 0;
-            padding-bottom: 10px;
+            padding-bottom: 20px;
             border-radius: 0;
             box-shadow: none;
         }
@@ -1193,6 +1194,7 @@
             font-size: 11px;
             line-height: 1.4;
             color: #374151;
+            font-weight:400;
         }
 
         /* Mobile optimization */
@@ -1242,7 +1244,18 @@
             flex-direction: column-reverse;
             align-items: flex-start;
             gap: 12px;
-            transition: top 0.3s ease-in-out;
+            transition: 
+                transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+                padding-bottom 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+                backdrop-filter 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+                -webkit-backdrop-filter 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+                background-color 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+                position 0s linear 0s;
+            transform: translate3d(0, 0, 0);
+            -webkit-transform: translate3d(0, 0, 0);
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            will-change: transform, backdrop-filter, background-color;
             width: fit-content;
             pointer-events: none;
         }
@@ -1254,7 +1267,14 @@
 
         /* Shrink state when header shrinks */
         #sideMenuWrapper.menu-shrink {
-            top: max(2px, calc(env(safe-area-inset-top, 20px) - 10px));
+            transform: translateY(-65px);
+            transition: 
+                transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+                padding-bottom 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+                backdrop-filter 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+                -webkit-backdrop-filter 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+                background-color 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+                position 0s linear 0s;
         }
 
         /* Toggle button */
@@ -1637,7 +1657,7 @@
       .filter-btn { padding: 6px 8px; font-size: 12px; border-radius: 8px; width: 100%; box-sizing: border-box; }
       .form-and-status-wrapper { width: 100%; max-width: 100%; box-sizing: border-box; padding: 0; }
       #bookingForm { width: 100%; max-width: 100%; padding: 15px; border-radius: 8px; overflow-x: hidden; }
-      #bookingForm input, #bookingForm select, #bookingForm button { font-size: 12px; padding: 12px; margin: 6px 0; border-radius: 8px; }
+      #bookingForm input, #bookingForm select, #bookingForm button { font-size: 14px; padding: 15px; margin: 6px 0; border-radius: 8px; }
       #eventModal>div { margin: 10px; padding: 15px; max-width: none; width: calc(100% - 20px); border-radius: 8px; }
       #modalTitle { font-size: 1.1em; padding-right: 30px; }
       #modalContent { font-size: 13px; line-height: 1.4; }
@@ -1654,7 +1674,7 @@
       .filter-controls { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, auto); gap: 3px; padding: 0 5px; }
       .filter-btn { padding: 6px; font-size: 11px; max-width: none; }
       #bookingForm { padding: 12px; }
-      #bookingForm input, #bookingForm select, #bookingForm button { font-size: 11px; padding: 10px; }
+      #bookingForm input, #bookingForm select, #bookingForm button { font-size: 12px; padding: 12px; }
       #eventModal>div { margin: 5px; padding: 12px; width: calc(100% - 10px); }
     }
   </style>
@@ -1825,12 +1845,12 @@
           <div id="successMsg" class="success"></div>
           <label for="reservation_details_display" style="display: flex; align-items: center; gap: 6px;">
           <svg fill="#000000" width="22px" height="22px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M15 11h7v2h-7zm1 4h6v2h-6zm-2-8h8v2h-8zM4 19h10v-1c0-2.757-2.243-5-5-5H7c-2.757 0-5 2.243-5 5v1h2zm4-7c1.995 0 3.5-1.505 3.5-3.5S9.995 5 8 5 4.5 6.505 4.5 8.5 6.005 12 8 12z"/></svg>
-          Reservation For
+          Reservation Details
           </label>
           <input id="name" name="name" type="text" placeholder="Name of Car Owner" required oninput="convertToTitleCase(this)" />
           <input id="plate" name="license_plate" type="text" placeholder="Car Plate Number" required oninput="this.value = this.value.toUpperCase()" />
           <input id="phone" name="tel" type="tel" placeholder="Phone Number" />
-          <input id="email" name="email" type="email" placeholder="Email for Confirmation (Required)" required />
+          <input id="email" name="email" type="email" placeholder="Email for Confirmation" required />
           <div class="checkbox-container">
               <label class="save-info-label">
                   <input type="checkbox" id="rememberMe" />
@@ -1852,7 +1872,7 @@
           </svg>
             Charger & Time Slot
           </label>
-          <input id="datetime_display" type="text" placeholder="Tap to select charger & time" readonly style="cursor: pointer;"/>
+          <input id="datetime_display" type="text" placeholder="Tap to select charger & time slot" readonly style="cursor: pointer;"/>
           <input id="charger" name="charger" type="hidden" required/>
           <input id="start_datetime" name="start_datetime" type="hidden" required />
           <input id="end_datetime" name="end_datetime" type="hidden" required />
