@@ -2243,6 +2243,9 @@
           });
       
           // --- Date Picker ---
+          const mytNow = new Date().toLocaleString("en-US", { timeZone: "Asia/Kuala_Lumpur" });
+          const mytToday = new Date(mytNow);
+          
           const datePicker = flatpickr("#date-calendar", {
               inline: true, minDate: "today", disableMobile: true, mode: 'range',
               locale: { firstDayOfWeek: 1 }, // Monday as the first day
