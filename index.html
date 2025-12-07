@@ -18,7 +18,10 @@
   <!-- External Libraries (from GAS files) -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/moment-timezone@0.5.43/builds/moment-timezone-with-data.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/moment-timezone@6.1.19/index.global.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider/distribute/nouislider.min.css">
   
@@ -2789,6 +2792,7 @@
                 if (calendar) { calendar.removeAllEvents(); calendar.addEventSource(events); return; }
                 const isMobile = window.innerWidth <= 768;
                 calendar = new FullCalendar.Calendar(calendarEl, {
+                    timeZone: 'Asia/Kuala_Lumpur', timeZoneImpl: 'moment-timezone', 
                     initialView: 'timeGridWeek', allDaySlot: false, stickyHeaderDates: true, timeZone: 'Asia/Kuala_Lumpur', firstDay: 1, nowIndicator: true,
                     editable: false, longPressDelay: 9999, selectable: false,
                     headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
