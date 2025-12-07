@@ -1766,6 +1766,9 @@
                         <strong>Q: What is the purpose of this web app?</strong>
                         The primary goal of this web app is to facilitate better communication and planning among EV owners regarding charger availability.<br><br>
                         
+                        <strong>Q: What timezone is the time shown in?</strong>
+                        All users will see the time displayed in Malaysia Time (GMT+8).<br><br>
+                        
                         <strong>Q: How do I cancel a reservation?</strong>
                         To cancel a reservation, please use the unique cancellation link provided in your booking confirmation email.<br><br>
                         
@@ -1805,7 +1808,7 @@
             </div>
 
             <div class="copyright">
-                © <span id="copyrightYear"></span> Version 2.1
+                © <span id="copyrightYear"></span> Version 2.1 Build_251207
             </div>
         </div>
 
@@ -1933,7 +1936,7 @@
     // =================================================================
     //        LOGIC FOR THE NEW DATE & TIME PICKER MODAL
     // =================================================================
-      function initializeDateTimePicker() {
+function initializeDateTimePicker() {
           const modal = document.getElementById('dateTimePickerModal');
           if (!modal) return;
       
@@ -1966,6 +1969,25 @@
           let wasCreatedByMidnight = false;
           let isUpdatingCalendar = false;
       
+          // --- Helper: Get Malaysia Time Object ---
+          // This creates a Native Date object where the numbers match Malaysia time
+          // Example: If it's 8:00 AM in KL, this returns a Date that says 8:00 AM in the user's local console
+          function getMalaysiaDateShifted() {
+              // 1. Get exact time in KL using Moment Library
+              const klMoment = moment().tz("Asia/Kuala_Lumpur");
+              
+              // 2. Create a Javascript Date object using KL's numbers
+              // We use this to "trick" Flatpickr and the sliders
+              return new Date(
+                  klMoment.year(),
+                  klMoment.month(), // Moment months are 0-11, same as JS Date
+                  klMoment.date(),
+                  klMoment.hour(),
+                  klMoment.minute(),
+                  0
+              );
+          }
+
           // --- Helper Functions ---
           function minutesToTimeFormat(minutes) {
               minutes = Math.round(minutes);
@@ -1980,6 +2002,7 @@
       
           function dateToShortFormat(date) {
               if (!date) return '';
+              // Force formatting to English to ensure consistency
               return date.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
           }
       
@@ -2016,11 +2039,12 @@
               }
           }
       
-          // --- Blocked Slot & Range Indicator Functions (unchanged) ---
+          // --- Blocked Slot & Range Indicator Functions ---
           function drawBlockedSlots(date, charger, sliderContainer) {
               sliderContainer.innerHTML = '';
               if (!date || !charger) return;
       
+              // We must compare against the "Shifted" date representing Malaysia
               const dayStart = new Date(date);
               dayStart.setHours(0, 0, 0, 0);
               const dayEnd = new Date(date);
@@ -2091,19 +2115,18 @@
                     const bar = document.createElement('div');
                     bar.className = 'green-range-indicator';
                     bar.style.position = 'absolute';
-                    bar.style.height = '10px'; // 🔹 slightly thicker
-                    bar.style.borderRadius = '6px'; // 🔹 softer edges
-                    bar.style.zIndex = '2'; // 🔹 above blocked slots
+                    bar.style.height = '10px';
+                    bar.style.borderRadius = '6px';
+                    bar.style.zIndex = '2';
                     bar.style.pointerEvents = 'none';
-                    bar.style.top = '10px'; // 🔹 visually centered over track
+                    bar.style.top = '10px';
             
-                    // 🔹 animated gradient background for emphasis
                     bar.style.background = `linear-gradient(90deg,
                         rgba(34, 197, 94, 0.95),
                         rgba(16, 185, 45, 0.9),
                         rgba(132, 204, 22, 0.9)
                     )`;
-                    bar.style.boxShadow = '0 0 8px rgba(34, 197, 94, 0.7)'; // 🔹 subtle glow
+                    bar.style.boxShadow = '0 0 8px rgba(34, 197, 94, 0.7)';
                     bar.style.backgroundSize = '200% 100%';
                     bar.style.animation = 'greenGlow 3s ease-in-out infinite';
             
@@ -2155,7 +2178,7 @@
               if (rangeIndicatorEl) rangeIndicatorEl.style.display = 'none';
           }
       
-          // --- Update Summary (same as before) ---
+          // --- Update Summary ---
           function updateSummary() {
               const options = { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true };
               if (!modalSelectedCharger) {
@@ -2212,7 +2235,7 @@
               }
       
               if (conflictingBooking) {
-                  const options = { hour: 'numeric', minute: '2-digit', hour12: true };
+                  const options = { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kuala_Lumpur' }; // Added timezone here too
                   const conflictStartStr = new Date(conflictingBooking.start).toLocaleString('en-US', options);
                   const conflictEndStr = new Date(conflictingBooking.end).toLocaleString('en-US', options);
                   summaryTextEl.innerHTML = `<span class="summary-placeholder" style="color: #fa7380;">Time conflict (${conflictStartStr}–${conflictEndStr}). Please choose another slot.</span>`;
@@ -2222,8 +2245,18 @@
               }
       
               summaryTextEl.innerText = `${finalStart.toLocaleString('en-US', options)} - ${finalEnd.toLocaleString('en-US', options)}`;
-              modalStartEl.value = finalStart.toISOString();
-              modalEndEl.value = finalEnd.toISOString();
+              
+              const toLocalISO = (dt) => {
+              const pad = (n) => n < 10 ? '0'+n : n;
+              return dt.getFullYear() +
+                   '-' + pad(dt.getMonth() + 1) +
+                   '-' + pad(dt.getDate()) +
+                   'T' + pad(dt.getHours()) +
+                   ':' + pad(dt.getMinutes()) +
+                   ':00';
+              };
+              modalStartEl.value = toLocalISO(finalStart);
+              modalEndEl.value = toLocalISO(finalEnd);
               applyButton.disabled = false;
               updateRangeIndicator();
           }
@@ -2243,12 +2276,15 @@
           });
       
           // --- Date Picker ---
-          const mytNow = new Date().toLocaleString("en-US", { timeZone: "Asia/Kuala_Lumpur" });
-          const mytToday = new Date(mytNow);
+          const mytToday = getMalaysiaDateShifted();
+          mytToday.setHours(0,0,0,0); // Ensure it's midnight Malaysia time
           
           const datePicker = flatpickr("#date-calendar", {
-              inline: true, minDate: "today", disableMobile: true, mode: 'range',
-              locale: { firstDayOfWeek: 1 }, // Monday as the first day
+              inline: true, 
+              minDate: mytToday, 
+              disableMobile: true, 
+              mode: 'range',
+              locale: { firstDayOfWeek: 1 }, 
               onChange: (selectedDates) => {
                   if (isUpdatingCalendar) return;
                   startDate = selectedDates[0] ? new Date(selectedDates[0].setHours(0,0,0,0)) : null;
@@ -2339,15 +2375,18 @@
           // --- Modal Control ---
           function openModal() {
               modal.style.display = 'flex';
-              // Get current time in Malaysia
-              const now = new Date();
-              const malaysiaTimeStr = now.toLocaleString("en-US", { timeZone: "Asia/Kuala_Lumpur" });
-              const malaysiaDate = new Date(malaysiaTimeStr);
               
-              // Calculate minutes based on Malaysia Time
+              // --- FIX: FORCE MALAYSIA TIME FOR SLIDER ---
+              // 1. Get the current time in Malaysia as a "Shifted" Date object
+              const malaysiaDate = getMalaysiaDateShifted();
+              
+              // 2. Calculate minutes from midnight using the Malaysia time
               const currentMinutes = malaysiaDate.getHours() * 60 + malaysiaDate.getMinutes();
+              // -------------------------------------------
+
               let roundedStartTime = Math.ceil(currentMinutes / 15) * 15;
               let roundedEndTime = roundedStartTime + 60;
+              
               if (roundedEndTime > 1440) { roundedEndTime = 1440; }
               if (roundedStartTime >= 1440 - MINIMUM_SLOT_MINUTES) {
                   roundedStartTime = 1440 - MINIMUM_SLOT_MINUTES;
@@ -3313,13 +3352,6 @@ document.getElementById('bookingForm').addEventListener('submit', async function
         populateFormWithStoredUserInfo();
     });
 });
-
-    function toDatetimeLocal(dt, tz) {
-        const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: tz };
-        const parts = new Intl.DateTimeFormat('en-US', options).formatToParts(dt).reduce((acc, part) => ({ ...acc, [part.type]: part.value }), {});
-        return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
-    }
-    
     
     /* =================================================================
        INDEXEDDB CACHING LOGIC (Unchanged, now in the correct context)
