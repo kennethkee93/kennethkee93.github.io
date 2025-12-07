@@ -1970,17 +1970,11 @@ function initializeDateTimePicker() {
           let isUpdatingCalendar = false;
       
           // --- Helper: Get Malaysia Time Object ---
-          // This creates a Native Date object where the numbers match Malaysia time
-          // Example: If it's 8:00 AM in KL, this returns a Date that says 8:00 AM in the user's local console
           function getMalaysiaDateShifted() {
-              // 1. Get exact time in KL using Moment Library
               const klMoment = moment().tz("Asia/Kuala_Lumpur");
-              
-              // 2. Create a Javascript Date object using KL's numbers
-              // We use this to "trick" Flatpickr and the sliders
               return new Date(
                   klMoment.year(),
-                  klMoment.month(), // Moment months are 0-11, same as JS Date
+                  klMoment.month(),
                   klMoment.date(),
                   klMoment.hour(),
                   klMoment.minute(),
@@ -2002,7 +1996,6 @@ function initializeDateTimePicker() {
       
           function dateToShortFormat(date) {
               if (!date) return '';
-              // Force formatting to English to ensure consistency
               return date.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
           }
       
@@ -2044,44 +2037,48 @@ function initializeDateTimePicker() {
               sliderContainer.innerHTML = '';
               if (!date || !charger) return;
       
-              // We must compare against the "Shifted" date representing Malaysia
-              const dayStart = new Date(date);
-              dayStart.setHours(0, 0, 0, 0);
-              const dayEnd = new Date(date);
-              dayEnd.setHours(23, 59, 59, 999);
+              const dayStartMoment = moment.tz({
+                  year: date.getFullYear(),
+                  month: date.getMonth(),
+                  day: date.getDate(),
+                  hour: 0, minute: 0, second: 0
+              }, "Asia/Kuala_Lumpur");
+              
+              const dayEndMoment = dayStartMoment.clone().endOf('day');
       
-              const chargerBookings = allEvents.filter(event =>
-                  event.extendedProps.charger === charger &&
-                  new Date(event.start) < dayEnd &&
-                  new Date(event.end) > dayStart
-              );
+              const chargerBookings = allEvents.filter(event => {
+                  if (event.extendedProps.charger !== charger) return false;
+                  const evtStart = moment(event.start).tz("Asia/Kuala_Lumpur");
+                  const evtEnd = moment(event.end).tz("Asia/Kuala_Lumpur");
+                  return evtStart.isBefore(dayEndMoment) && evtEnd.isAfter(dayStartMoment);
+              });
       
               chargerBookings.forEach(booking => {
-                  const bookingStart = new Date(booking.start);
-                  const bookingEnd = new Date(booking.end);
+                  const evtStart = moment(booking.start).tz("Asia/Kuala_Lumpur");
+                  const evtEnd = moment(booking.end).tz("Asia/Kuala_Lumpur");
       
                   let startMinutes = 0;
-                  if (bookingStart > dayStart) {
-                      startMinutes = bookingStart.getHours() * 60 + bookingStart.getMinutes();
+                  if (evtStart.isAfter(dayStartMoment)) {
+                      startMinutes = evtStart.hours() * 60 + evtStart.minutes();
                   }
       
                   let endMinutes = 1440;
-                  if (bookingEnd < dayEnd) {
-                      endMinutes = bookingEnd.getHours() * 60 + bookingEnd.getMinutes();
+                  if (evtEnd.isBefore(dayEndMoment)) {
+                      endMinutes = evtEnd.hours() * 60 + evtEnd.minutes();
                   }
       
-                  const sliderWidth = sliderContainer.parentElement.querySelector('.time-slider').offsetWidth;
                   const handleWidth = 22;
                   const handleOffset = handleWidth / 11;
-      
                   const leftPercent = (startMinutes / 1440) * 100;
                   const rightPercent = (endMinutes / 1440) * 100;
       
-                  const slotDiv = document.createElement('div');
-                  slotDiv.className = 'blocked-slot';
-                  slotDiv.style.left = `calc(${leftPercent}% + ${handleOffset}px)`;
-                  slotDiv.style.width = `calc(${rightPercent - leftPercent}% - ${handleOffset}px)`;
-                  sliderContainer.appendChild(slotDiv);
+                  if (rightPercent > leftPercent) {
+                      const slotDiv = document.createElement('div');
+                      slotDiv.className = 'blocked-slot';
+                      slotDiv.style.left = `calc(${leftPercent}% + ${handleOffset}px)`;
+                      slotDiv.style.width = `calc(${rightPercent - leftPercent}% - ${handleOffset}px)`;
+                      sliderContainer.appendChild(slotDiv);
+                  }
               });
           }
       
@@ -2120,16 +2117,10 @@ function initializeDateTimePicker() {
                     bar.style.zIndex = '2';
                     bar.style.pointerEvents = 'none';
                     bar.style.top = '10px';
-            
-                    bar.style.background = `linear-gradient(90deg,
-                        rgba(34, 197, 94, 0.95),
-                        rgba(16, 185, 45, 0.9),
-                        rgba(132, 204, 22, 0.9)
-                    )`;
+                    bar.style.background = `linear-gradient(90deg, rgba(34, 197, 94, 0.95), rgba(16, 185, 45, 0.9), rgba(132, 204, 22, 0.9))`;
                     bar.style.boxShadow = '0 0 8px rgba(34, 197, 94, 0.7)';
                     bar.style.backgroundSize = '200% 100%';
                     bar.style.animation = 'greenGlow 3s ease-in-out infinite';
-            
                     bar.style.left = `calc(${left}% + ${handleOffset}px)`;
                     bar.style.width = `calc(${right - left}% - ${handleOffset}px)`;
                     wrapper.appendChild(bar);
@@ -2149,36 +2140,21 @@ function initializeDateTimePicker() {
                     bar.style.zIndex = '2';
                     bar.style.pointerEvents = 'none';
                     bar.style.top = '10px';
-                    bar.style.background = `linear-gradient(90deg,
-                        rgba(34, 197, 94, 0.95),
-                        rgba(16, 185, 45, 0.9),
-                        rgba(132, 204, 22, 0.9)
-                    )`;
+                    bar.style.background = `linear-gradient(90deg, rgba(34, 197, 94, 0.95), rgba(16, 185, 45, 0.9), rgba(132, 204, 22, 0.9))`;
                     bar.style.boxShadow = '0 0 8px rgba(34, 197, 94, 0.7)';
                     bar.style.backgroundSize = '200% 100%';
                     bar.style.animation = 'greenGlow 3s ease-in-out infinite';
-            
                     bar.style.left = left;
                     bar.style.width = width;
                     wrapper.appendChild(bar);
                 };
-            
-                createBar(
-                    startSliderWrapper,
-                    `calc(${startLeftPercent}% + ${handleOffset}px)`,
-                    `calc(${100 - startLeftPercent}% - ${handleOffset}px)`
-                );
-                createBar(
-                    endSliderWrapper,
-                    '0',
-                    `calc(${endRightPercent}% - ${handleOffset}px)`
-                );
+                createBar(startSliderWrapper, `calc(${startLeftPercent}% + ${handleOffset}px)`, `calc(${100 - startLeftPercent}% - ${handleOffset}px)`);
+                createBar(endSliderWrapper, '0', `calc(${endRightPercent}% - ${handleOffset}px)`);
             }
-      
               if (rangeIndicatorEl) rangeIndicatorEl.style.display = 'none';
           }
       
-          // --- Update Summary ---
+          // --- Update Summary (FIXED FOR COLLISION) ---
           function updateSummary() {
               const options = { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true };
               if (!modalSelectedCharger) {
@@ -2223,19 +2199,39 @@ function initializeDateTimePicker() {
               }
       
               let conflictingBooking = null;
+              
+              // --- FIX STARTS HERE: FORCE MALAYSIA TIME COMPARISON ---
               for (const booking of allEvents) {
                   if (booking.extendedProps.charger === modalSelectedCharger) {
-                      const bookingStart = new Date(booking.start);
-                      const bookingEnd = new Date(booking.end);
-                      if (finalStart < bookingEnd && finalEnd > bookingStart) {
+                      
+                      // 1. Convert booking ISO strings to Malaysia Moment Objects
+                      const bStartMoment = moment(booking.start).tz("Asia/Kuala_Lumpur");
+                      const bEndMoment = moment(booking.end).tz("Asia/Kuala_Lumpur");
+
+                      // 2. Create "Shifted" Date objects that match the slider's coordinate system
+                      // (e.g., if booking is 2 PM MYT, create a JS Date that acts like 2 PM local)
+                      const bookingStartShifted = new Date(
+                          bStartMoment.year(), bStartMoment.month(), bStartMoment.date(),
+                          bStartMoment.hour(), bStartMoment.minute(), 0
+                      );
+
+                      const bookingEndShifted = new Date(
+                          bEndMoment.year(), bEndMoment.month(), bEndMoment.date(),
+                          bEndMoment.hour(), bEndMoment.minute(), 0
+                      );
+
+                      // 3. Compare Apples to Apples (Shifted Date vs Shifted Date)
+                      if (finalStart < bookingEndShifted && finalEnd > bookingStartShifted) {
                           conflictingBooking = booking;
                           break;
                       }
                   }
               }
+              // --- FIX ENDS HERE ---
       
               if (conflictingBooking) {
-                  const options = { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kuala_Lumpur' }; // Added timezone here too
+                  // Display the conflict time using Malaysia timezone option to ensure text is correct
+                  const options = { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kuala_Lumpur' }; 
                   const conflictStartStr = new Date(conflictingBooking.start).toLocaleString('en-US', options);
                   const conflictEndStr = new Date(conflictingBooking.end).toLocaleString('en-US', options);
                   summaryTextEl.innerHTML = `<span class="summary-placeholder" style="color: #fa7380;">Time conflict (${conflictStartStr}–${conflictEndStr}). Please choose another slot.</span>`;
@@ -2315,7 +2311,7 @@ function initializeDateTimePicker() {
       
               const singleDay = isSingleDaySelection();
       
-              // --- ✨ Restored Midnight Rollover Logic ✨ ---
+              // --- Midnight Rollover Logic ---
               if (endTimeInMinutes === 1440 && startDate) {
                   if (singleDay) {
                       const nextDay = new Date(startDate);
@@ -2377,10 +2373,7 @@ function initializeDateTimePicker() {
               modal.style.display = 'flex';
               
               // --- FIX: FORCE MALAYSIA TIME FOR SLIDER ---
-              // 1. Get the current time in Malaysia as a "Shifted" Date object
               const malaysiaDate = getMalaysiaDateShifted();
-              
-              // 2. Calculate minutes from midnight using the Malaysia time
               const currentMinutes = malaysiaDate.getHours() * 60 + malaysiaDate.getMinutes();
               // -------------------------------------------
 
@@ -2412,34 +2405,35 @@ function initializeDateTimePicker() {
           // --- Event Listeners ---
           mainFormDisplay.addEventListener('click', openModal);
           const closeBtn = document.getElementById('closeDateTimePicker');
-          // Always keep the click handler (fallback) but also listen for pointerup/touchend for iOS.
           closeBtn.addEventListener('click', closeModal);
           closeBtn.addEventListener('pointerup', (e) => { e.preventDefault(); closeModal(); });
           closeBtn.addEventListener('touchend', (e) => { e.preventDefault(); closeModal(); }, { passive: false });
 
-          // Close when tapping the backdrop — handle pointerup/touchend to be reliable on iOS
           modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
           modal.addEventListener('pointerup', (e) => { if (e.target === modal) { e.preventDefault(); closeModal(); }});
           modal.addEventListener('touchend', (e) => { if (e.target === modal) { e.preventDefault(); closeModal(); }}, { passive: false });
       
           applyButton.addEventListener('click', () => {
               if (!applyButton.disabled) {
-                  const startValueISO = modalStartEl.value;
+                  const startValueISO = modalStartEl.value; 
                   const endValueISO = modalEndEl.value;
       
                   mainFormChargerHidden.value = modalSelectedCharger;
                   mainFormStartHidden.value = startValueISO;
                   mainFormEndHidden.value = endValueISO;
       
+                  const startObj = new Date(startValueISO);
+                  const endObj = new Date(endValueISO);
+
                   const displayOptions = { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' };
-                  const startStr = new Date(startValueISO).toLocaleString('en-US', displayOptions);
-                  const endStr = new Date(endValueISO).toLocaleString('en-US', displayOptions);
+                  const startStr = startObj.toLocaleString('en-US', displayOptions);
+                  const endStr = endObj.toLocaleString('en-US', displayOptions);
                   mainFormDisplay.value = `${modalSelectedCharger}: ${startStr} - ${endStr}`;
                   
                   closeModal();
               }
           });
-      }   
+      }
 
       function showTab(tab) {
           const header = document.getElementById('appHeader');
