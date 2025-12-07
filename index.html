@@ -2333,8 +2333,13 @@
           // --- Modal Control ---
           function openModal() {
               modal.style.display = 'flex';
+              // Get current time in Malaysia
               const now = new Date();
-              const currentMinutes = now.getHours() * 60 + now.getMinutes();
+              const malaysiaTimeStr = now.toLocaleString("en-US", { timeZone: "Asia/Kuala_Lumpur" });
+              const malaysiaDate = new Date(malaysiaTimeStr);
+              
+              // Calculate minutes based on Malaysia Time
+              const currentMinutes = malaysiaDate.getHours() * 60 + malaysiaDate.getMinutes();
               let roundedStartTime = Math.ceil(currentMinutes / 15) * 15;
               let roundedEndTime = roundedStartTime + 60;
               if (roundedEndTime > 1440) { roundedEndTime = 1440; }
@@ -2784,7 +2789,7 @@
                 if (calendar) { calendar.removeAllEvents(); calendar.addEventSource(events); return; }
                 const isMobile = window.innerWidth <= 768;
                 calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'timeGridWeek', allDaySlot: false, stickyHeaderDates: true, timeZone: 'local', firstDay: 1, nowIndicator: true,
+                    initialView: 'timeGridWeek', allDaySlot: false, stickyHeaderDates: true, timeZone: 'Asia/Kuala_Lumpur', firstDay: 1, nowIndicator: true,
                     editable: false, longPressDelay: 9999, selectable: false,
                     headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
                     events: events, contentHeight: isMobile ? 'auto' : 'auto', scrollTimeReset: false,
@@ -2831,9 +2836,16 @@
         const occupiedCount = Object.values(statusMap).filter(s => s.occupied).length;
         const availableCount = totalChargers - occupiedCount;
         // Define today's start and end boundaries
-        const startOfToday = new Date();
+        // 1. Get current time in Malaysia as a string
+        const nowInMalaysia = new Date().toLocaleString("en-US", { timeZone: "Asia/Kuala_Lumpur" });
+        // 2. Create a Date object from that string (This "tricks" the browser into thinking local time is Malaysia time)
+        const mytDate = new Date(nowInMalaysia);
+        
+        // 3. Define today's start and end boundaries based on Malaysia date
+        const startOfToday = new Date(mytDate);
         startOfToday.setHours(0, 0, 0, 0);
-        const endOfToday = new Date();
+        
+        const endOfToday = new Date(mytDate);
         endOfToday.setHours(23, 59, 59, 999);
         const todaysSessions = allEvents.filter(event => {
           const eventStart = new Date(event.start);
@@ -2995,7 +3007,8 @@
         hour: 'numeric',
         minute: '2-digit',
         weekday: 'short', // added for the short day name
-        hour12: true
+        hour12: true,
+        timeZone: 'Asia/Kuala_Lumpur'
         };
         const startStr = start.toLocaleString('en-US', dateTimeOptions);
         const endStr = end.toLocaleString('en-US', dateTimeOptions);
