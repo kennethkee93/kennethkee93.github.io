@@ -2766,19 +2766,25 @@ function initializeDateTimePicker() {
         const eventsFromServer = serverResponse.data;
         console.info(`Success: Received ${eventsFromServer.length} events.`);
     
-        const serverIds = eventsFromServer.map(e => e.id).sort().join(',');
-        const cachedIds = cachedEvents.map(e => e.id).sort().join(',');
-    
-        if (serverIds !== cachedIds) {
-          console.info('%cChange detected. Updating local data.', 'color: blue; font-weight: bold;');
-          allEvents = eventsFromServer;
-          await saveEventsToIDB(eventsFromServer);
-          console.info(`%cSaved ${eventsFromServer.length} new events to IndexedDB.`, 'color: green;');
-          renderCalendar(allEvents);
-          updateChargerStatus();
-        } else {
-          console.log('No changes detected.');
-        }
+		const serverKeys = eventsFromServer
+		  .map(e => `${e.id}_${e.start}_${e.end}`)
+		  .sort()
+		  .join(',');
+		
+		const cachedKeys = cachedEvents
+		  .map(e => `${e.id}_${e.start}_${e.end}`)
+		  .sort()
+		  .join(',');
+		
+		if (serverKeys !== cachedKeys) {
+		    console.info('%cChange detected (ID or start/end changed). Updating local data.', 'color: blue; font-weight: bold;');
+		    allEvents = eventsFromServer;
+		    await saveEventsToIDB(eventsFromServer);
+		    renderCalendar(allEvents);
+		    updateChargerStatus();
+		} else {
+		    console.log('No changes detected.');
+		}
         console.groupEnd();
         
         // Data is now up-to-date
