@@ -3374,7 +3374,7 @@ document.getElementById('bookingForm').addEventListener('submit', async function
             action: modifyMode ? 'modify' : 'book',
             data: {
                 id: modifyBookingId,          // REQUIRED for modify
-                email: document.getElementById('email').value,  // <-- REQUIRED FIX
+                email: data.email,
                 name: data.name,
                 plate: data.plate,
                 phone: data.phone,
