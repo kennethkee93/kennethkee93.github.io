@@ -3371,15 +3371,17 @@ document.getElementById('bookingForm').addEventListener('submit', async function
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
-            action: modifyMode ? "modify" : "book",
-            data: modifyMode
-                ? {
-                    id: modifyBookingId,
-                    email: modifyEmail,
-                    start_datetime: data.start_datetime,
-                    end_datetime: data.end_datetime
-                }
-                : data
+            action: modifyMode ? 'modify' : 'book',
+            data: {
+                id: modifyBookingId,          // REQUIRED for modify
+                email: document.getElementById('email').value,  // <-- REQUIRED FIX
+                name: data.name,
+                plate: data.plate,
+                phone: data.phone,
+                charger: data.charger,
+                start_datetime: data.start_datetime,
+                end_datetime: data.end_datetime
+            }
         })
     })
     .then(res => res.json())
