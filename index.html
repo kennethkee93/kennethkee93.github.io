@@ -2077,6 +2077,11 @@ function initializeDateTimePicker() {
               });
       
               chargerBookings.forEach(booking => {
+                    // ⭐ Do NOT block user's own reservation when modifying
+                  if (modifyMode && booking.id === modifyBookingId) {
+                      return; 
+                  }
+                  
                   const evtStart = moment(booking.start).tz("Asia/Kuala_Lumpur");
                   const evtEnd = moment(booking.end).tz("Asia/Kuala_Lumpur");
       
@@ -2722,13 +2727,31 @@ function initializeDateTimePicker() {
         
                         // 🔥 Auto-switch to form tab
                         showTab("form");
-        
-                        // 🔥 Delay to allow tab animation before scrolling
+                        
+                        // Wait for tab transition
                         setTimeout(() => {
-                            document.getElementById("bookingForm").scrollIntoView({
-                                behavior: "smooth",
-                                block: "start"
+                            // 1️⃣ Open your modal
+                            const modal = document.getElementById('dateTimePickerModal');
+                            if (modal) {
+                                modal.style.display = "flex";
+                                modal.classList.add("active");
+                            }
+                        
+                            // 2️⃣ Preselect charger inside modal
+                            const chargerButtons = modal.querySelectorAll(".charger-btn");
+                            chargerButtons.forEach(btn => {
+                                btn.classList.remove("active");
+                                if (btn.dataset.charger === data.charger) {
+                                    btn.classList.add("active");
+                                    btn.click(); // triggers your normal charger selection logic
+                                }
                             });
+                        
+                            // 3️⃣ Preload the user’s start & end times into the picker
+                            if (window.setInitialDateTimeRange) {
+                                setInitialDateTimeRange(data.startISO, data.endISO);
+                            }
+                        
                         }, 400);
         
                         // Button label
@@ -2744,6 +2767,16 @@ function initializeDateTimePicker() {
             }
         })();
     });
+    
+    // Allows modify mode to set the starting range in your time picker
+    function setInitialDateTimeRange(startISO, endISO) {
+        document.getElementById("start_datetime").value = startISO;
+        document.getElementById("end_datetime").value = endISO;
+    
+        // Update visible display
+        document.getElementById("datetime_display").value =
+            `${new Date(startISO).toLocaleString()} → ${new Date(endISO).toLocaleString()}`;
+    }
 
     function showMessage(type, message) {
         const errorDiv = document.getElementById('errorMsg');
