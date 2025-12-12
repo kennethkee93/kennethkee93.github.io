@@ -981,7 +981,7 @@
       }
     }
 
-    .reserved-slot {
+    .modification-slot {
         position: absolute;
         top: 0;
         height: 100%;
@@ -3495,15 +3495,17 @@ document.getElementById('bookingForm').addEventListener('submit', async function
     .then(async (res) => {
         if (modifyMode && res.status === "success") {
             showMessage("success", "Reservation updated successfully!");
-    
-            // Reload booking list so calendar updates
+        
             await loadBookings();
-    
-            // Reset modify mode
             modifyMode = false;
-    
-            return; // Prevent the "new booking" logic from running
-            }
+        
+            // Redirect dynamically to the site root
+            setTimeout(() => {
+                location.href = `${location.origin}/`;
+            }, 1200);
+        
+            return;
+        }
         if (res.status === 'success' && res.newEvent) {
             ev.target.reset();
             document.getElementById('start_datetime').value = '';
