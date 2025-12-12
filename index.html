@@ -1933,6 +1933,27 @@
     let allEvents = [];
     let tabHeaderState = {};
 
+function prefillModifyForm(b) {
+              document.getElementById("name").value = b.name;
+              document.getElementById("plate").value = b.plate;
+              document.getElementById("phone").value = b.phone || "";
+              document.getElementById("email").value = modifyEmail;
+              document.getElementById("charger").value = b.charger;
+          
+              // Visible formatted value
+              document.getElementById("datetime_display").value =
+                  `${new Date(b.startISO).toLocaleString()} → ${new Date(b.endISO).toLocaleString()}`;
+          
+              // Hidden ISO fields
+              document.getElementById("start_datetime").value = b.startISO;
+              document.getElementById("end_datetime").value = b.endISO;
+          
+              // Button text update
+              document.querySelector("#bookingForm button[type='submit']").textContent = "UPDATE RESERVATION";
+          
+              showMessage("success", "Loaded your reservation for modification.");
+}
+
     // =================================================================
     //        LOGIC FOR THE NEW DATE & TIME PICKER MODAL
     // =================================================================
@@ -2030,27 +2051,6 @@ function initializeDateTimePicker() {
               } else {
                   endTimeValueEl.innerText = minutesToTimeFormat(endTimeInMinutes);
               }
-          }
-          
-          function prefillModifyForm(b) {
-              document.getElementById("name").value = b.name;
-              document.getElementById("plate").value = b.plate;
-              document.getElementById("phone").value = b.phone || "";
-              document.getElementById("email").value = modifyEmail;
-              document.getElementById("charger").value = b.charger;
-          
-              // Visible formatted value
-              document.getElementById("datetime_display").value =
-                  `${new Date(b.startISO).toLocaleString()} → ${new Date(b.endISO).toLocaleString()}`;
-          
-              // Hidden ISO fields
-              document.getElementById("start_datetime").value = b.startISO;
-              document.getElementById("end_datetime").value = b.endISO;
-          
-              // Button text update
-              document.querySelector("#bookingForm button[type='submit']").textContent = "UPDATE RESERVATION";
-          
-              showMessage("success", "Loaded your reservation for modification.");
           }
       
           // --- Blocked Slot & Range Indicator Functions ---
@@ -2696,6 +2696,35 @@ function initializeDateTimePicker() {
         loadBookings();
         setupFilterButtons();
         setInterval(updateChargerStatus, 1 * 1000);
+        
+        
+        (function loadModifyMode() {
+            const params = new URLSearchParams(window.location.search);
+        
+            if (params.get("mode") === "modify") {
+                modifyMode = true;
+                modifyBookingId = params.get("id");
+                modifyEmail = params.get("email");
+        
+                console.log("Modify mode enabled for booking:", modifyBookingId);
+        
+                fetch(`${WEB_APP_URL}?action=getSpecificBooking&id=${modifyBookingId}&email=${encodeURIComponent(modifyEmail)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.success) {
+                            showMessage("error", "Unable to load reservation for modification.");
+                            return;
+                        }
+        
+                        prefillModifyForm(data.booking);
+                        document.querySelector('#bookingForm button[type="submit"]').textContent = "UPDATE RESERVATION";
+                    })
+                    .catch(err => {
+                        console.error("Modify mode load failed:", err);
+                        showMessage("error", "Error loading booking for modification.");
+                    });
+            }
+        })();
     });
 
     function showMessage(type, message) {
@@ -3264,43 +3293,7 @@ function initializeDateTimePicker() {
         const buttons = document.querySelectorAll('.filter-btn');
         buttons.forEach(btn => btn.addEventListener('click', () => { buttons.forEach(b => b.classList.remove('active')); btn.classList.add('active'); filterEventsByCharger(btn.dataset.charger); }));
     }
-    
-    let modifyMode = false;
-    let modifyBookingId = null;
-    let modifyEmail = null;
-    
-    // Detect ?mode=modify&id=XXX&email=YYY
-    (function loadModifyMode() {
-        const params = new URLSearchParams(window.location.search);
-    
-        if (params.get("mode") === "modify") {
-            modifyMode = true;
-            modifyBookingId = params.get("id");
-            modifyEmail = params.get("email");
-    
-            console.log("Modify mode enabled for booking:", modifyBookingId);
-    
-            // Fetch original reservation details
-            fetch(`${WEB_APP_URL}?action=getSpecificBooking&id=${modifyBookingId}&email=${encodeURIComponent(modifyEmail)}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (!data.success) {
-                        showMessage("error", "Unable to load reservation for modification.");
-                        return;
-                    }
-    
-                    prefillModifyForm(data.booking);
-    
-                    // Replace button text
-                    document.querySelector('#bookingForm button[type="submit"]').textContent = "UPDATE RESERVATION";
-                })
-                .catch(err => {
-                    console.error("Modify mode load failed:", err);
-                    showMessage("error", "Error loading booking for modification.");
-                });
-        }
-    })();
-
+  
     // Booking form submission - REFACTORED to use fetch()
 document.getElementById('bookingForm').addEventListener('submit', async function(ev) {
     ev.preventDefault();
