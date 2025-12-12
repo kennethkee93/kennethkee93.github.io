@@ -2031,6 +2031,27 @@ function initializeDateTimePicker() {
                   endTimeValueEl.innerText = minutesToTimeFormat(endTimeInMinutes);
               }
           }
+          
+          function prefillModifyForm(b) {
+              document.getElementById("name").value = b.name;
+              document.getElementById("plate").value = b.plate;
+              document.getElementById("phone").value = b.phone || "";
+              document.getElementById("email").value = modifyEmail;
+              document.getElementById("charger").value = b.charger;
+          
+              // Visible formatted value
+              document.getElementById("datetime_display").value =
+                  `${new Date(b.startISO).toLocaleString()} → ${new Date(b.endISO).toLocaleString()}`;
+          
+              // Hidden ISO fields
+              document.getElementById("start_datetime").value = b.startISO;
+              document.getElementById("end_datetime").value = b.endISO;
+          
+              // Button text update
+              document.querySelector("#bookingForm button[type='submit']").textContent = "UPDATE RESERVATION";
+          
+              showMessage("success", "Loaded your reservation for modification.");
+          }
       
           // --- Blocked Slot & Range Indicator Functions ---
           function drawBlockedSlots(date, charger, sliderContainer) {
@@ -3243,6 +3264,42 @@ function initializeDateTimePicker() {
         const buttons = document.querySelectorAll('.filter-btn');
         buttons.forEach(btn => btn.addEventListener('click', () => { buttons.forEach(b => b.classList.remove('active')); btn.classList.add('active'); filterEventsByCharger(btn.dataset.charger); }));
     }
+    
+    let modifyMode = false;
+    let modifyBookingId = null;
+    let modifyEmail = null;
+    
+    // Detect ?mode=modify&id=XXX&email=YYY
+    (function loadModifyMode() {
+        const params = new URLSearchParams(window.location.search);
+    
+        if (params.get("mode") === "modify") {
+            modifyMode = true;
+            modifyBookingId = params.get("id");
+            modifyEmail = params.get("email");
+    
+            console.log("Modify mode enabled for booking:", modifyBookingId);
+    
+            // Fetch original reservation details
+            fetch(`${WEB_APP_URL}?action=getSpecificBooking&id=${modifyBookingId}&email=${encodeURIComponent(modifyEmail)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success) {
+                        showMessage("error", "Unable to load reservation for modification.");
+                        return;
+                    }
+    
+                    prefillModifyForm(data.booking);
+    
+                    // Replace button text
+                    document.querySelector('#bookingForm button[type="submit"]').textContent = "UPDATE RESERVATION";
+                })
+                .catch(err => {
+                    console.error("Modify mode load failed:", err);
+                    showMessage("error", "Error loading booking for modification.");
+                });
+        }
+    })();
 
     // Booking form submission - REFACTORED to use fetch()
 document.getElementById('bookingForm').addEventListener('submit', async function(ev) {
@@ -3318,12 +3375,30 @@ document.getElementById('bookingForm').addEventListener('submit', async function
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
-            action: 'book',
-            data: data
+            action: modifyMode ? "modify" : "book",
+            data: modifyMode
+                ? {
+                    id: modifyBookingId,
+                    email: modifyEmail,
+                    start_datetime: data.start_datetime,
+                    end_datetime: data.end_datetime
+                }
+                : data
         })
     })
     .then(res => res.json())
     .then(async (res) => {
+        if (modifyMode && res.status === "success") {
+            showMessage("success", "Reservation updated successfully!");
+    
+            // Reload booking list so calendar updates
+            await loadBookings();
+    
+            // Reset modify mode
+            modifyMode = false;
+    
+            return; // Prevent the "new booking" logic from running
+            }
         if (res.status === 'success' && res.newEvent) {
             ev.target.reset();
             document.getElementById('start_datetime').value = '';
