@@ -981,6 +981,15 @@
       }
     }
 
+    .reserved-slot {
+        position: absolute;
+        top: 0;
+        height: 100%;
+        background: rgba(0, 128, 255, 0.35);  /* translucent blue highlight */
+        border: 2px solid #007bff;
+        border-radius: 4px;
+        pointer-events: none; /* user cannot interact with this box */
+    }
     
     /* Green indicator for selected available range */
     #selected-range-indicator {
@@ -2109,6 +2118,40 @@ function initializeDateTimePicker() {
                   }
               });
           }
+          
+          function drawUserReservedSlot(date, charger, sliderContainer) {
+              if (!modifyMode || !modifyBookingId) return;
+              
+              // Find the user's booking
+              const booking = allEvents.find(evt => evt.id === modifyBookingId);
+              if (!booking || booking.extendedProps.charger !== charger) return;
+          
+              const startMoment = moment(booking.start).tz("Asia/Kuala_Lumpur");
+              const endMoment = moment(booking.end).tz("Asia/Kuala_Lumpur");
+          
+              const dayStart = moment(date).startOf("day").tz("Asia/Kuala_Lumpur");
+              const dayEnd = moment(date).endOf("day").tz("Asia/Kuala_Lumpur");
+          
+              // Only highlight if booking overlaps this day
+              if (!(startMoment.isBefore(dayEnd) && endMoment.isAfter(dayStart))) return;
+          
+              let startMinutes = 0;
+              if (startMoment.isAfter(dayStart)) {
+                  startMinutes = startMoment.hours() * 60 + startMoment.minutes();
+              }
+          
+              let endMinutes = 1440;
+              if (endMoment.isBefore(dayEnd)) {
+                  endMinutes = endMoment.hours() * 60 + endMoment.minutes();
+              }
+          
+              const slot = document.createElement("div");
+              slot.className = "modification-slot"; // NEW STYLE
+              slot.style.left = `${(startMinutes / 1440) * 100}%`;
+              slot.style.width = `${((endMinutes - startMinutes) / 1440) * 100}%`;
+          
+              sliderContainer.appendChild(slot);
+          }
       
           function updateAllBlockedSlots() {
               if (!modalSelectedCharger || !startDate) {
@@ -2116,8 +2159,20 @@ function initializeDateTimePicker() {
                   endBlockedSlotsEl.innerHTML = '';
                   return;
               }
+          
+              // Clear previous drawings
+              startBlockedSlotsEl.innerHTML = '';
+              endBlockedSlotsEl.innerHTML = '';
+          
+              // 🔴 Draw "Other Users" blocked slots
               drawBlockedSlots(startDate, modalSelectedCharger, startBlockedSlotsEl);
               drawBlockedSlots(endDate || startDate, modalSelectedCharger, endBlockedSlotsEl);
+          
+              // 🔵 Draw "User’s Own Reservation" slot (only when modifying)
+              if (modifyMode && modifyBookingId) {
+                  drawUserReservedSlot(startDate, modalSelectedCharger, startBlockedSlotsEl);
+                  drawUserReservedSlot(endDate || startDate, modalSelectedCharger, endBlockedSlotsEl);
+              }
           }
       
           function updateRangeIndicator() {
@@ -2232,23 +2287,27 @@ function initializeDateTimePicker() {
               for (const booking of allEvents) {
                   if (booking.extendedProps.charger === modalSelectedCharger) {
                       
-                      // 1. Convert booking ISO strings to Malaysia Moment Objects
+                      // 🚀 1. Skip the user's own reservation when modifying
+                      if (modifyMode && booking.id === modifyBookingId) {
+                          continue;
+                      }
+              
+                      // 2. Convert booking ISO strings into Malaysia-time moments
                       const bStartMoment = moment(booking.start).tz("Asia/Kuala_Lumpur");
                       const bEndMoment = moment(booking.end).tz("Asia/Kuala_Lumpur");
-
-                      // 2. Create "Shifted" Date objects that match the slider's coordinate system
-                      // (e.g., if booking is 2 PM MYT, create a JS Date that acts like 2 PM local)
+              
+                      // 3. Create shifted JS Date objects matching slider timestamps
                       const bookingStartShifted = new Date(
                           bStartMoment.year(), bStartMoment.month(), bStartMoment.date(),
                           bStartMoment.hour(), bStartMoment.minute(), 0
                       );
-
+              
                       const bookingEndShifted = new Date(
                           bEndMoment.year(), bEndMoment.month(), bEndMoment.date(),
                           bEndMoment.hour(), bEndMoment.minute(), 0
                       );
-
-                      // 3. Compare Apples to Apples (Shifted Date vs Shifted Date)
+              
+                      // 4. Detect real conflicts (NOT including user's own)
                       if (finalStart < bookingEndShifted && finalEnd > bookingStartShifted) {
                           conflictingBooking = booking;
                           break;
