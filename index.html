@@ -2494,6 +2494,52 @@ function initializeDateTimePicker() {
       
           function closeModal() { modal.style.display = 'none'; }
       
+          function waitForSliderAndPreload(s, e) {
+              let attempts = 0;
+          
+              const trySet = () => {
+                  attempts++;
+          
+                  // --- Ensure datePicker exists AND sliders exist ---
+                  if (
+                      datePicker &&
+                      startSlider && startSlider.noUiSlider &&
+                      endSlider && endSlider.noUiSlider
+                  ) {
+                      // 1️⃣ Preload DATE first
+                      console.log("📅 Preloading date:", s, e);
+                      datePicker.setDate([s, e], true);
+          
+                      // 2️⃣ Convert to minutes
+                      const startMin = s.getHours() * 60 + s.getMinutes();
+                      const endMin   = e.getHours() * 60 + e.getMinutes();
+          
+                      // 3️⃣ Preload BOTH slider handles
+                      console.log("⏳ Preloading slider:", startMin, endMin);
+                      startSlider.noUiSlider.set(startMin);
+                      endSlider.noUiSlider.set(endMin);
+          
+                      // 4️⃣ Update UI after preloading
+                      updateAllBlockedSlots();
+                      updateSliderLabels();
+                      updateRangeIndicator();
+                      updateSummary();
+          
+                      return; // SUCCESS 🎉
+                  }
+          
+                  // Retry mechanism
+                  if (attempts < 20) {
+                      console.log("Slider/date not ready yet — retrying...");
+                      setTimeout(trySet, 120);
+                  } else {
+                      console.warn("❌ Failed to preload modify slider after 20 attempts.");
+                  }
+              };
+          
+              trySet();
+          }
+      
           // --- Event Listeners ---
           mainFormDisplay.addEventListener('click', openModal);
           const closeBtn = document.getElementById('closeDateTimePicker');
@@ -2785,69 +2831,46 @@ function initializeDateTimePicker() {
                             return;
                         }
         
-                        // Prefill form fields
+                        // -----------------------
+                        // 1️⃣ Prefill base fields
+                        // -----------------------
                         prefillModifyForm(data);
         
-                        // FIX: correct values (not data.booking.xxx)
+                        // Save for later use
                         const s = new Date(data.startISO);
                         const e = new Date(data.endISO);
+                        const charger = data.charger;
         
-                        // ----------------------
-                        // Preselect DATE
-                        // ----------------------
-                        if (datePicker) {
-                            datePicker.setDate([s, e]);
-                        }
+                        modalSelectedCharger = charger;
         
-                        // ----------------------
-                        // Preselect TIME
-                        // ----------------------
-                        const startMinutes = s.getHours() * 60 + s.getMinutes();
-                        const endMinutes = e.getHours() * 60 + e.getMinutes();
-        
-                        // We delay because slider is created only after charger button click
-                        setTimeout(() => {
-                            if (timeSlider && timeSlider.noUiSlider) {
-                                timeSlider.noUiSlider.set([startMinutes, endMinutes]);
-                            }
-                        }, 300);
-        
-                        // Preselect charger
-                        modalSelectedCharger = data.charger;
-        
-                        // Open form tab
+                        // -----------------------
+                        // 2️⃣ Switch to Booking Form first
+                        // -----------------------
                         showTab("form");
-        
+                        
                         setTimeout(() => {
                             const modal = document.getElementById("dateTimePickerModal");
                             if (modal) {
                                 modal.style.display = "flex";
                                 modal.classList.add("active");
                             }
-        
-                            // Select the correct charger button inside modal
+                        
+                            // 1️⃣ Select charger (this initializes the slider)
                             const chargerButtons = modal.querySelectorAll(".charger-btn");
                             chargerButtons.forEach(btn => {
                                 btn.classList.remove("active");
                                 if (btn.dataset.charger === data.charger) {
                                     btn.classList.add("active");
-                                    btn.click(); // builds slider
+                                    btn.click(); // IMPORTANT: slider is created here
                                 }
                             });
-        
-                            // Final retry preload
-                            setTimeout(() => {
-                                if (timeSlider && timeSlider.noUiSlider) {
-                                    timeSlider.noUiSlider.set([startMinutes, endMinutes]);
-                                }
-                                if (datePicker) {
-                                    datePicker.setDate([s, e]);
-                                }
-                            }, 400);
-        
-                        }, 250);
-        
-                        // Change button text
+                        
+                            // 2️⃣ Now preload date & time AFTER slider exists
+                            waitForSliderAndPreload(s, e);
+                        
+                        }, 300);
+                        
+                        // Update submit button text
                         document.querySelector('#bookingForm button[type="submit"]').textContent =
                             "UPDATE RESERVATION";
         
