@@ -2717,10 +2717,25 @@ function initializeDateTimePicker() {
                             return;
                         }
         
-                        // FIXED HERE
+                        // Prefill fields
                         prefillModifyForm(data);
         
-                        document.querySelector('#bookingForm button[type="submit"]').textContent = "UPDATE RESERVATION";
+                        // 🔥 Auto-switch to form tab
+                        showTab("form");
+        
+                        // 🔥 Delay to allow tab animation before scrolling
+                        setTimeout(() => {
+                            document.getElementById("bookingForm").scrollIntoView({
+                                behavior: "smooth",
+                                block: "start"
+                            });
+                        }, 400);
+        
+                        // Button label
+                        document.querySelector('#bookingForm button[type="submit"]').textContent =
+                            "UPDATE RESERVATION";
+        
+                        showMessage("success", "Loaded your reservation for modification.");
                     })
                     .catch(err => {
                         console.error("Modify mode load failed:", err);
