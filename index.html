@@ -970,16 +970,6 @@
       background-size: 40px 40px;
       animation: moveStripes 2s linear infinite;
     }
-    
-    /* Animation for the stripe movement */
-    @keyframes moveStripes {
-      0% {
-        background-position: 0 0;
-      }
-      100% {
-        background-position: 40px 0;
-      }
-    }
 
     .modification-slot {
       position: absolute;
@@ -987,15 +977,15 @@
       border-radius: 4px;
       background: repeating-linear-gradient(
         45deg,
-        rgba(0, 128, 255, 0.9),
-        rgba(0, 128, 255, 0.9) 6px,
-        rgba(49, 130, 254, 0.6) 6px,
-        rgba(49, 130, 254, 0.6) 12px
+        rgba(20, 184, 166, 0.9),
+        rgba(20, 184, 166, 0.9) 6px,
+        rgba(45, 212, 191, 0.6) 6px,
+        rgba(45, 212, 191, 0.6) 12px
       );
       background-size: 40px 40px;
       animation: moveStripes 2s linear infinite;
     }
-    
+        
     /* Animation for the stripe movement */
     @keyframes moveStripes {
       0% {
@@ -2504,40 +2494,6 @@ function initializeDateTimePicker() {
       
           function closeModal() { modal.style.display = 'none'; }
       
-          function waitForSliderAndPreload(s, e) {
-              let attempts = 0;
-          
-              const trySet = () => {
-                  attempts++;
-          
-                  if (timeSlider && timeSlider.noUiSlider) {
-                      const startMin = s.getHours() * 60 + s.getMinutes();
-                      const endMin   = e.getHours() * 60 + e.getMinutes();
-          
-                      console.log("⏳ Preloading slider:", startMin, endMin);
-          
-                      timeSlider.noUiSlider.set([startMin, endMin]);
-          
-                      // Also preselect flatpickr again (to ensure range)
-                      if (datePicker) {
-                          datePicker.setDate([s, e]);
-                      }
-          
-                      return; // SUCCESS 🎉
-                  }
-          
-                  // Retry up to 20 times (2 seconds total)
-                  if (attempts < 20) {
-                      console.log("Slider not ready yet, retrying...");
-                      setTimeout(trySet, 100);
-                  } else {
-                      console.warn("❌ Slider failed to preload after 20 attempts.");
-                  }
-              };
-          
-              trySet();
-          }
-      
           // --- Event Listeners ---
           mainFormDisplay.addEventListener('click', openModal);
           const closeBtn = document.getElementById('closeDateTimePicker');
@@ -2829,46 +2785,69 @@ function initializeDateTimePicker() {
                             return;
                         }
         
-                        // -----------------------
-                        // 1️⃣ Prefill base fields
-                        // -----------------------
+                        // Prefill form fields
                         prefillModifyForm(data);
         
-                        // Save for later use
+                        // FIX: correct values (not data.booking.xxx)
                         const s = new Date(data.startISO);
                         const e = new Date(data.endISO);
-                        const charger = data.charger;
         
-                        modalSelectedCharger = charger;
+                        // ----------------------
+                        // Preselect DATE
+                        // ----------------------
+                        if (datePicker) {
+                            datePicker.setDate([s, e]);
+                        }
         
-                        // -----------------------
-                        // 2️⃣ Switch to Booking Form first
-                        // -----------------------
+                        // ----------------------
+                        // Preselect TIME
+                        // ----------------------
+                        const startMinutes = s.getHours() * 60 + s.getMinutes();
+                        const endMinutes = e.getHours() * 60 + e.getMinutes();
+        
+                        // We delay because slider is created only after charger button click
+                        setTimeout(() => {
+                            if (timeSlider && timeSlider.noUiSlider) {
+                                timeSlider.noUiSlider.set([startMinutes, endMinutes]);
+                            }
+                        }, 300);
+        
+                        // Preselect charger
+                        modalSelectedCharger = data.charger;
+        
+                        // Open form tab
                         showTab("form");
-                        
+        
                         setTimeout(() => {
                             const modal = document.getElementById("dateTimePickerModal");
                             if (modal) {
                                 modal.style.display = "flex";
                                 modal.classList.add("active");
                             }
-                        
-                            // 1️⃣ Select charger (this initializes the slider)
+        
+                            // Select the correct charger button inside modal
                             const chargerButtons = modal.querySelectorAll(".charger-btn");
                             chargerButtons.forEach(btn => {
                                 btn.classList.remove("active");
                                 if (btn.dataset.charger === data.charger) {
                                     btn.classList.add("active");
-                                    btn.click(); // IMPORTANT: slider is created here
+                                    btn.click(); // builds slider
                                 }
                             });
-                        
-                            // 2️⃣ Now preload date & time AFTER slider exists
-                            waitForSliderAndPreload(s, e);
-                        
-                        }, 300);
-                        
-                        // Update submit button text
+        
+                            // Final retry preload
+                            setTimeout(() => {
+                                if (timeSlider && timeSlider.noUiSlider) {
+                                    timeSlider.noUiSlider.set([startMinutes, endMinutes]);
+                                }
+                                if (datePicker) {
+                                    datePicker.setDate([s, e]);
+                                }
+                            }, 400);
+        
+                        }, 250);
+        
+                        // Change button text
                         document.querySelector('#bookingForm button[type="submit"]').textContent =
                             "UPDATE RESERVATION";
         
