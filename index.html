@@ -1927,32 +1927,30 @@
     /* =================================================================
        CORE APP LOGIC (refactored from script.txt)
        ================================================================= */
+    
+    let modifyMode = false;
+    let modifyBookingId = null;
+    let modifyEmail = null;
+    
     let currentIndex = 0;
     const tabPanels = ['status', 'calendar', 'form'];
     let calendar = null;
     let allEvents = [];
     let tabHeaderState = {};
-
-    let modifyMode = false;
-    let modifyBookingId = null;
-    let modifyEmail = null;
     
     function prefillModifyForm(b) {
         document.getElementById("name").value = b.name;
         document.getElementById("plate").value = b.plate;
         document.getElementById("phone").value = b.phone || "";
-        document.getElementById("email").value = modifyEmail;
+        document.getElementById("email").value = b.email;  // FIXED
         document.getElementById("charger").value = b.charger;
               
-        // Visible formatted value
         document.getElementById("datetime_display").value =
-        `${new Date(b.startISO).toLocaleString()} → ${new Date(b.endISO).toLocaleString()}`;
+            `${new Date(b.startISO).toLocaleString()} → ${new Date(b.endISO).toLocaleString()}`;
               
-        // Hidden ISO fields
         document.getElementById("start_datetime").value = b.startISO;
         document.getElementById("end_datetime").value = b.endISO;
               
-        // Button text update
         document.querySelector("#bookingForm button[type='submit']").textContent = "UPDATE RESERVATION";
               
         showMessage("success", "Loaded your reservation for modification.");
@@ -2708,11 +2706,10 @@ function initializeDateTimePicker() {
             if (params.get("mode") === "modify") {
                 modifyMode = true;
                 modifyBookingId = params.get("id");
-                modifyEmail = params.get("email");
         
                 console.log("Modify mode enabled for booking:", modifyBookingId);
         
-                fetch(`${WEB_APP_URL}?action=getSpecificBooking&id=${modifyBookingId}&email=${encodeURIComponent(modifyEmail)}`)
+                fetch(`${WEB_APP_URL}?action=getSpecificBooking&id=${modifyBookingId}`)
                     .then(res => res.json())
                     .then(data => {
                         if (!data.success) {
@@ -2720,7 +2717,9 @@ function initializeDateTimePicker() {
                             return;
                         }
         
-                        prefillModifyForm(data.booking);
+                        // FIXED HERE
+                        prefillModifyForm(data);
+        
                         document.querySelector('#bookingForm button[type="submit"]').textContent = "UPDATE RESERVATION";
                     })
                     .catch(err => {
