@@ -1933,26 +1933,30 @@
     let allEvents = [];
     let tabHeaderState = {};
 
-function prefillModifyForm(b) {
-              document.getElementById("name").value = b.name;
-              document.getElementById("plate").value = b.plate;
-              document.getElementById("phone").value = b.phone || "";
-              document.getElementById("email").value = modifyEmail;
-              document.getElementById("charger").value = b.charger;
-          
-              // Visible formatted value
-              document.getElementById("datetime_display").value =
-                  `${new Date(b.startISO).toLocaleString()} → ${new Date(b.endISO).toLocaleString()}`;
-          
-              // Hidden ISO fields
-              document.getElementById("start_datetime").value = b.startISO;
-              document.getElementById("end_datetime").value = b.endISO;
-          
-              // Button text update
-              document.querySelector("#bookingForm button[type='submit']").textContent = "UPDATE RESERVATION";
-          
-              showMessage("success", "Loaded your reservation for modification.");
-}
+    let modifyMode = false;
+    let modifyBookingId = null;
+    let modifyEmail = null;
+    
+    function prefillModifyForm(b) {
+        document.getElementById("name").value = b.name;
+        document.getElementById("plate").value = b.plate;
+        document.getElementById("phone").value = b.phone || "";
+        document.getElementById("email").value = modifyEmail;
+        document.getElementById("charger").value = b.charger;
+              
+        // Visible formatted value
+        document.getElementById("datetime_display").value =
+        `${new Date(b.startISO).toLocaleString()} → ${new Date(b.endISO).toLocaleString()}`;
+              
+        // Hidden ISO fields
+        document.getElementById("start_datetime").value = b.startISO;
+        document.getElementById("end_datetime").value = b.endISO;
+              
+        // Button text update
+        document.querySelector("#bookingForm button[type='submit']").textContent = "UPDATE RESERVATION";
+              
+        showMessage("success", "Loaded your reservation for modification.");
+    }
 
     // =================================================================
     //        LOGIC FOR THE NEW DATE & TIME PICKER MODAL
