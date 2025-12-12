@@ -982,13 +982,28 @@
     }
 
     .modification-slot {
-        position: absolute;
-        top: 0;
-        height: 100%;
-        background: rgba(0, 128, 255, 0.35);  /* translucent blue highlight */
-        border: 2px solid #007bff;
-        border-radius: 4px;
-        pointer-events: none; /* user cannot interact with this box */
+      position: absolute;
+      height: 100%;
+      border-radius: 4px;
+      background: repeating-linear-gradient(
+        45deg,
+        rgba(0, 128, 255, 0.9),
+        rgba(49, 130, 254, 0.9) 6px,
+        rgba(255, 0, 0, 0.6) 6px,
+        rgba(255, 0, 0, 0.6) 12px
+      );
+      background-size: 40px 40px;
+      animation: moveStripes 2s linear infinite;
+    }
+    
+    /* Animation for the stripe movement */
+    @keyframes moveStripes {
+      0% {
+        background-position: 0 0;
+      }
+      100% {
+        background-position: 40px 0;
+      }
     }
     
     /* Green indicator for selected available range */
@@ -2763,7 +2778,6 @@ function initializeDateTimePicker() {
         setupFilterButtons();
         setInterval(updateChargerStatus, 1 * 1000);
         
-        
         (function loadModifyMode() {
             const params = new URLSearchParams(window.location.search);
         
@@ -2781,39 +2795,71 @@ function initializeDateTimePicker() {
                             return;
                         }
         
-                        // Prefill fields
+                        // -----------------------
+                        // 1️⃣ Prefill base fields
+                        // -----------------------
                         prefillModifyForm(data);
         
-                        // 🔥 Auto-switch to form tab
+                        // Save for later use
+                        const s = new Date(data.startISO);
+                        const e = new Date(data.endISO);
+                        const charger = data.charger;
+        
+                        modalSelectedCharger = charger;
+        
+                        // -----------------------
+                        // 2️⃣ Switch to Booking Form first
+                        // -----------------------
                         showTab("form");
-                        
-                        // Wait for tab transition
+        
                         setTimeout(() => {
-                            // 1️⃣ Open your modal
-                            const modal = document.getElementById('dateTimePickerModal');
+                            // -----------------------
+                            // 3️⃣ OPEN the modal
+                            // -----------------------
+                            const modal = document.getElementById("dateTimePickerModal");
                             if (modal) {
                                 modal.style.display = "flex";
                                 modal.classList.add("active");
                             }
-                        
-                            // 2️⃣ Preselect charger inside modal
+        
+                            // -----------------------
+                            // 4️⃣ Preselect charger
+                            // -----------------------
                             const chargerButtons = modal.querySelectorAll(".charger-btn");
                             chargerButtons.forEach(btn => {
                                 btn.classList.remove("active");
-                                if (btn.dataset.charger === data.charger) {
+                                if (btn.dataset.charger === charger) {
                                     btn.classList.add("active");
-                                    btn.click(); // triggers your normal charger selection logic
+                                    btn.click();
                                 }
                             });
-                        
-                            // 3️⃣ Preload the user’s start & end times into the picker
-                            if (window.setInitialDateTimeRange) {
-                                setInitialDateTimeRange(data.startISO, data.endISO);
-                            }
-                        
-                        }, 400);
         
-                        // Button label
+                            // -----------------------
+                            // 5️⃣ NOW preload flatpickr
+                            // -----------------------
+                            if (datePicker) {
+                                datePicker.setDate([s, e]);
+                            }
+        
+                            // -----------------------
+                            // 6️⃣ Preload time slider
+                            // -----------------------
+                            if (timeSlider && timeSlider.noUiSlider) {
+                                const startMin = s.getHours() * 60 + s.getMinutes();
+                                const endMin   = e.getHours() * 60 + e.getMinutes();
+                                timeSlider.noUiSlider.set([startMin, endMin]);
+                            }
+        
+                            // -----------------------
+                            // 7️⃣ Highlight user's reserved range
+                            // -----------------------
+                            if (typeof highlightUserSlot === "function") {
+                                highlightUserSlot(s, e);
+                            }
+        
+                        }, 250); // allow animations + DOM rendering
+        
+                        // Update submit button text
                         document.querySelector('#bookingForm button[type="submit"]').textContent =
                             "UPDATE RESERVATION";
         
