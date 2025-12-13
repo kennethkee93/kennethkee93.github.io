@@ -2500,45 +2500,43 @@ function initializeDateTimePicker() {
               const trySet = () => {
                   attempts++;
           
-                  // --- Ensure datePicker exists AND sliders exist ---
-                  if (
-                      datePicker &&
-                      startSlider && startSlider.noUiSlider &&
-                      endSlider && endSlider.noUiSlider
-                  ) {
-                      // 1️⃣ Preload DATE first
-                      console.log("📅 Preloading date:", s, e);
+                  // FIX 1: Check 'startSlider' directly. It IS the instance. 
+                  // Do NOT check 'startSlider.noUiSlider'.
+                  if (datePicker && startSlider && endSlider) {
+                      
+                      // 1. Preload DATE
+                      // 'true' triggers the onChange event so internal logic runs
                       datePicker.setDate([s, e], true);
           
-                      // 2️⃣ Convert to minutes
+                      // 2. Convert to minutes
                       const startMin = s.getHours() * 60 + s.getMinutes();
                       const endMin   = e.getHours() * 60 + e.getMinutes();
           
-                      // 3️⃣ Preload BOTH slider handles
-                      console.log("⏳ Preloading slider:", startMin, endMin);
-                      startSlider.noUiSlider.set(startMin);
-                      endSlider.noUiSlider.set(endMin);
+                      // FIX 2: Call .set() directly on the variables
+                      startSlider.set(startMin);
+                      endSlider.set(endMin);
           
-                      // 4️⃣ Update UI after preloading
+                      // 3. Update UI
                       updateAllBlockedSlots();
                       updateSliderLabels();
                       updateRangeIndicator();
                       updateSummary();
           
-                      return; // SUCCESS 🎉
+                      return; // Success
                   }
           
                   // Retry mechanism
                   if (attempts < 20) {
-                      console.log("Slider/date not ready yet — retrying...");
-                      setTimeout(trySet, 120);
+                      setTimeout(trySet, 100);
                   } else {
-                      console.warn("❌ Failed to preload modify slider after 20 attempts.");
+                      console.warn("❌ Failed to preload modify slider: Sliders not initialized.");
                   }
               };
           
               trySet();
           }
+          
+          // Ensure this line is present immediately after the function
           window.waitForSliderAndPreload = waitForSliderAndPreload;
           
           // --- Event Listeners ---
