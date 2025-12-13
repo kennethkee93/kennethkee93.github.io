@@ -1982,30 +1982,25 @@
      }
      
     function showBackToHomeButton() {
-        const errorDiv = document.getElementById('errorMsg');
-        if (!errorDiv) return;
+        const submitBtn = document.querySelector('#bookingForm button[type="submit"]');
+        if (!submitBtn) return;
     
-        // Avoid adding duplicate buttons
-        if (document.getElementById('backToHomeBtn')) return;
+        // Change button appearance
+        submitBtn.textContent = 'Back to Home';
+        submitBtn.disabled = false;
     
-        const btn = document.createElement('button');
-        btn.id = 'backToHomeBtn';
-        btn.textContent = 'Back to Home';
+        // Optional styling tweak (keep or remove)
+        submitBtn.style.backgroundColor = '#1f2937';
     
-        btn.style.marginTop = '12px';
-        btn.style.padding = '8px 14px';
-        btn.style.background = '#1f2937';
-        btn.style.color = '#fff';
-        btn.style.border = 'none';
-        btn.style.borderRadius = '6px';
-        btn.style.fontWeight = '600';
-        btn.style.cursor = 'pointer';
+        // Remove any existing submit handlers by cloning
+        const newBtn = submitBtn.cloneNode(true);
+        submitBtn.parentNode.replaceChild(newBtn, submitBtn);
     
-        btn.onclick = () => {
+        // Assign new behavior
+        newBtn.addEventListener('click', (e) => {
+            e.preventDefault();
             window.location.href = `${location.origin}/`;
-        };
-    
-        errorDiv.appendChild(btn);
+        });
     }
 
     // =================================================================
