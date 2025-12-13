@@ -2461,13 +2461,11 @@ function initializeDateTimePicker() {
           });
       
           // --- Modal Control ---
-          function openModal({ preserve = false } = {}) {
+          window.openModal = function ({ preserve = false } = {}) {
               modal.style.display = 'flex';
+              modal.classList.add('active');
           
-              // 🔒 DO NOT reset when modifying
-              if (preserve) {
-                  return;
-              }
+              if (preserve) return;
           
               // Normal "new booking" behavior
               const malaysiaDate = getMalaysiaDateShifted();
@@ -2824,6 +2822,7 @@ function initializeDateTimePicker() {
                     // 2️⃣ Open modal WITHOUT RESET
                     setTimeout(() => {
                         openModal({ preserve: true });
+                    }, 300);
         
                         // 3️⃣ Preselect charger
                         modalSelectedCharger = data.charger;
