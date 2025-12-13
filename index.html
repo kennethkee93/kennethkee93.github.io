@@ -967,32 +967,34 @@
         rgba(255, 0, 0, 0.6) 6px,
         rgba(255, 0, 0, 0.6) 12px
       );
-      background-size: 40px 40px;
-      animation: moveStripes 2s linear infinite;
+      background-size: 36px 36px; 
+      background-repeat: repeat-x;
+      animation: moveStripes 3s linear infinite;
     }
-
-    .modification-slot {
+    
+    .userreserved-slot {
       position: absolute;
       height: 100%;
       border-radius: 4px;
       background: repeating-linear-gradient(
         45deg,
-        rgba(20, 184, 166, 0.9),
-        rgba(20, 184, 166, 0.9) 6px,
-        rgba(45, 212, 191, 0.6) 6px,
-        rgba(45, 212, 191, 0.6) 12px
+        rgba(110, 255, 255, 1),
+        rgba(110, 255, 255, 1) 6px,
+        rgba(143, 255, 255, 1) 6px,
+        rgba(143, 255, 255, 1) 12px
       );
-      background-size: 40px 40px;
-      animation: moveStripes 2s linear infinite;
+      background-size: 36px 36px; 
+      background-repeat: repeat-x;
+      animation: moveStripes 3s linear infinite;
     }
-        
+
     /* Animation for the stripe movement */
     @keyframes moveStripes {
       0% {
         background-position: 0 0;
       }
       100% {
-        background-position: 40px 0;
+        background-position: 36px 0; 
       }
     }
     
@@ -1006,20 +1008,20 @@
       left: -1px;
       right: -1px;
       z-index: 1;
-      box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+      box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
     }
     @keyframes greenGlow {
       0% {
         background-position: 0% 50%;
-        box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+        box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
       }
       50% {
         background-position: 100% 50%;
-        box-shadow: 0 0 12px rgba(34, 197, 94, 0.9);
+        box-shadow: 0 0 12px rgba(34, 197, 94, 0.6);
       }
       100% {
         background-position: 0% 50%;
-        box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+        box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
       }
     }
 
@@ -1743,15 +1745,15 @@
                 </div>
                 <div class="section-content">
                     <div class="section-content-inner">
-                        <strong>Reservation Cancellation Notice</strong>
-                        If you wish to cancel a reservation you made, please use the cancellation link provided in your booking confirmation email.<br><br>
+                        <strong>Reservation Update and Cancellation Notice</strong>
+                        If you wish to update or cancel a reservation you made, please click on the "Update Reservation" or "Cancel Reservation" button in your booking confirmation email.<br><br>
                         
                         <strong>Having issues with Your Reservation?</strong>
                         Contact us via WhatsApp:<br>
                         Ken - <a href="https://wa.link/2j8nrw" target="_blank" rel="noopener noreferrer">Chat with Ken</a><br>
                         Max - <a href="https://wa.link/soelvy" target="_blank" rel="noopener noreferrer">Chat with Max</a><br><br>
                         
-                        We're happy to assist with any modifications or cancellations to your reservation.<br><br>
+                        We're happy to assist you.<br><br>
                         
                         <strong>Join the Community!</strong>
                         Connect with other EV owners in Emerald Hills by joining our WhatsApp group:<br>
@@ -1783,11 +1785,8 @@
                         <strong>Q: What timezone is the time shown in?</strong>
                         All users will see the time displayed in Malaysia Time (GMT+8).<br><br>
                         
-                        <strong>Q: How do I cancel a reservation?</strong>
-                        To cancel a reservation, please use the unique cancellation link provided in your booking confirmation email.<br><br>
-                        
-                        <strong>Q: How do I modify my reservation?</strong>
-                        To make changes to an existing reservation, please cancel your current booking using the cancellation link, then submit a new reservation.
+                        <strong>Q: How do I update or cancel a reservation?</strong>
+                        To update or cancel a reservation, please click on the "Update Reservation" or "Cancel Reservation" button in your booking confirmation email.<br><br>
                     </div>
                 </div>
             </div>
@@ -1967,7 +1966,7 @@
               
         document.querySelector("#bookingForm button[type='submit']").textContent = "UPDATE RESERVATION";
               
-        showMessage("success", "Loaded your reservation for modification.");
+        showMessage("success", "Please proceed to update your reservation.");
     }
 
     // =================================================================
@@ -2151,7 +2150,7 @@ function initializeDateTimePicker() {
               }
           
               const slot = document.createElement("div");
-              slot.className = "modification-slot"; // NEW STYLE
+              slot.className = "userreserved-slot"; // NEW STYLE
               slot.style.left = `${(startMinutes / 1440) * 100}%`;
               slot.style.width = `${((endMinutes - startMinutes) / 1440) * 100}%`;
           
@@ -2826,7 +2825,7 @@ function initializeDateTimePicker() {
                         .then(res => res.json())
                         .then(data => {
                             if (!data.success) {
-                                showMessage("error", "Unable to load reservation for modification.");
+                                showMessage("error", "Error loading reservation.");
                                 return;
                             }
             
@@ -2870,11 +2869,11 @@ function initializeDateTimePicker() {
                             document.querySelector('#bookingForm button[type="submit"]').textContent =
                                 "UPDATE RESERVATION";
             
-                            showMessage("success", "Loaded your reservation for modification.");
+                            showMessage("success", "Please proceed to update your reservation.");
                         })
                         .catch(err => {
                             console.error("Modify mode load failed:", err);
-                            showMessage("error", "Error loading booking for modification.");
+                            showMessage("error", "Error loading reservation.");
                         });
                 }
             })();
