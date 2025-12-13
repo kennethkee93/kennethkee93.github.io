@@ -3052,7 +3052,7 @@ function initializeDateTimePicker() {
                     headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
                     events: events, contentHeight: isMobile ? 'auto' : 'auto', scrollTimeReset: false,
                     eventClick: info => showEventDetails(info.event),
-                    eventContent: arg => ({ html: `<div class="fc-event-main-frame"><div class="fc-event-title-container" style="font-weight:bold;"><div class="fc-event-title fc-sticky" style="color:#FFF;">${arg.event.title}</div><div style="font-size:0.85em; color:#FFF;">${arg.event.extendedProps.charger}</div></div></div>` })
+                    eventContent: arg => ({ html: `<div class="fc-event-main-frame"><div class="fc-event-title-container" style="font-weight:bold;"><div class="fc-event-title fc-sticky" style="color:#FFF;">${arg.event.extendedProps.plate}</div></div></div>` })
                 });
                 calendar.render();
                 calendarEl.style.touchAction = 'pan-y';
