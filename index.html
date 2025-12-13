@@ -2854,7 +2854,8 @@ function initializeDateTimePicker() {
                             if (isModifyWindowExpired(data.endISO)) {
                                 showMessage(
                                     "error",
-                                    "⛔ This reservation ended more than 1 hour ago and can no longer be updated."
+                                    "⛔ This reservation ended more than 1 hour ago and can no longer be updated." 
+                                    { persistent: true }
                                 );
                             
                                 disableModifySubmitButton(); // ⛔ HARD STOP
@@ -2913,9 +2914,10 @@ function initializeDateTimePicker() {
 
     let messageTimer = null;
     
-    function showMessage(type, message) {
+    function showMessage(type, message, options = {}) {
         const errorDiv = document.getElementById('errorMsg');
         const successDiv = document.getElementById('successMsg');
+        const { persistent = false } = options;
     
         // Clear any previous timers
         if (messageTimer) {
@@ -2931,7 +2933,7 @@ function initializeDateTimePicker() {
             successDiv.textContent = message;
             successDiv.style.display = 'block';
     
-            // ✅ Success auto-hides
+            // Success always auto-hides
             messageTimer = setTimeout(() => {
                 successDiv.style.display = 'none';
             }, 10000);
@@ -2940,7 +2942,12 @@ function initializeDateTimePicker() {
             errorDiv.textContent = message;
             errorDiv.style.display = 'block';
     
-            // ❌ Error does NOT auto-hide
+            // ❌ Only auto-hide if NOT persistent
+            if (!persistent) {
+                messageTimer = setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 10000);
+            }
         }
     }
 
