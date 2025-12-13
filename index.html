@@ -1980,6 +1980,33 @@
       if (submitBtn) {
           submitBtn.disabled = true; }
      }
+     
+    function showBackToHomeButton() {
+        const errorDiv = document.getElementById('errorMsg');
+        if (!errorDiv) return;
+    
+        // Avoid adding duplicate buttons
+        if (document.getElementById('backToHomeBtn')) return;
+    
+        const btn = document.createElement('button');
+        btn.id = 'backToHomeBtn';
+        btn.textContent = 'Back to Home';
+    
+        btn.style.marginTop = '12px';
+        btn.style.padding = '8px 14px';
+        btn.style.background = '#1f2937';
+        btn.style.color = '#fff';
+        btn.style.border = 'none';
+        btn.style.borderRadius = '6px';
+        btn.style.fontWeight = '600';
+        btn.style.cursor = 'pointer';
+    
+        btn.onclick = () => {
+            window.location.href = `${location.origin}/`;
+        };
+    
+        errorDiv.appendChild(btn);
+    }
 
     // =================================================================
     //        LOGIC FOR THE NEW DATE & TIME PICKER MODAL
@@ -2854,11 +2881,11 @@ function initializeDateTimePicker() {
                             if (isModifyWindowExpired(data.endISO)) {
                                 showMessage(
                                     "error",
-                                    "⛔ This reservation ended more than 1 hour ago and can no longer be updated." 
+                                    "⛔ This reservation ended more than 1 hour ago and can no longer be updated.",
                                     { persistent: true }
                                 );
                             
-                                disableModifySubmitButton(); // ⛔ HARD STOP
+                                showBackToHomeButton(); // ⛔ HARD STOP
                                 return; // Do NOT open modal or allow interaction
                             }
                             
