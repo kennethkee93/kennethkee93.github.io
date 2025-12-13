@@ -2496,29 +2496,56 @@ function initializeDateTimePicker() {
           // --- Modal Control ---
           function openModal() {
               modal.style.display = 'flex';
-              
-              // --- FIX: FORCE MALAYSIA TIME FOR SLIDER ---
+          
+              const existingCharger = mainFormChargerHidden.value;
+              const existingStart = mainFormStartHidden.value;
+              const existingEnd = mainFormEndHidden.value;
+          
+              // 🟢 CASE 1: We already have a selection → restore it
+              if (existingCharger && existingStart && existingEnd) {
+          
+                  // 1️⃣ Select charger
+                  chargerButtonsModal.forEach(btn => {
+                      btn.classList.remove('selected');
+                      if (btn.dataset.charger === existingCharger) {
+                          btn.classList.add('selected');
+                          modalSelectedCharger = existingCharger;
+                      }
+                  });
+          
+                  // 2️⃣ Restore date & time
+                  const s = new Date(existingStart);
+                  const e = new Date(existingEnd);
+          
+                  // Use your existing safe preload helper
+                  window.waitForSliderAndPreload(s, e);
+          
+                  return; // 🚫 DO NOT reset defaults
+              }
+          
+              // 🟠 CASE 2: No previous selection → default behavior
               const malaysiaDate = getMalaysiaDateShifted();
               const currentMinutes = malaysiaDate.getHours() * 60 + malaysiaDate.getMinutes();
-              // -------------------------------------------
-
+          
               let roundedStartTime = Math.ceil(currentMinutes / 15) * 15;
               let roundedEndTime = roundedStartTime + 60;
-              
-              if (roundedEndTime > 1440) { roundedEndTime = 1440; }
+          
+              if (roundedEndTime > 1440) roundedEndTime = 1440;
               if (roundedStartTime >= 1440 - MINIMUM_SLOT_MINUTES) {
                   roundedStartTime = 1440 - MINIMUM_SLOT_MINUTES;
                   roundedEndTime = 1440;
               }
-      
+          
               datePicker.clear();
               startDate = null;
               endDate = null;
+          
               startSlider.set(roundedStartTime);
               endSlider.set(roundedEndTime);
-      
+          
               chargerButtonsModal.forEach(b => b.classList.remove('selected'));
               modalSelectedCharger = null;
+          
               updateAllBlockedSlots();
               updateSliderLabels();
               updateRangeIndicator();
