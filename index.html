@@ -1968,6 +1968,12 @@
               
         showMessage("success", "Please proceed to update your reservation.");
     }
+    
+    function isModifyWindowExpired(endISO) {
+      const endMoment = moment(endISO);
+      const cutoffMoment = endMoment.clone().add(1, 'hours');
+      return moment().isAfter(cutoffMoment);
+    }
 
     // =================================================================
     //        LOGIC FOR THE NEW DATE & TIME PICKER MODAL
@@ -2828,6 +2834,14 @@ function initializeDateTimePicker() {
                                 showMessage("error", "Error loading reservation.");
                                 return;
                             }
+                                // ⛔ TIME VALIDATION — END + 1 HOUR
+                            if (isModifyWindowExpired(data.endISO)) {
+                              showMessage(
+                                "⏱️ This reservation ended more than 1 hour ago and can no longer be updated."
+                              );
+                              lockModifyUI();
+                              return;
+                            }
             
                             // 1️⃣ Prefill base fields
                             prefillModifyForm(data);
@@ -2878,6 +2892,23 @@ function initializeDateTimePicker() {
                 }
             })();
     });
+    
+    function lockModifyUI() {
+      // Disable Apply / Update buttons
+      document.querySelectorAll('.apply-button').forEach(btn => {
+        btn.disabled = true;
+      });
+    
+      // Disable sliders (noUiSlider)
+      document.querySelectorAll('.time-slider').forEach(slider => {
+        slider.setAttribute('disabled', true);
+      });
+    
+      // Optional: hide slider containers completely
+      document.querySelectorAll('.time-slider-wrapper').forEach(el => {
+        el.style.display = 'none';
+      });
+    }
     
     // Allows modify mode to set the starting range in your time picker
     function setInitialDateTimeRange(startISO, endISO) {
