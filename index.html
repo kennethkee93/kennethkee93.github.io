@@ -2461,69 +2461,83 @@ function initializeDateTimePicker() {
           });
       
           // --- Modal Control ---
-          window.openModal = function ({ preserve = false } = {}) {
+          function openModal() {
               modal.style.display = 'flex';
-              modal.classList.add('active');
-          
-              if (preserve) return;
-          
-              // Normal "new booking" behavior
+              
+              // --- FIX: FORCE MALAYSIA TIME FOR SLIDER ---
               const malaysiaDate = getMalaysiaDateShifted();
               const currentMinutes = malaysiaDate.getHours() * 60 + malaysiaDate.getMinutes();
-          
+              // -------------------------------------------
+
               let roundedStartTime = Math.ceil(currentMinutes / 15) * 15;
               let roundedEndTime = roundedStartTime + 60;
-          
-              if (roundedEndTime > 1440) roundedEndTime = 1440;
+              
+              if (roundedEndTime > 1440) { roundedEndTime = 1440; }
               if (roundedStartTime >= 1440 - MINIMUM_SLOT_MINUTES) {
                   roundedStartTime = 1440 - MINIMUM_SLOT_MINUTES;
                   roundedEndTime = 1440;
               }
-          
+      
               datePicker.clear();
               startDate = null;
               endDate = null;
-          
               startSlider.set(roundedStartTime);
               endSlider.set(roundedEndTime);
-          
+      
               chargerButtonsModal.forEach(b => b.classList.remove('selected'));
               modalSelectedCharger = null;
-          
               updateAllBlockedSlots();
               updateSliderLabels();
               updateRangeIndicator();
               updateSummary();
           }
-
       
           function closeModal() { modal.style.display = 'none'; }
       
-          function preloadModifyReservation(startISO, endISO) {
-              const s = new Date(startISO);
-              const e = new Date(endISO);
+          function waitForSliderAndPreload(s, e) {
+              let attempts = 0;
           
-              // 1️⃣ Preselect DATE FIRST (flatpickr drives everything)
-              datePicker.setDate([s, e], true);
+              const trySet = () => {
+                  attempts++;
           
-              startDate = new Date(s.setHours(0,0,0,0));
-              endDate   = new Date(e.setHours(0,0,0,0));
+                  // --- Ensure datePicker exists AND sliders exist ---
+                  if (
+                      datePicker &&
+                      startSlider && startSlider.noUiSlider &&
+                      endSlider && endSlider.noUiSlider
+                  ) {
+                      // 1️⃣ Preload DATE first
+                      console.log("📅 Preloading date:", s, e);
+                      datePicker.setDate([s, e], true);
           
-              // 2️⃣ Convert time → minutes
-              const startMin = s.getHours() * 60 + s.getMinutes();
-              const endMin   = e.getHours() * 60 + e.getMinutes();
+                      // 2️⃣ Convert to minutes
+                      const startMin = s.getHours() * 60 + s.getMinutes();
+                      const endMin   = e.getHours() * 60 + e.getMinutes();
           
-              // 3️⃣ Set sliders
-              startSlider.set(startMin);
-              endSlider.set(endMin);
+                      // 3️⃣ Preload BOTH slider handles
+                      console.log("⏳ Preloading slider:", startMin, endMin);
+                      startSlider.noUiSlider.set(startMin);
+                      endSlider.noUiSlider.set(endMin);
           
-              // 4️⃣ Update UI
-              updateAllBlockedSlots();
-              updateSliderLabels();
-              updateRangeIndicator();
-              updateSummary();
+                      // 4️⃣ Update UI after preloading
+                      updateAllBlockedSlots();
+                      updateSliderLabels();
+                      updateRangeIndicator();
+                      updateSummary();
           
-              console.log("✅ Modify preload complete");
+                      return; // SUCCESS 🎉
+                  }
+          
+                  // Retry mechanism
+                  if (attempts < 20) {
+                      console.log("Slider/date not ready yet — retrying...");
+                      setTimeout(trySet, 120);
+                  } else {
+                      console.warn("❌ Failed to preload modify slider after 20 attempts.");
+                  }
+              };
+          
+              trySet();
           }
       
           // --- Event Listeners ---
@@ -2803,52 +2817,70 @@ function initializeDateTimePicker() {
         (function loadModifyMode() {
             const params = new URLSearchParams(window.location.search);
         
-            if (params.get("mode") !== "modify") return;
+            if (params.get("mode") === "modify") {
+                modifyMode = true;
+                modifyBookingId = params.get("id");
         
-            modifyMode = true;
-            modifyBookingId = params.get("id");
+                console.log("Modify mode enabled for booking:", modifyBookingId);
         
-            fetch(`${WEB_APP_URL}?action=getSpecificBooking&id=${modifyBookingId}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (!data.success) {
-                        showMessage("error", "Unable to load reservation for modification.");
-                        return;
-                    }
+                fetch(`${WEB_APP_URL}?action=getSpecificBooking&id=${modifyBookingId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.success) {
+                            showMessage("error", "Unable to load reservation for modification.");
+                            return;
+                        }
         
-                    // 1️⃣ Switch tab FIRST
-                    showTab("form");
+                        // -----------------------
+                        // 1️⃣ Prefill base fields
+                        // -----------------------
+                        prefillModifyForm(data);
         
-                    // 2️⃣ Open modal WITHOUT RESET
-                    setTimeout(() => {
-                        openModal({ preserve: true });
-                    }, 300);
+                        // Save for later use
+                        const s = new Date(data.startISO);
+                        const e = new Date(data.endISO);
+                        const charger = data.charger;
         
-                        // 3️⃣ Preselect charger
-                        modalSelectedCharger = data.charger;
-                        document.querySelectorAll(".charger-btn").forEach(btn => {
-                            btn.classList.toggle(
-                                "selected",
-                                btn.dataset.charger === data.charger
-                            );
-                        });
+                        modalSelectedCharger = charger;
         
-                        // 4️⃣ Preload date + time
-                        preloadModifyReservation(data.startISO, data.endISO);
+                        // -----------------------
+                        // 2️⃣ Switch to Booking Form first
+                        // -----------------------
+                        showTab("form");
+                        
+                        setTimeout(() => {
+                            const modal = document.getElementById("dateTimePickerModal");
+                            if (modal) {
+                                modal.style.display = "flex";
+                                modal.classList.add("active");
+                            }
+                        
+                            // 1️⃣ Select charger (this initializes the slider)
+                            const chargerButtons = modal.querySelectorAll(".charger-btn");
+                            chargerButtons.forEach(btn => {
+                                btn.classList.remove("active");
+                                if (btn.dataset.charger === data.charger) {
+                                    btn.classList.add("active");
+                                    btn.click(); // IMPORTANT: slider is created here
+                                }
+                            });
+                        
+                            // 2️⃣ Now preload date & time AFTER slider exists
+                            waitForSliderAndPreload(s, e);
+                        
+                        }, 300);
+                        
+                        // Update submit button text
+                        document.querySelector('#bookingForm button[type="submit"]').textContent =
+                            "UPDATE RESERVATION";
         
-                    }, 350);
-        
-                    // 5️⃣ Prefill form fields
-                    prefillModifyForm(data);
-        
-                    document.querySelector(
-                        '#bookingForm button[type="submit"]'
-                    ).textContent = "UPDATE RESERVATION";
-                })
-                .catch(err => {
-                    console.error("Modify mode load failed:", err);
-                    showMessage("error", "Error loading booking for modification.");
-                });
+                        showMessage("success", "Loaded your reservation for modification.");
+                    })
+                    .catch(err => {
+                        console.error("Modify mode load failed:", err);
+                        showMessage("error", "Error loading booking for modification.");
+                    });
+            }
         })();
     });
     
