@@ -2848,7 +2848,9 @@ function initializeDateTimePicker() {
         
         (function loadModifyMode() {
                 const params = new URLSearchParams(window.location.search);
-            
+                
+                let modifyExpired = false;
+                
                 if (params.get("mode") === "modify") {
                     modifyMode = true;
                     modifyBookingId = params.get("id");
@@ -2874,6 +2876,7 @@ function initializeDateTimePicker() {
                             showTab("form");
                             
                             if (isModifyWindowExpired(data.endISO)) {
+                                modifyExpired = true;
                                 showMessage(
                                     "error",
                                     "⛔ This reservation ended more than 1 hour ago and can no longer be updated.",
@@ -2910,9 +2913,10 @@ function initializeDateTimePicker() {
                             
                             }, 300);
                             
-                            // Update submit button text
-                            document.querySelector('#bookingForm button[type="submit"]').textContent =
-                                "UPDATE RESERVATION";
+                            if (!modifyExpired) {
+                                document.querySelector('#bookingForm button[type="submit"]').textContent =
+                                    "UPDATE RESERVATION";
+                            }
             
                             showMessage("success", "Please proceed to update your reservation.");
                         })
