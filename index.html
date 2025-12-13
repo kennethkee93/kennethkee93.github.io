@@ -2539,7 +2539,8 @@ function initializeDateTimePicker() {
           
               trySet();
           }
-      
+          window.waitForSliderAndPreload = waitForSliderAndPreload;
+          
           // --- Event Listeners ---
           mainFormDisplay.addEventListener('click', openModal);
           const closeBtn = document.getElementById('closeDateTimePicker');
@@ -2815,73 +2816,70 @@ function initializeDateTimePicker() {
         setInterval(updateChargerStatus, 1 * 1000);
         
         (function loadModifyMode() {
-            const params = new URLSearchParams(window.location.search);
-        
-            if (params.get("mode") === "modify") {
-                modifyMode = true;
-                modifyBookingId = params.get("id");
-        
-                console.log("Modify mode enabled for booking:", modifyBookingId);
-        
-                fetch(`${WEB_APP_URL}?action=getSpecificBooking&id=${modifyBookingId}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (!data.success) {
-                            showMessage("error", "Unable to load reservation for modification.");
-                            return;
-                        }
-        
-                        // -----------------------
-                        // 1️⃣ Prefill base fields
-                        // -----------------------
-                        prefillModifyForm(data);
-        
-                        // Save for later use
-                        const s = new Date(data.startISO);
-                        const e = new Date(data.endISO);
-                        const charger = data.charger;
-        
-                        modalSelectedCharger = charger;
-        
-                        // -----------------------
-                        // 2️⃣ Switch to Booking Form first
-                        // -----------------------
-                        showTab("form");
-                        
-                        setTimeout(() => {
-                            const modal = document.getElementById("dateTimePickerModal");
-                            if (modal) {
-                                modal.style.display = "flex";
-                                modal.classList.add("active");
+                const params = new URLSearchParams(window.location.search);
+            
+                if (params.get("mode") === "modify") {
+                    modifyMode = true;
+                    modifyBookingId = params.get("id");
+            
+                    console.log("Modify mode enabled for booking:", modifyBookingId);
+            
+                    fetch(`${WEB_APP_URL}?action=getSpecificBooking&id=${modifyBookingId}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (!data.success) {
+                                showMessage("error", "Unable to load reservation for modification.");
+                                return;
                             }
-                        
-                            // 1️⃣ Select charger (this initializes the slider)
-                            const chargerButtons = modal.querySelectorAll(".charger-btn");
-                            chargerButtons.forEach(btn => {
-                                btn.classList.remove("active");
-                                if (btn.dataset.charger === data.charger) {
-                                    btn.classList.add("active");
-                                    btn.click(); // IMPORTANT: slider is created here
+            
+                            // 1️⃣ Prefill base fields
+                            prefillModifyForm(data);
+            
+                            // Save for later use
+                            const s = new Date(data.startISO);
+                            const e = new Date(data.endISO);
+                            
+                            // 2️⃣ Switch to Booking Form first
+                            showTab("form");
+                            
+                            setTimeout(() => {
+                                const modal = document.getElementById("dateTimePickerModal");
+                                if (modal) {
+                                    modal.style.display = "flex";
+                                    // modal.classList.add("active"); // Optional, depending on your CSS
                                 }
-                            });
-                        
-                            // 2️⃣ Now preload date & time AFTER slider exists
-                            waitForSliderAndPreload(s, e);
-                        
-                        }, 300);
-                        
-                        // Update submit button text
-                        document.querySelector('#bookingForm button[type="submit"]').textContent =
-                            "UPDATE RESERVATION";
-        
-                        showMessage("success", "Loaded your reservation for modification.");
-                    })
-                    .catch(err => {
-                        console.error("Modify mode load failed:", err);
-                        showMessage("error", "Error loading booking for modification.");
-                    });
-            }
-        })();
+                            
+                                // 3️⃣ Select charger (Simulate click to update internal state)
+                                const chargerButtons = modal.querySelectorAll(".charger-btn");
+                                chargerButtons.forEach(btn => {
+                                    btn.classList.remove("selected"); // Fix: Use 'selected' not 'active'
+                                    if (btn.dataset.charger === data.charger) {
+                                        btn.classList.add("selected"); // Fix: Use 'selected' not 'active'
+                                        btn.click(); // Triggers the listener in initializeDateTimePicker
+                                    }
+                                });
+                            
+                                // 4️⃣ Preload date & time using the exposed global function
+                                if (window.waitForSliderAndPreload) {
+                                    window.waitForSliderAndPreload(s, e);
+                                } else {
+                                    console.error("waitForSliderAndPreload not found. Ensure it is exposed to window.");
+                                }
+                            
+                            }, 300);
+                            
+                            // Update submit button text
+                            document.querySelector('#bookingForm button[type="submit"]').textContent =
+                                "UPDATE RESERVATION";
+            
+                            showMessage("success", "Loaded your reservation for modification.");
+                        })
+                        .catch(err => {
+                            console.error("Modify mode load failed:", err);
+                            showMessage("error", "Error loading booking for modification.");
+                        });
+                }
+            })();
     });
     
     // Allows modify mode to set the starting range in your time picker
