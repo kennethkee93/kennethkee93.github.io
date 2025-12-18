@@ -2596,8 +2596,11 @@ function initializeDateTimePicker() {
                       datePicker.setDate([s, e], true);
           
                       // 2. Convert to minutes
-                      const startMin = s.getHours() * 60 + s.getMinutes();
-                      const endMin   = e.getHours() * 60 + e.getMinutes();
+                      const s_moment = moment(s).tz("Asia/Kuala_Lumpur");
+                      const e_moment = moment(e).tz("Asia/Kuala_Lumpur");
+
+                      const startMin = s_moment.hours() * 60 + s_moment.minutes();
+                      const endMin   = e_moment.hours() * 60 + e_moment.minutes();
           
                       // FIX 2: Call .set() directly on the variables
                       startSlider.set(startMin);
@@ -2943,8 +2946,8 @@ function initializeDateTimePicker() {
                             prefillModifyForm(data);
 
                             // Save for later use
-                            const s = new Date(data.startISO);
-                            const e = new Date(data.endISO);
+                            const s = moment(data.startISO).tz("Asia/Kuala_Lumpur").toDate();
+                            const e = moment(data.endISO).tz("Asia/Kuala_Lumpur").toDate();
 
                             // Check if reservation has started
                             const now = moment().tz("Asia/Kuala_Lumpur");
