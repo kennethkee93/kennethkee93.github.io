@@ -1963,7 +1963,11 @@
     let modifyEmail = null;
     let lockStartDateTime = false;
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     let lockedStartDate = null;
+=======
+    let lockedStartDateTime = null;
+>>>>>>> Stashed changes
 =======
     let lockedStartDateTime = null;
 >>>>>>> Stashed changes
@@ -2512,11 +2516,17 @@ function initializeDateTimePicker() {
           startSlider.on('update', (v) => {
           
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             if (modifyMode && lockStartDateTime && lockedStartMinutes !== null) {
               startTimeInMinutes = lockedStartMinutes; // 🔴 keep state aligned
               startSlider.set(lockedStartMinutes);
               return;
             }
+=======
+          if (modifyMode && lockStartDateTime) {
+              return; // 🔒 Ignore completely
+          }
+>>>>>>> Stashed changes
 =======
           if (modifyMode && lockStartDateTime) {
               return; // 🔒 Ignore completely
@@ -2679,10 +2689,15 @@ function initializeDateTimePicker() {
                       
                       // 🔒 Capture locked start time AFTER preload (modify + started only)
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                       if (modifyMode && lockStartDateTime) {
                         lockedStartMinutes = startMin;
                         startTimeInMinutes = startMin; // 🔴 CRITICAL
                         startSliderEl.classList.add("locked-start-slider");
+=======
+                      if (modifyMode && lockedStartDateTime) {
+                      startSliderEl.classList.add("locked-start-slider");
+>>>>>>> Stashed changes
 =======
                       if (modifyMode && lockedStartDateTime) {
                       startSliderEl.classList.add("locked-start-slider");
@@ -3032,7 +3047,11 @@ function initializeDateTimePicker() {
                             if (hasReservationStarted(data.startISO)) {
                               lockStartDateTime = true;
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                               lockedStartDate = new Date(s.setHours(0,0,0,0));
+=======
+                              lockedStartDateTime = new Date(data.startISO);
+>>>>>>> Stashed changes
 =======
                               lockedStartDateTime = new Date(data.startISO);
 >>>>>>> Stashed changes
