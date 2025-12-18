@@ -998,6 +998,23 @@
       }
     }
     
+    /* 🔒 Locked start time slider */
+    .locked-start-slider .noUi-handle {
+      background: #9ca3af !important; /* gray-400 */
+      border-color: #6b7280 !important; /* gray-500 */
+      box-shadow: none !important;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    
+    .locked-start-slider .noUi-connect {
+      background: #d1d5db !important; /* gray-300 */
+    }
+    
+    .locked-start-slider {
+      opacity: 0.75;
+    }
+    
     /* Green indicator for selected available range */
     #selected-range-indicator {
       position: absolute;
@@ -2474,7 +2491,7 @@ function initializeDateTimePicker() {
       
           // --- Slider Handlers ---
           startSlider.on('update', (v) => {
-              if (modifyMode && lockStartDateTime) {
+              if (modifyMode && lockStartDateTime && lockedStartMinutes !== null) {
                 startSlider.set(lockedStartMinutes);
                 return;
               }
@@ -2634,6 +2651,12 @@ function initializeDateTimePicker() {
                       // FIX 2: Call .set() directly on the variables
                       startSlider.set(startMin);
                       endSlider.set(endMin);
+                      
+                      // 🔒 Capture locked start time AFTER preload (modify + started only)
+                      if (modifyMode && lockStartDateTime) {
+                        lockedStartMinutes = startMin;
+                        startSliderEl.classList.add("locked-start-slider");
+                      }
           
                       // 3. Update UI
                       updateAllBlockedSlots();
@@ -2977,7 +3000,6 @@ function initializeDateTimePicker() {
                             if (hasReservationStarted(data.startISO)) {
                               lockStartDateTime = true;
                               lockedStartDate = new Date(s.setHours(0,0,0,0));
-                              lockedStartMinutes = s.getHours() * 60 + s.getMinutes();
                             
                               showMessage(
                                 "success",
