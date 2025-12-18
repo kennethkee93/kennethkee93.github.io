@@ -2995,7 +2995,9 @@ function initializeDateTimePicker() {
                                     "UPDATE RESERVATION";
                             }
             
-                            showMessage("success", "Please proceed to update your reservation.");
+                            if (!hasReservationStarted(data.startISO)) {
+                                showMessage("success", "Please proceed to update your reservation.");
+                            }
                         })
                         .catch(err => {
                             console.error("Modify mode load failed:", err);
