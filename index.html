@@ -1979,9 +1979,7 @@
     }
     
     function isModifyWindowExpired(endISO) {
-      const endMoment = moment(endISO);
-      const cutoffMoment = endMoment.clone().add(1, 'hours');
-      return moment().isAfter(cutoffMoment);
+    return moment().isAfter(moment(endISO));
     }
     
     function disableModifySubmitButton() {
