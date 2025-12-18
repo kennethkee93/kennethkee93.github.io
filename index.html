@@ -998,6 +998,12 @@
       }
     }
     
+    .slider-disabled {
+        opacity: 0.4;
+        pointer-events: none;
+        filter: grayscale(100%);
+    }
+
     /* Green indicator for selected available range */
     #selected-range-indicator {
       position: absolute;
@@ -1944,7 +1950,6 @@
     let modifyMode = false;
     let modifyBookingId = null;
     let modifyEmail = null;
-    let modifyBookingStarted = false;
     
     let currentIndex = 0;
     const tabPanels = ['status', 'calendar', 'form'];
@@ -1976,17 +1981,34 @@
       return moment().isAfter(cutoffMoment);
     }
     
-    function isBookingAlreadyStarted(startISO) {
-        const nowMY = moment().tz("Asia/Kuala_Lumpur");
-        const startMY = moment(startISO).tz("Asia/Kuala_Lumpur");
-        return nowMY.isSameOrAfter(startMY);
-    }
-
     function disableModifySubmitButton() {
       const submitBtn = document.querySelector('#bookingForm button[type="submit"]');
       if (submitBtn) {
           submitBtn.disabled = true; }
      }
+
+    function hasReservationStarted(startISO) {
+        const startMoment = moment(startISO).tz("Asia/Kuala_Lumpur");
+        return moment().tz("Asia/Kuala_Lumpur").isSameOrAfter(startMoment);
+    }
+
+    function lockStartControls() {
+        // --- Flatpickr: lock start date ---
+        if (window.flatpickrInstance) {
+            window.flatpickrInstance.set("clickOpens", false);
+        }
+
+        // --- Start time slider ---
+        const startSliderEl = document.getElementById("start-time-slider");
+        if (startSliderEl && startSliderEl.noUiSlider) {
+            startSliderEl.noUiSlider.disable();
+            startSliderEl.classList.add("slider-disabled");
+        }
+
+        // --- Visual grey-out ---
+        const startLabel = document.querySelector('[for="start-time-slider"]');
+        if (startLabel) startLabel.style.opacity = "0.5";
+    }
      
     function showBackToHomeButton() {
         const submitBtn = document.querySelector('#bookingForm button[type="submit"]');
@@ -2414,29 +2436,18 @@ function initializeDateTimePicker() {
               mode: 'range',
               locale: { firstDayOfWeek: 1 }, 
               onChange: (selectedDates) => {
-                    if (isUpdatingCalendar) return;
-
-                    // 🚫 MODIFY MODE RULE: booking already started
-                    if (modifyMode && modifyBookingStarted) {
-                        // Keep original start date locked
-                        selectedDates[0] = startDate;
-                    }
-
-                    startDate = selectedDates[0]
-                        ? new Date(selectedDates[0].setHours(0,0,0,0))
-                        : null;
-
-                    endDate = selectedDates[1]
-                        ? new Date(selectedDates[1].setHours(0,0,0,0))
-                        : null;
-
-                    wasCreatedByMidnight = false;
-                    updateAllBlockedSlots();
-                    updateSliderLabels();
-                    updateRangeIndicator();
-                    updateSummary();
-               }
+                  if (isUpdatingCalendar) return;
+                  startDate = selectedDates[0] ? new Date(selectedDates[0].setHours(0,0,0,0)) : null;
+                  endDate = selectedDates[1] ? new Date(selectedDates[1].setHours(0,0,0,0)) : null;
+                  wasCreatedByMidnight = false;
+                  updateAllBlockedSlots();
+                  updateSliderLabels();
+                  updateRangeIndicator();
+                  updateSummary();
+              }
           });
+
+          window.flatpickrInstance = datePicker;
       
           // --- Slider Handlers ---
           startSlider.on('update', (v) => {
@@ -2918,11 +2929,9 @@ function initializeDateTimePicker() {
                             // Save for later use
                             const s = new Date(data.startISO);
                             const e = new Date(data.endISO);
-                            
-                            modifyBookingStarted = moment()
-                            .tz("Asia/Kuala_Lumpur")
-                            .isSameOrAfter(moment(data.startISO).tz("Asia/Kuala_Lumpur"));
 
+                            const reservationStarted = hasReservationStarted(data.startISO);
+                            
                             // 2️⃣ Switch to Booking Form first
                             showTab("form");
                             
@@ -2962,27 +2971,17 @@ function initializeDateTimePicker() {
                                     console.error("waitForSliderAndPreload not found. Ensure it is exposed to window.");
                                 }
 
-                                if (bookingHasStarted) {
-                                    // 🔒 Lock START date & time controls
-                                    const startSlider = document.getElementById('start-time-slider');
-                                    const startBlocked = document.getElementById('start-blocked-slots');
-                                    const calendar = document.getElementById('date-calendar');
+                                if (window.waitForSliderAndPreload) {
+                                    window.waitForSliderAndPreload(s, e);
 
-                                    if (startSlider && startSlider.noUiSlider) {
-                                        startSlider.noUiSlider.disable();
+                                    if (reservationStarted) {
+                                        lockStartControls();
+                                        showMessage(
+                                            "error",
+                                            "⚠️ This reservation has already started. You may only update the end date and time.",
+                                            { persistent: true }
+                                        );
                                     }
-
-                                    if (calendar && calendar._flatpickr) {
-                                        calendar._flatpickr.set('clickOpens', false);
-                                    }
-
-                                    // Optional visual cue (safe)
-                                    startBlocked.style.opacity = '0.4';
-
-                                    showMessage(
-                                        "success",
-                                        "ℹ️ This session has already started. You may only extend the end time."
-                                    );
                                 }
                             
                             }, 300);
