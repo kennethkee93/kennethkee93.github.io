@@ -2312,6 +2312,15 @@ function initializeDateTimePicker() {
               const endHour = endTimeInMinutes === 1440 ? 0 : Math.floor(endTimeInMinutes / 60);
               const endMinutes = endTimeInMinutes % 60;
               finalEnd.setHours(endHour, endMinutes, 0, 0);
+              
+              if (modifyMode && isSessionStarted(mainFormStartHidden.value)) {
+                  // Overwrite finalStart with the original immutable start time
+                  const originalStart = new Date(mainFormStartHidden.value);
+                  finalStart.setTime(originalStart.getTime());
+                  
+                  // Optional: Update the summary text to inform the user
+                  summaryTextEl.innerHTML = `<span style="color: #F59E0B; font-size: 11px; display:block; margin-bottom:4px;">Session Active: Start time locked.</span>`;
+              }
       
               if (isSingleDaySelection() && endTimeInMinutes === 1440) {
                   finalEnd.setDate(finalEnd.getDate() + 1);
@@ -2505,37 +2514,11 @@ function initializeDateTimePicker() {
               const existingStart = mainFormStartHidden.value;
               const existingEnd = mainFormEndHidden.value;
           
-              // 🟢 CASE 1: We already have a selection (Restore existing booking)
+              // 🟢 CASE 1: We already have a selection → restore it
               if (existingCharger && existingStart && existingEnd) {
-                  
-                  // --- NEW LOGIC START ---
-                  // Check if we are in MODIFY MODE AND the session has already started
+                  // Check if session has already started
                   const sessionStarted = isSessionStarted(existingStart);
-          
-                  if (modifyMode && sessionStarted) {
-                      // Lock the start slider (startSliderEl is defined in initializeDateTimePicker)
-                      startSliderEl.setAttribute('disabled', true);
-                      
-                      // Lock the date picker so the date cannot be changed
-                      if (datePicker) {
-                          datePicker.set('clickOpens', false);
-                          document.getElementById('date-calendar').style.pointerEvents = 'none';
-                          document.getElementById('date-calendar').style.opacity = '0.7';
-                      }
-                      
-                      // Provide a visual hint in the summary area
-                      summaryTextEl.innerHTML = `<span style="color: #F59E0B; font-size: 11px; font-weight:bold;">Session active: Only end time can be updated.</span>`;
-                  } else {
-                      // ALWAYS RESET: Ensure everything is enabled for normal use or non-started sessions
-                      startSliderEl.removeAttribute('disabled');
-                      if (datePicker) {
-                          datePicker.set('clickOpens', true);
-                          document.getElementById('date-calendar').style.pointerEvents = 'auto';
-                          document.getElementById('date-calendar').style.opacity = '1';
-                      }
-                  }
-                  // --- NEW LOGIC END ---
-          
+              
                   // 1️⃣ Select charger
                   chargerButtonsModal.forEach(btn => {
                       btn.classList.remove('selected');
@@ -2543,14 +2526,45 @@ function initializeDateTimePicker() {
                           btn.classList.add('selected');
                           modalSelectedCharger = existingCharger;
                       }
+                      
+                      // DISABLE charger switching if session started
+                      if (modifyMode && sessionStarted) {
+                          btn.style.pointerEvents = 'none';
+                          btn.style.opacity = '0.5';
+                      } else {
+                          btn.style.pointerEvents = 'auto';
+                          btn.style.opacity = '1';
+                      }
                   });
-          
-                  // 2️⃣ Restore date & time
+              
+                  // 2️⃣ Apply Lock Logic
+                  if (modifyMode && sessionStarted) {
+                      // Disable the start time slider
+                      startSliderEl.setAttribute('disabled', true);
+                      
+                      // Lock the date picker so they can't change the day
+                      if (datePicker) {
+                          datePicker.set('clickOpens', false);
+                          document.getElementById('date-calendar').style.pointerEvents = 'none';
+                          document.getElementById('date-calendar').style.opacity = '0.7';
+                      }
+                  } else {
+                      // Ensure enabled if NOT a started session or NOT in modify mode
+                      startSliderEl.removeAttribute('disabled');
+                      if (datePicker) {
+                          datePicker.set('clickOpens', true);
+                          document.getElementById('date-calendar').style.pointerEvents = 'auto';
+                          document.getElementById('date-calendar').style.opacity = '1';
+                      }
+                  }
+              
+                  // 3️⃣ Restore date & time
                   const s = new Date(existingStart);
                   const e = new Date(existingEnd);
                   window.waitForSliderAndPreload(s, e);
                   return; 
               }
+              // --- NEW LOGIC END ---
           
               // 🟠 CASE 2: No previous selection → default behavior
               const malaysiaDate = getMalaysiaDateShifted();
