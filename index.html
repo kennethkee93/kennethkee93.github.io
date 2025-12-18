@@ -1964,6 +1964,7 @@
     let lockStartDateTime = false;
     let lockedStartDate = null;
     let lockedStartMinutes = null;
+    let isPreloadingModify = false;
     
     let currentIndex = 0;
     const tabPanels = ['status', 'calendar', 'form'];
@@ -2472,9 +2473,11 @@ function initializeDateTimePicker() {
               
                 } else {
                   // NORMAL behavior
+                if (!(modifyMode && lockStartDateTime) || isPreloadingModify) {
                   startDate = selectedDates[0]
                     ? new Date(selectedDates[0].setHours(0,0,0,0))
                     : null;
+                }
               
                   endDate = selectedDates[1]
                     ? new Date(selectedDates[1].setHours(0,0,0,0))
@@ -2491,19 +2494,17 @@ function initializeDateTimePicker() {
       
           // --- Slider Handlers ---
           startSlider.on('update', (v) => {
-              if (modifyMode && lockStartDateTime && lockedStartMinutes !== null) {
-                startSlider.set(lockedStartMinutes);
-                return;
-              }
-              
-              startTimeInMinutes = Number(v[0]);
-              updateSliderLabels();
-      
-              if (isSingleDaySelection() && startTimeInMinutes >= endTimeInMinutes) {
-                  endSlider.set(startTimeInMinutes + MINIMUM_SLOT_MINUTES);
-              }
-              updateRangeIndicator();
-              updateSummary();
+          
+            if (modifyMode && lockStartDateTime && lockedStartMinutes !== null) {
+              startTimeInMinutes = lockedStartMinutes; // 🔴 keep state aligned
+              startSlider.set(lockedStartMinutes);
+              return;
+            }
+          
+            startTimeInMinutes = Number(v[0]);
+            updateSliderLabels();
+            updateRangeIndicator();
+            updateSummary();
           });
       
           endSlider.on('update', (v) => {
@@ -2639,6 +2640,8 @@ function initializeDateTimePicker() {
                   // FIX 1: Check 'startSlider' directly. It IS the instance. 
                   // Do NOT check 'startSlider.noUiSlider'.
                   if (datePicker && startSlider && endSlider) {
+                    
+                      isPreloadingModify = true;
                       
                       // 1. Preload DATE
                       // 'true' triggers the onChange event so internal logic runs
@@ -2655,6 +2658,7 @@ function initializeDateTimePicker() {
                       // 🔒 Capture locked start time AFTER preload (modify + started only)
                       if (modifyMode && lockStartDateTime) {
                         lockedStartMinutes = startMin;
+                        startTimeInMinutes = startMin; // 🔴 CRITICAL
                         startSliderEl.classList.add("locked-start-slider");
                       }
           
@@ -2663,6 +2667,7 @@ function initializeDateTimePicker() {
                       updateSliderLabels();
                       updateRangeIndicator();
                       updateSummary();
+                      isPreloadingModify = false;
           
                       return; // Success
                   }
