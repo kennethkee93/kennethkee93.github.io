@@ -885,6 +885,14 @@
     .time-selector-group { margin-top: 15px; }
     .time-selector-group label { display: block; font-size: 14px; font-weight: 500; color: #34495e; margin-bottom: 15px; }
     .time-selector-group label span { float: right; font-weight: 600; background-color: #f0f3f5; padding: 3px 8px; border-radius: 5px; }
+
+    /* Disabled state for sliders and date pickers */
+    .time-selector-group.disabled { opacity: 0.5; pointer-events: none; }
+    .time-selector-group.disabled label { color: #95a5a6; }
+    .time-selector-group.disabled .time-slider { background: #d0d0d0 !important; }
+    .time-selector-group.disabled .noUi-target { background: #d0d0d0 !important; }
+    .time-selector-group.disabled .noUi-handle { background: #bbb !important; cursor: not-allowed !important; }
+    .flatpickr-calendar.disabled { opacity: 0.5; pointer-events: none; }
     
     @media (max-width: 768px) {
       .modal-content h2 {
@@ -1944,6 +1952,7 @@
     let modifyMode = false;
     let modifyBookingId = null;
     let modifyEmail = null;
+    let reservationHasStarted = false;
     
     let currentIndex = 0;
     const tabPanels = ['status', 'calendar', 'form'];
@@ -2408,8 +2417,21 @@ function initializeDateTimePicker() {
               locale: { firstDayOfWeek: 1 }, 
               onChange: (selectedDates) => {
                   if (isUpdatingCalendar) return;
-                  startDate = selectedDates[0] ? new Date(selectedDates[0].setHours(0,0,0,0)) : null;
-                  endDate = selectedDates[1] ? new Date(selectedDates[1].setHours(0,0,0,0)) : null;
+
+                  // If reservation has started, preserve the original start date
+                  if (reservationHasStarted && modifyMode && startDate) {
+                      // Only allow end date changes
+                      endDate = selectedDates[1] ? new Date(selectedDates[1].setHours(0,0,0,0)) : (selectedDates[0] ? new Date(selectedDates[0].setHours(0,0,0,0)) : null);
+                      // Restore start date
+                      if (!selectedDates[1] && selectedDates[0]) {
+                          // User tried to change dates, reset to original
+                          datePicker.setDate([startDate, endDate], false);
+                      }
+                  } else {
+                      startDate = selectedDates[0] ? new Date(selectedDates[0].setHours(0,0,0,0)) : null;
+                      endDate = selectedDates[1] ? new Date(selectedDates[1].setHours(0,0,0,0)) : null;
+                  }
+
                   wasCreatedByMidnight = false;
                   updateAllBlockedSlots();
                   updateSliderLabels();
@@ -2420,9 +2442,14 @@ function initializeDateTimePicker() {
       
           // --- Slider Handlers ---
           startSlider.on('update', (v) => {
+              // Prevent updates if reservation has started
+              if (reservationHasStarted && modifyMode) {
+                  return;
+              }
+
               startTimeInMinutes = Number(v[0]);
               updateSliderLabels();
-      
+
               if (isSingleDaySelection() && startTimeInMinutes >= endTimeInMinutes) {
                   endSlider.set(startTimeInMinutes + MINIMUM_SLOT_MINUTES);
               }
@@ -2575,13 +2602,33 @@ function initializeDateTimePicker() {
                       // FIX 2: Call .set() directly on the variables
                       startSlider.set(startMin);
                       endSlider.set(endMin);
-          
+
                       // 3. Update UI
                       updateAllBlockedSlots();
                       updateSliderLabels();
                       updateRangeIndicator();
                       updateSummary();
-          
+
+                      // 4. Disable start controls if reservation has started
+                      if (reservationHasStarted) {
+                          // Disable start date selection in flatpickr
+                          const calendarEl = document.querySelector('#date-calendar');
+                          if (calendarEl) {
+                              calendarEl.classList.add('disabled');
+                          }
+
+                          // Disable start slider
+                          const startSliderGroup = document.querySelector('.time-selector-group:has(#start-time-slider)');
+                          if (startSliderGroup) {
+                              startSliderGroup.classList.add('disabled');
+                          }
+
+                          // Disable the startSlider completely
+                          if (startSlider && startSlider.target) {
+                              startSlider.target.setAttribute('disabled', true);
+                          }
+                      }
+
                       return; // Success
                   }
           
@@ -2894,11 +2941,16 @@ function initializeDateTimePicker() {
             
                             // 1️⃣ Prefill base fields
                             prefillModifyForm(data);
-            
+
                             // Save for later use
                             const s = new Date(data.startISO);
                             const e = new Date(data.endISO);
-                            
+
+                            // Check if reservation has started
+                            const now = moment().tz("Asia/Kuala_Lumpur");
+                            const startTime = moment(data.startISO).tz("Asia/Kuala_Lumpur");
+                            reservationHasStarted = now.isAfter(startTime);
+
                             // 2️⃣ Switch to Booking Form first
                             showTab("form");
                             
@@ -2944,8 +2996,12 @@ function initializeDateTimePicker() {
                                 document.querySelector('#bookingForm button[type="submit"]').textContent =
                                     "UPDATE RESERVATION";
                             }
-            
-                            showMessage("success", "Please proceed to update your reservation.");
+
+                            if (reservationHasStarted) {
+                                showMessage("success", "Your reservation has started. You can only modify the end date and time.");
+                            } else {
+                                showMessage("success", "Please proceed to update your reservation.");
+                            }
                         })
                         .catch(err => {
                             console.error("Modify mode load failed:", err);
