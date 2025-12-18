@@ -2442,19 +2442,23 @@ function initializeDateTimePicker() {
       
           // --- Slider Handlers ---
           startSlider.on('update', (v) => {
-              // Prevent updates if reservation has started
-              if (reservationHasStarted && modifyMode) {
-                  return;
-              }
+                // Always update the internal variable so the green bar knows where to start
+                startTimeInMinutes = Number(v[0]);
 
-              startTimeInMinutes = Number(v[0]);
-              updateSliderLabels();
+                // If reservation has started, we update visuals but skip the "push" logic
+                if (reservationHasStarted && modifyMode) {
+                    updateSliderLabels();
+                    updateRangeIndicator();
+                    updateSummary();
+                    return;
+                }
 
-              if (isSingleDaySelection() && startTimeInMinutes >= endTimeInMinutes) {
-                  endSlider.set(startTimeInMinutes + MINIMUM_SLOT_MINUTES);
-              }
-              updateRangeIndicator();
-              updateSummary();
+                updateSliderLabels();
+                if (isSingleDaySelection() && startTimeInMinutes >= endTimeInMinutes) {
+                    endSlider.set(startTimeInMinutes + MINIMUM_SLOT_MINUTES);
+                }
+                updateRangeIndicator();
+                updateSummary();
           });
       
           endSlider.on('update', (v) => {
@@ -2595,14 +2599,18 @@ function initializeDateTimePicker() {
                       // 'true' triggers the onChange event so internal logic runs
                       datePicker.setDate([s, e], true);
           
-                      // 2. Convert to minutes
+                      // 2. Convert to minutes (Using moment for TZ safety as suggested before)
                       const s_moment = moment(s).tz("Asia/Kuala_Lumpur");
                       const e_moment = moment(e).tz("Asia/Kuala_Lumpur");
 
                       const startMin = s_moment.hours() * 60 + s_moment.minutes();
                       const endMin   = e_moment.hours() * 60 + e_moment.minutes();
-          
-                      // FIX 2: Call .set() directly on the variables
+
+                      // Explicitly sync the global variables used by the range indicator
+                      startTimeInMinutes = startMin;
+                      endTimeInMinutes = endMin;
+
+                      // Set the sliders
                       startSlider.set(startMin);
                       endSlider.set(endMin);
 
