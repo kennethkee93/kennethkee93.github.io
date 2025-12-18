@@ -1944,6 +1944,7 @@
     let modifyMode = false;
     let modifyBookingId = null;
     let modifyEmail = null;
+    let modifyBookingStarted = false;
     
     let currentIndex = 0;
     const tabPanels = ['status', 'calendar', 'form'];
@@ -2413,15 +2414,28 @@ function initializeDateTimePicker() {
               mode: 'range',
               locale: { firstDayOfWeek: 1 }, 
               onChange: (selectedDates) => {
-                  if (isUpdatingCalendar) return;
-                  startDate = selectedDates[0] ? new Date(selectedDates[0].setHours(0,0,0,0)) : null;
-                  endDate = selectedDates[1] ? new Date(selectedDates[1].setHours(0,0,0,0)) : null;
-                  wasCreatedByMidnight = false;
-                  updateAllBlockedSlots();
-                  updateSliderLabels();
-                  updateRangeIndicator();
-                  updateSummary();
-              }
+                    if (isUpdatingCalendar) return;
+
+                    // 🚫 MODIFY MODE RULE: booking already started
+                    if (modifyMode && modifyBookingStarted) {
+                        // Keep original start date locked
+                        selectedDates[0] = startDate;
+                    }
+
+                    startDate = selectedDates[0]
+                        ? new Date(selectedDates[0].setHours(0,0,0,0))
+                        : null;
+
+                    endDate = selectedDates[1]
+                        ? new Date(selectedDates[1].setHours(0,0,0,0))
+                        : null;
+
+                    wasCreatedByMidnight = false;
+                    updateAllBlockedSlots();
+                    updateSliderLabels();
+                    updateRangeIndicator();
+                    updateSummary();
+               }
           });
       
           // --- Slider Handlers ---
@@ -2904,7 +2918,10 @@ function initializeDateTimePicker() {
                             // Save for later use
                             const s = new Date(data.startISO);
                             const e = new Date(data.endISO);
-                            const bookingHasStarted = isBookingAlreadyStarted(data.startISO);
+                            
+                            modifyBookingStarted = moment()
+                            .tz("Asia/Kuala_Lumpur")
+                            .isSameOrAfter(moment(data.startISO).tz("Asia/Kuala_Lumpur"));
 
                             // 2️⃣ Switch to Booking Form first
                             showTab("form");
