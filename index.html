@@ -998,12 +998,6 @@
       }
     }
     
-    .slider-disabled {
-        opacity: 0.4;
-        pointer-events: none;
-        filter: grayscale(100%);
-    }
-
     /* Green indicator for selected available range */
     #selected-range-indicator {
       position: absolute;
@@ -1986,32 +1980,6 @@
       if (submitBtn) {
           submitBtn.disabled = true; }
      }
-
-    function hasReservationStarted(startISO) {
-        const startMoment = moment(startISO).tz("Asia/Kuala_Lumpur");
-        return moment().tz("Asia/Kuala_Lumpur").isSameOrAfter(startMoment);
-    }
-
-    function lockStartControls() {
-        // ---- LOCK START DATE (Flatpickr) ----
-        if (window.flatpickrInstance) {
-            window.flatpickrInstance.set("clickOpens", false);
-            window.flatpickrInstance._input.style.pointerEvents = "none";
-            window.flatpickrInstance._input.style.opacity = "0.5";
-        }
-
-        // ---- LOCK START TIME SLIDER ----
-        if (window.startTimeSlider) {
-            window.startTimeSlider.disable();
-            document
-                .getElementById("start-time-slider")
-                .classList.add("slider-disabled");
-        }
-
-        // ---- EXTRA VISUAL CUE ----
-        const startValue = document.getElementById("start-time-value");
-        if (startValue) startValue.style.opacity = "0.5";
-    }
      
     function showBackToHomeButton() {
         const submitBtn = document.querySelector('#bookingForm button[type="submit"]');
@@ -2427,9 +2395,6 @@ function initializeDateTimePicker() {
               step: 15,
               range: { 'min': MINIMUM_SLOT_MINUTES, 'max': 1440 }
           });
-
-          window.startTimeSlider = startSlider;
-          window.endTimeSlider = endSlider;
       
           // --- Date Picker ---
           const mytToday = getMalaysiaDateShifted();
@@ -2452,8 +2417,6 @@ function initializeDateTimePicker() {
                   updateSummary();
               }
           });
-
-          window.flatpickrInstance = datePicker;
       
           // --- Slider Handlers ---
           startSlider.on('update', (v) => {
@@ -2935,8 +2898,6 @@ function initializeDateTimePicker() {
                             // Save for later use
                             const s = new Date(data.startISO);
                             const e = new Date(data.endISO);
-
-                            const reservationStarted = hasReservationStarted(data.startISO);
                             
                             // 2️⃣ Switch to Booking Form first
                             showTab("form");
@@ -2973,19 +2934,8 @@ function initializeDateTimePicker() {
                                 // 4️⃣ Preload date & time using the exposed global function
                                 if (window.waitForSliderAndPreload) {
                                     window.waitForSliderAndPreload(s, e);
-
-                                    if (hasReservationStarted(data.startISO)) {
-                                        // Delay ONE frame to ensure sliders & flatpickr are ready
-                                        setTimeout(() => {
-                                            lockStartControls();
-
-                                            showMessage(
-                                                "error",
-                                                "⚠️ This reservation has already started. You may only update the end date and time.",
-                                                { persistent: true }
-                                            );
-                                        }, 0);
-                                    }
+                                } else {
+                                    console.error("waitForSliderAndPreload not found. Ensure it is exposed to window.");
                                 }
                             
                             }, 300);
@@ -2995,9 +2945,7 @@ function initializeDateTimePicker() {
                                     "UPDATE RESERVATION";
                             }
             
-                            if (!hasReservationStarted(data.startISO)) {
-                                showMessage("success", "Please proceed to update your reservation.");
-                            }
+                            showMessage("success", "Please proceed to update your reservation.");
                         })
                         .catch(err => {
                             console.error("Modify mode load failed:", err);
