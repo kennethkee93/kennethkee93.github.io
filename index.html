@@ -1962,7 +1962,11 @@
     let modifyBookingId = null;
     let modifyEmail = null;
     let lockStartDateTime = false;
+<<<<<<< Updated upstream
     let lockedStartDate = null;
+=======
+    let lockedStartDateTime = null;
+>>>>>>> Stashed changes
     let lockedStartMinutes = null;
     let isPreloadingModify = false;
     
@@ -2346,8 +2350,20 @@ function initializeDateTimePicker() {
               }
       
               const effectiveEndDate = endDate || startDate;
-              const finalStart = new Date(startDate);
-              finalStart.setHours(Math.floor(startTimeInMinutes / 60), startTimeInMinutes % 60, 0, 0);
+              let finalStart;
+
+              if (modifyMode && lockStartDateTime && lockedStartDateTime) {
+              // 🔒 Always use original reservation start
+              finalStart = new Date(lockedStartDateTime);
+              } else {
+              finalStart = new Date(startDate);
+              finalStart.setHours(
+                  Math.floor(startTimeInMinutes / 60),
+                  startTimeInMinutes % 60,
+                  0,
+                  0
+              );
+              }
       
               const finalEnd = new Date(effectiveEndDate);
               const endHour = endTimeInMinutes === 1440 ? 0 : Math.floor(endTimeInMinutes / 60);
@@ -2495,11 +2511,17 @@ function initializeDateTimePicker() {
           // --- Slider Handlers ---
           startSlider.on('update', (v) => {
           
+<<<<<<< Updated upstream
             if (modifyMode && lockStartDateTime && lockedStartMinutes !== null) {
               startTimeInMinutes = lockedStartMinutes; // 🔴 keep state aligned
               startSlider.set(lockedStartMinutes);
               return;
             }
+=======
+          if (modifyMode && lockStartDateTime) {
+              return; // 🔒 Ignore completely
+          }
+>>>>>>> Stashed changes
           
             startTimeInMinutes = Number(v[0]);
             updateSliderLabels();
@@ -2656,10 +2678,15 @@ function initializeDateTimePicker() {
                       endSlider.set(endMin);
                       
                       // 🔒 Capture locked start time AFTER preload (modify + started only)
+<<<<<<< Updated upstream
                       if (modifyMode && lockStartDateTime) {
                         lockedStartMinutes = startMin;
                         startTimeInMinutes = startMin; // 🔴 CRITICAL
                         startSliderEl.classList.add("locked-start-slider");
+=======
+                      if (modifyMode && lockedStartDateTime) {
+                      startSliderEl.classList.add("locked-start-slider");
+>>>>>>> Stashed changes
                       }
           
                       // 3. Update UI
@@ -3004,7 +3031,11 @@ function initializeDateTimePicker() {
                             // 2️⃣ STARTED CHECK — ONLY IF NOT EXPIRED
                             if (hasReservationStarted(data.startISO)) {
                               lockStartDateTime = true;
+<<<<<<< Updated upstream
                               lockedStartDate = new Date(s.setHours(0,0,0,0));
+=======
+                              lockedStartDateTime = new Date(data.startISO);
+>>>>>>> Stashed changes
                             
                               showMessage(
                                 "success",
