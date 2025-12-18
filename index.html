@@ -1942,7 +1942,6 @@
        ================================================================= */
     
     let modifyMode = false;
-    let sessionStarted = false;
     let modifyBookingId = null;
     let modifyEmail = null;
     
@@ -1964,6 +1963,8 @@
               
         document.getElementById("start_datetime").value = b.startISO;
         document.getElementById("end_datetime").value = b.endISO;
+        
+        document.getElementById("start_datetime").dataset.original = b.startISO;
               
         document.querySelector("#bookingForm button[type='submit']").textContent = "UPDATE RESERVATION";
               
@@ -1971,21 +1972,47 @@
     }
     
     function isModifyWindowExpired(endISO) {
-      const endMoment = moment(endISO);
-      const cutoffMoment = endMoment.clone();
-      return moment().isAfter(cutoffMoment);
+      const endMoment = moment(endISO).tz("Asia/Kuala_Lumpur");
+      const cutoffMoment = endMoment.clone().add(1, 'hours');
+      return moment().tz("Asia/Kuala_Lumpur").isAfter(cutoffMoment);
     }
     
-    function isSessionStarted(startISO) {
-        if (!startISO) return false;
-        return moment().isAfter(moment(startISO));
+    function hasReservationStarted(startISO) {
+      const startMoment = moment(startISO).tz("Asia/Kuala_Lumpur");
+      return moment().tz("Asia/Kuala_Lumpur").isSameOrAfter(startMoment);
+    }
+    
+    function lockStartDateTimeInModifyMode(startISO) {
+      // Lock the visible display
+      document.getElementById("start_datetime").dataset.locked = "true";
+    
+      // Inform the user (once)
+      showMessage(
+        "success",
+        "⚠️ This reservation has already started. You may only update the END date and time."
+      );
+    
+      // Disable calendar interaction for start date
+      if (window.datePicker) {
+        window.datePicker.config.clickOpens = false;
+      }
+    
+      // Lock start time slider
+      if (window.startSlider) {
+        startSlider.updateOptions({
+          range: {
+            min: startSlider.get(),
+            max: startSlider.get()
+          }
+        });
+      }
     }
     
     function disableModifySubmitButton() {
       const submitBtn = document.querySelector('#bookingForm button[type="submit"]');
       if (submitBtn) {
           submitBtn.disabled = true; }
-    }
+     }
      
     function showBackToHomeButton() {
         const submitBtn = document.querySelector('#bookingForm button[type="submit"]');
@@ -2309,17 +2336,11 @@ function initializeDateTimePicker() {
               const finalStart = new Date(startDate);
               finalStart.setHours(Math.floor(startTimeInMinutes / 60), startTimeInMinutes % 60, 0, 0);
       
-              // --- FORCE ORIGINAL START TIME IF SESSION ACTIVE ---
-              if (modifyMode && sessionStarted) {
-                  const originalStart = new Date(mainFormStartHidden.value);
-                  finalStart.setTime(originalStart.getTime());
-              }
-              
               const finalEnd = new Date(effectiveEndDate);
               const endHour = endTimeInMinutes === 1440 ? 0 : Math.floor(endTimeInMinutes / 60);
               const endMinutes = endTimeInMinutes % 60;
               finalEnd.setHours(endHour, endMinutes, 0, 0);
-
+      
               if (isSingleDaySelection() && endTimeInMinutes === 1440) {
                   finalEnd.setDate(finalEnd.getDate() + 1);
               }
@@ -2508,48 +2529,32 @@ function initializeDateTimePicker() {
           // --- Modal Control ---
           function openModal() {
               modal.style.display = 'flex';
+          
               const existingCharger = mainFormChargerHidden.value;
               const existingStart = mainFormStartHidden.value;
               const existingEnd = mainFormEndHidden.value;
           
               // 🟢 CASE 1: We already have a selection → restore it
               if (existingCharger && existingStart && existingEnd) {
-                      
-                      // Use our global flag to lock elements
-                      if (modifyMode && sessionStarted) {
-                          // 1. Lock the start slider
-                          startSliderEl.setAttribute('disabled', true);
-                          
-                          // 2. Disable the date picker (prevents changing to a different day)
-                          if (datePicker) {
-                              datePicker.set('clickOpens', false);
-                              document.getElementById('date-calendar').style.pointerEvents = 'none';
-                              document.getElementById('date-calendar').style.opacity = '0.7';
-                          }
-                          
-                          // 3. Disable charger switching inside the modal
-                          const modalButtons = modal.querySelectorAll('.charger-btn');
-                          modalButtons.forEach(btn => {
-                              btn.style.pointerEvents = 'none';
-                              btn.style.opacity = '0.5';
-                          });
-                      } else {
-                          // 🔓 IMPORTANT: Always reset for new bookings or future modifications
-                          startSliderEl.removeAttribute('disabled');
-                          if (datePicker) {
-                              datePicker.set('clickOpens', true);
-                              document.getElementById('date-calendar').style.pointerEvents = 'auto';
-                              document.getElementById('date-calendar').style.opacity = '1';
-                          }
+          
+                  // 1️⃣ Select charger
+                  chargerButtonsModal.forEach(btn => {
+                      btn.classList.remove('selected');
+                      if (btn.dataset.charger === existingCharger) {
+                          btn.classList.add('selected');
+                          modalSelectedCharger = existingCharger;
                       }
-              
-                  // 3️⃣ Restore date & time
+                  });
+          
+                  // 2️⃣ Restore date & time
                   const s = new Date(existingStart);
                   const e = new Date(existingEnd);
+          
+                  // Use your existing safe preload helper
                   window.waitForSliderAndPreload(s, e);
-                  return; 
+          
+                  return; // 🚫 DO NOT reset defaults
               }
-              // --- NEW LOGIC END ---
           
               // 🟠 CASE 2: No previous selection → default behavior
               const malaysiaDate = getMalaysiaDateShifted();
@@ -2905,7 +2910,6 @@ function initializeDateTimePicker() {
                 const params = new URLSearchParams(window.location.search);
                 
                 let modifyExpired = false;
-                let sessionStarted = false;
                 
                 if (params.get("mode") === "modify") {
                     modifyMode = true;
@@ -2931,6 +2935,13 @@ function initializeDateTimePicker() {
                             // 2️⃣ Switch to Booking Form first
                             showTab("form");
                             
+                            // 🔒 If reservation already started → lock START date & time
+                            if (hasReservationStarted(data.startISO)) {
+                              setTimeout(() => {
+                                lockStartDateTimeInModifyMode(data.startISO);
+                              }, 400); // Wait for modal + sliders to initialize
+                            }
+                            
                             if (isModifyWindowExpired(data.endISO)) {
                                 modifyExpired = true;
                                 showMessage(
@@ -2941,20 +2952,6 @@ function initializeDateTimePicker() {
                             
                                 showBackToHomeButton(); // ⛔ HARD STOP
                                 return; // Do NOT open modal or allow interaction
-                            }
-                            
-                            // Check if session has started
-                            sessionStarted = isSessionStarted(data.startISO); 
-                            
-                            if (sessionStarted) {
-                                showMessage(
-                                    "info", 
-                                    "⚠️ Session has started. You can only update the end date/time.", 
-                                    { persistent: true }
-                                );
-                            } else {
-                                // Reset flag if it's a future booking
-                                sessionStarted = false; 
                             }
                             
                             setTimeout(() => {
@@ -3649,6 +3646,12 @@ document.getElementById('bookingForm').addEventListener('submit', async function
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
         return;
+    }
+    
+    if (modifyMode && hasReservationStarted(document.getElementById("start_datetime").value)) {
+      // Force original start value
+      document.getElementById("start_datetime").value =
+        document.getElementById("start_datetime").dataset.original;
     }
 
     const remember = document.getElementById('rememberMe').checked;
