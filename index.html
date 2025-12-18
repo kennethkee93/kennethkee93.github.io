@@ -1944,6 +1944,7 @@
     let modifyMode = false;
     let modifyBookingId = null;
     let modifyEmail = null;
+    let lockStartDateTime = false;
     
     let currentIndex = 0;
     const tabPanels = ['status', 'calendar', 'form'];
@@ -1982,29 +1983,21 @@
       return moment().tz("Asia/Kuala_Lumpur").isSameOrAfter(startMoment);
     }
     
-    function lockStartDateTimeInModifyMode(startISO) {
-      // Lock the visible display
-      document.getElementById("start_datetime").dataset.locked = "true";
-    
-      // Inform the user (once)
+    function lockStartDateTimeInModifyMode() {
       showMessage(
         "success",
         "⚠️ This reservation has already started. You may only update the END date and time."
       );
     
-      // Disable calendar interaction for start date
+      // --- Disable flatpickr start-date changes ---
       if (window.datePicker) {
-        window.datePicker.config.clickOpens = false;
+        datePicker.set("mode", "single"); // prevents re-selecting range
+        datePicker.setDate([startDate, endDate], true);
       }
     
-      // Lock start time slider
+      // --- Visually lock start slider ---
       if (window.startSlider) {
-        startSlider.updateOptions({
-          range: {
-            min: startSlider.get(),
-            max: startSlider.get()
-          }
-        });
+        startSlider.off("update"); // 🔥 THIS is the key
       }
     }
     
@@ -2440,6 +2433,10 @@ function initializeDateTimePicker() {
               mode: 'range',
               locale: { firstDayOfWeek: 1 }, 
               onChange: (selectedDates) => {
+                  if (modifyMode && lockStartDateTime) {
+                    datePicker.setDate([startDate, endDate], true);
+                    return;
+                  }
                   if (isUpdatingCalendar) return;
                   startDate = selectedDates[0] ? new Date(selectedDates[0].setHours(0,0,0,0)) : null;
                   endDate = selectedDates[1] ? new Date(selectedDates[1].setHours(0,0,0,0)) : null;
@@ -2453,6 +2450,12 @@ function initializeDateTimePicker() {
       
           // --- Slider Handlers ---
           startSlider.on('update', (v) => {
+              if (modifyMode && lockStartDateTime) {
+                // Force original start time
+                startSlider.set(startTimeInMinutes);
+                return;
+              }
+              
               startTimeInMinutes = Number(v[0]);
               updateSliderLabels();
       
@@ -2935,13 +2938,6 @@ function initializeDateTimePicker() {
                             // 2️⃣ Switch to Booking Form first
                             showTab("form");
                             
-                            // 🔒 If reservation already started → lock START date & time
-                            if (hasReservationStarted(data.startISO)) {
-                              setTimeout(() => {
-                                lockStartDateTimeInModifyMode(data.startISO);
-                              }, 400); // Wait for modal + sliders to initialize
-                            }
-                            
                             if (isModifyWindowExpired(data.endISO)) {
                                 modifyExpired = true;
                                 showMessage(
@@ -2952,6 +2948,15 @@ function initializeDateTimePicker() {
                             
                                 showBackToHomeButton(); // ⛔ HARD STOP
                                 return; // Do NOT open modal or allow interaction
+                            }
+                            
+                            // 2️⃣ STARTED CHECK — ONLY IF NOT EXPIRED
+                            if (hasReservationStarted(data.startISO)) {
+                              lockStartDateTime = true;
+                            
+                              setTimeout(() => {
+                                lockStartDateTimeInModifyMode();
+                              }, 400);
                             }
                             
                             setTimeout(() => {
