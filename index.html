@@ -2501,16 +2501,6 @@ function initializeDateTimePicker() {
               }
       
               if (singleDay && endTimeInMinutes <= startTimeInMinutes) {
-
-                  if (reservationHasStarted && modifyMode) {
-                      // 🔒 Clamp END forward, NEVER move start
-                      const minEnd = startTimeInMinutes + MINIMUM_SLOT_MINUTES;
-                      endSlider.set(minEnd);
-                      endTimeInMinutes = minEnd;
-                      return;
-                  }
-
-                  // Normal behavior (non-started reservations)
                   startSlider.set(endTimeInMinutes - MINIMUM_SLOT_MINUTES);
               }
       
