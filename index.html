@@ -1971,15 +1971,20 @@
     
     function isModifyWindowExpired(endISO) {
       const endMoment = moment(endISO);
-      const cutoffMoment = endMoment.clone().add(1, 'hours');
+      const cutoffMoment = endMoment.clone();
       return moment().isAfter(cutoffMoment);
+    }
+    
+    function isSessionStarted(startISO) {
+      const startMoment = moment(startISO);
+      return moment().isAfter(startMoment);
     }
     
     function disableModifySubmitButton() {
       const submitBtn = document.querySelector('#bookingForm button[type="submit"]');
       if (submitBtn) {
           submitBtn.disabled = true; }
-     }
+    }
      
     function showBackToHomeButton() {
         const submitBtn = document.querySelector('#bookingForm button[type="submit"]');
@@ -2496,13 +2501,40 @@ function initializeDateTimePicker() {
           // --- Modal Control ---
           function openModal() {
               modal.style.display = 'flex';
-          
               const existingCharger = mainFormChargerHidden.value;
               const existingStart = mainFormStartHidden.value;
               const existingEnd = mainFormEndHidden.value;
           
-              // 🟢 CASE 1: We already have a selection → restore it
+              // 🟢 CASE 1: We already have a selection (Restore existing booking)
               if (existingCharger && existingStart && existingEnd) {
+                  
+                  // --- NEW LOGIC START ---
+                  // Check if we are in MODIFY MODE AND the session has already started
+                  const sessionStarted = isSessionStarted(existingStart);
+          
+                  if (modifyMode && sessionStarted) {
+                      // Lock the start slider (startSliderEl is defined in initializeDateTimePicker)
+                      startSliderEl.setAttribute('disabled', true);
+                      
+                      // Lock the date picker so the date cannot be changed
+                      if (datePicker) {
+                          datePicker.set('clickOpens', false);
+                          document.getElementById('date-calendar').style.pointerEvents = 'none';
+                          document.getElementById('date-calendar').style.opacity = '0.7';
+                      }
+                      
+                      // Provide a visual hint in the summary area
+                      summaryTextEl.innerHTML = `<span style="color: #F59E0B; font-size: 11px; font-weight:bold;">Session active: Only end time can be updated.</span>`;
+                  } else {
+                      // ALWAYS RESET: Ensure everything is enabled for normal use or non-started sessions
+                      startSliderEl.removeAttribute('disabled');
+                      if (datePicker) {
+                          datePicker.set('clickOpens', true);
+                          document.getElementById('date-calendar').style.pointerEvents = 'auto';
+                          document.getElementById('date-calendar').style.opacity = '1';
+                      }
+                  }
+                  // --- NEW LOGIC END ---
           
                   // 1️⃣ Select charger
                   chargerButtonsModal.forEach(btn => {
@@ -2516,11 +2548,8 @@ function initializeDateTimePicker() {
                   // 2️⃣ Restore date & time
                   const s = new Date(existingStart);
                   const e = new Date(existingEnd);
-          
-                  // Use your existing safe preload helper
                   window.waitForSliderAndPreload(s, e);
-          
-                  return; // 🚫 DO NOT reset defaults
+                  return; 
               }
           
               // 🟠 CASE 2: No previous selection → default behavior
@@ -2877,6 +2906,7 @@ function initializeDateTimePicker() {
                 const params = new URLSearchParams(window.location.search);
                 
                 let modifyExpired = false;
+                let sessionStarted = false;
                 
                 if (params.get("mode") === "modify") {
                     modifyMode = true;
@@ -2912,6 +2942,15 @@ function initializeDateTimePicker() {
                             
                                 showBackToHomeButton(); // ⛔ HARD STOP
                                 return; // Do NOT open modal or allow interaction
+                            }
+                            
+                            if (isSessionStarted(data.startISO)) {
+                                sessionStarted = true;
+                                showMessage(
+                                    "info",
+                                    "⚠️ Session has started. You can only update the end date and time.",
+                                    { persistent: true }
+                                );
                             }
                             
                             setTimeout(() => {
