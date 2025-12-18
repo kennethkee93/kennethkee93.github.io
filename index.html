@@ -1942,6 +1942,7 @@
        ================================================================= */
     
     let modifyMode = false;
+    let sessionStarted = false;
     let modifyBookingId = null;
     let modifyEmail = null;
     
@@ -2308,20 +2309,17 @@ function initializeDateTimePicker() {
               const finalStart = new Date(startDate);
               finalStart.setHours(Math.floor(startTimeInMinutes / 60), startTimeInMinutes % 60, 0, 0);
       
+              // --- FORCE ORIGINAL START TIME IF SESSION ACTIVE ---
+              if (modifyMode && sessionStarted) {
+                  const originalStart = new Date(mainFormStartHidden.value);
+                  finalStart.setTime(originalStart.getTime());
+              }
+              
               const finalEnd = new Date(effectiveEndDate);
               const endHour = endTimeInMinutes === 1440 ? 0 : Math.floor(endTimeInMinutes / 60);
               const endMinutes = endTimeInMinutes % 60;
               finalEnd.setHours(endHour, endMinutes, 0, 0);
-              
-              if (modifyMode && isSessionStarted(mainFormStartHidden.value)) {
-                  // Overwrite finalStart with the original immutable start time
-                  const originalStart = new Date(mainFormStartHidden.value);
-                  finalStart.setTime(originalStart.getTime());
-                  
-                  // Optional: Update the summary text to inform the user
-                  summaryTextEl.innerHTML = `<span style="color: #F59E0B; font-size: 11px; display:block; margin-bottom:4px;">Session Active: Start time locked.</span>`;
-              }
-      
+
               if (isSingleDaySelection() && endTimeInMinutes === 1440) {
                   finalEnd.setDate(finalEnd.getDate() + 1);
               }
@@ -2516,47 +2514,34 @@ function initializeDateTimePicker() {
           
               // 🟢 CASE 1: We already have a selection → restore it
               if (existingCharger && existingStart && existingEnd) {
-                  // Check if session has already started
-                  const sessionStarted = isSessionStarted(existingStart);
-              
-                  // 1️⃣ Select charger
-                  chargerButtonsModal.forEach(btn => {
-                      btn.classList.remove('selected');
-                      if (btn.dataset.charger === existingCharger) {
-                          btn.classList.add('selected');
-                          modalSelectedCharger = existingCharger;
-                      }
                       
-                      // DISABLE charger switching if session started
+                      // Use our global flag to lock elements
                       if (modifyMode && sessionStarted) {
-                          btn.style.pointerEvents = 'none';
-                          btn.style.opacity = '0.5';
+                          // 1. Lock the start slider
+                          startSliderEl.setAttribute('disabled', true);
+                          
+                          // 2. Disable the date picker (prevents changing to a different day)
+                          if (datePicker) {
+                              datePicker.set('clickOpens', false);
+                              document.getElementById('date-calendar').style.pointerEvents = 'none';
+                              document.getElementById('date-calendar').style.opacity = '0.7';
+                          }
+                          
+                          // 3. Disable charger switching inside the modal
+                          const modalButtons = modal.querySelectorAll('.charger-btn');
+                          modalButtons.forEach(btn => {
+                              btn.style.pointerEvents = 'none';
+                              btn.style.opacity = '0.5';
+                          });
                       } else {
-                          btn.style.pointerEvents = 'auto';
-                          btn.style.opacity = '1';
+                          // 🔓 IMPORTANT: Always reset for new bookings or future modifications
+                          startSliderEl.removeAttribute('disabled');
+                          if (datePicker) {
+                              datePicker.set('clickOpens', true);
+                              document.getElementById('date-calendar').style.pointerEvents = 'auto';
+                              document.getElementById('date-calendar').style.opacity = '1';
+                          }
                       }
-                  });
-              
-                  // 2️⃣ Apply Lock Logic
-                  if (modifyMode && sessionStarted) {
-                      // Disable the start time slider
-                      startSliderEl.setAttribute('disabled', true);
-                      
-                      // Lock the date picker so they can't change the day
-                      if (datePicker) {
-                          datePicker.set('clickOpens', false);
-                          document.getElementById('date-calendar').style.pointerEvents = 'none';
-                          document.getElementById('date-calendar').style.opacity = '0.7';
-                      }
-                  } else {
-                      // Ensure enabled if NOT a started session or NOT in modify mode
-                      startSliderEl.removeAttribute('disabled');
-                      if (datePicker) {
-                          datePicker.set('clickOpens', true);
-                          document.getElementById('date-calendar').style.pointerEvents = 'auto';
-                          document.getElementById('date-calendar').style.opacity = '1';
-                      }
-                  }
               
                   // 3️⃣ Restore date & time
                   const s = new Date(existingStart);
@@ -2958,13 +2943,18 @@ function initializeDateTimePicker() {
                                 return; // Do NOT open modal or allow interaction
                             }
                             
-                            if (isSessionStarted(data.startISO)) {
-                                sessionStarted = true;
+                            // Check if session has started
+                            sessionStarted = isSessionStarted(data.startISO); 
+                            
+                            if (sessionStarted) {
                                 showMessage(
-                                    "info",
-                                    "⚠️ Session has started. You can only update the end date and time.",
+                                    "info", 
+                                    "⚠️ Session has started. You can only update the end date/time.", 
                                     { persistent: true }
                                 );
+                            } else {
+                                // Reset flag if it's a future booking
+                                sessionStarted = false; 
                             }
                             
                             setTimeout(() => {
