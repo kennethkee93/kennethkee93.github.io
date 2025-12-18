@@ -1993,21 +1993,24 @@
     }
 
     function lockStartControls() {
-        // --- Flatpickr: lock start date ---
+        // ---- LOCK START DATE (Flatpickr) ----
         if (window.flatpickrInstance) {
             window.flatpickrInstance.set("clickOpens", false);
+            window.flatpickrInstance._input.style.pointerEvents = "none";
+            window.flatpickrInstance._input.style.opacity = "0.5";
         }
 
-        // --- Start time slider ---
-        const startSliderEl = document.getElementById("start-time-slider");
-        if (startSliderEl && startSliderEl.noUiSlider) {
-            startSliderEl.noUiSlider.disable();
-            startSliderEl.classList.add("slider-disabled");
+        // ---- LOCK START TIME SLIDER ----
+        if (window.startTimeSlider) {
+            window.startTimeSlider.disable();
+            document
+                .getElementById("start-time-slider")
+                .classList.add("slider-disabled");
         }
 
-        // --- Visual grey-out ---
-        const startLabel = document.querySelector('[for="start-time-slider"]');
-        if (startLabel) startLabel.style.opacity = "0.5";
+        // ---- EXTRA VISUAL CUE ----
+        const startValue = document.getElementById("start-time-value");
+        if (startValue) startValue.style.opacity = "0.5";
     }
      
     function showBackToHomeButton() {
@@ -2424,6 +2427,9 @@ function initializeDateTimePicker() {
               step: 15,
               range: { 'min': MINIMUM_SLOT_MINUTES, 'max': 1440 }
           });
+
+          window.startTimeSlider = startSlider;
+          window.endTimeSlider = endSlider;
       
           // --- Date Picker ---
           const mytToday = getMalaysiaDateShifted();
@@ -2967,20 +2973,18 @@ function initializeDateTimePicker() {
                                 // 4️⃣ Preload date & time using the exposed global function
                                 if (window.waitForSliderAndPreload) {
                                     window.waitForSliderAndPreload(s, e);
-                                } else {
-                                    console.error("waitForSliderAndPreload not found. Ensure it is exposed to window.");
-                                }
 
-                                if (window.waitForSliderAndPreload) {
-                                    window.waitForSliderAndPreload(s, e);
+                                    if (hasReservationStarted(data.startISO)) {
+                                        // Delay ONE frame to ensure sliders & flatpickr are ready
+                                        setTimeout(() => {
+                                            lockStartControls();
 
-                                    if (reservationStarted) {
-                                        lockStartControls();
-                                        showMessage(
-                                            "error",
-                                            "⚠️ This reservation has already started. You may only update the end date and time.",
-                                            { persistent: true }
-                                        );
+                                            showMessage(
+                                                "error",
+                                                "⚠️ This reservation has already started. You may only update the end date and time.",
+                                                { persistent: true }
+                                            );
+                                        }, 0);
                                     }
                                 }
                             
