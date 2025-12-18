@@ -1976,8 +1976,8 @@
     }
     
     function isSessionStarted(startISO) {
-      const startMoment = moment(startISO);
-      return moment().isAfter(startMoment);
+        if (!startISO) return false;
+        return moment().isAfter(moment(startISO));
     }
     
     function disableModifySubmitButton() {
