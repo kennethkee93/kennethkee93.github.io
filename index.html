@@ -1945,6 +1945,8 @@
     let modifyBookingId = null;
     let modifyEmail = null;
     let lockStartDateTime = false;
+    let lockedStartDate = null;
+    let lockedStartMinutes = null;
     
     let currentIndex = 0;
     const tabPanels = ['status', 'calendar', 'form'];
@@ -2433,26 +2435,47 @@ function initializeDateTimePicker() {
               mode: 'range',
               locale: { firstDayOfWeek: 1 }, 
               onChange: (selectedDates) => {
-                  if (modifyMode && lockStartDateTime) {
-                    datePicker.setDate([startDate, endDate], true);
-                    return;
-                  }
-                  if (isUpdatingCalendar) return;
-                  startDate = selectedDates[0] ? new Date(selectedDates[0].setHours(0,0,0,0)) : null;
-                  endDate = selectedDates[1] ? new Date(selectedDates[1].setHours(0,0,0,0)) : null;
-                  wasCreatedByMidnight = false;
-                  updateAllBlockedSlots();
-                  updateSliderLabels();
-                  updateRangeIndicator();
-                  updateSummary();
+                if (isUpdatingCalendar) return;
+              
+                // 🔒 MODIFY MODE + STARTED → force start date
+                if (modifyMode && lockStartDateTime) {
+                  const forcedEnd = selectedDates[1] || selectedDates[0];
+              
+                  isUpdatingCalendar = true;
+                  datePicker.setDate(
+                    [lockedStartDate, forcedEnd],
+                    true
+                  );
+                  isUpdatingCalendar = false;
+              
+                  startDate = lockedStartDate;
+                  endDate = forcedEnd
+                    ? new Date(forcedEnd.setHours(0,0,0,0))
+                    : null;
+              
+                } else {
+                  // NORMAL behavior
+                  startDate = selectedDates[0]
+                    ? new Date(selectedDates[0].setHours(0,0,0,0))
+                    : null;
+              
+                  endDate = selectedDates[1]
+                    ? new Date(selectedDates[1].setHours(0,0,0,0))
+                    : null;
+                }
+              
+                wasCreatedByMidnight = false;
+                updateAllBlockedSlots();
+                updateSliderLabels();
+                updateRangeIndicator();
+                updateSummary();
               }
           });
       
           // --- Slider Handlers ---
           startSlider.on('update', (v) => {
               if (modifyMode && lockStartDateTime) {
-                // Force original start time
-                startSlider.set(startTimeInMinutes);
+                startSlider.set(lockedStartMinutes);
                 return;
               }
               
@@ -2953,10 +2976,13 @@ function initializeDateTimePicker() {
                             // 2️⃣ STARTED CHECK — ONLY IF NOT EXPIRED
                             if (hasReservationStarted(data.startISO)) {
                               lockStartDateTime = true;
+                              lockedStartDate = new Date(s.setHours(0,0,0,0));
+                              lockedStartMinutes = s.getHours() * 60 + s.getMinutes();
                             
-                              setTimeout(() => {
-                                lockStartDateTimeInModifyMode();
-                              }, 400);
+                              showMessage(
+                                "success",
+                                "⚠️ This reservation has already started. You may only update the END date and time."
+                              );
                             }
                             
                             setTimeout(() => {
