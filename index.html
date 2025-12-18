@@ -2981,6 +2981,18 @@ function initializeDateTimePicker() {
                                 showBackToHomeButton(); // ⛔ HARD STOP
                                 return; // Do NOT open modal or allow interaction
                             }
+
+                                    // 🛑 NEW: Check if the reservation is already cancelled
+                            if (data.status === "Cancelled") {
+                                modifyExpired = true; // Using this to block modal opening
+                                showMessage(
+                                    "error",
+                                    "⛔ This reservation has been cancelled and cannot be updated.",
+                                    { persistent: true }
+                                );
+                                showBackToHomeButton();
+                                return; // STOP logic here
+                            }
                             
                             setTimeout(() => {
                                 const modal = document.getElementById("dateTimePickerModal");
