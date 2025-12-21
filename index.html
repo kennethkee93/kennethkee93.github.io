@@ -2404,40 +2404,58 @@ function initializeDateTimePicker() {
           });
       
           // --- Date Picker ---
+          
+          if (modifyMode && reservationData) {
+            startDate = new Date(reservationData.start);
+            startDate.setHours(0, 0, 0, 0);
+          
+            endDate = new Date(reservationData.end);
+            endDate.setHours(0, 0, 0, 0);
+          }
+          
           const mytToday = getMalaysiaDateShifted();
-          mytToday.setHours(0,0,0,0); // Ensure it's midnight Malaysia time
+          mytToday.setHours(0, 0, 0, 0);
           
           const datePicker = flatpickr("#date-calendar", {
-              inline: true, 
-              minDate: (modifyMode && reservationHasStarted)
-                  ? startDate        // allow original start day even if it's "in the past"
-                  : mytToday, 
-              disableMobile: true, 
-              mode: 'range',
-              locale: { firstDayOfWeek: 1 }, 
-              onChange: (selectedDates) => {
-                  if (isUpdatingCalendar) return;
-
-                  // If reservation has started, preserve the original start date
-                  if (reservationHasStarted && modifyMode && startDate) {
-                      // Only allow end date changes
-                      endDate = selectedDates[1] ? new Date(selectedDates[1].setHours(0,0,0,0)) : (selectedDates[0] ? new Date(selectedDates[0].setHours(0,0,0,0)) : null);
-                      // Restore start date
-                      if (!selectedDates[1] && selectedDates[0]) {
-                          // User tried to change dates, reset to original
-                          datePicker.setDate([startDate, endDate], false);
-                      }
-                  } else {
-                      startDate = selectedDates[0] ? new Date(selectedDates[0].setHours(0,0,0,0)) : null;
-                      endDate = selectedDates[1] ? new Date(selectedDates[1].setHours(0,0,0,0)) : null;
-                  }
-
-                  wasCreatedByMidnight = false;
-                  updateAllBlockedSlots();
-                  updateSliderLabels();
-                  updateRangeIndicator();
-                  updateSummary();
+            inline: true,
+            disableMobile: true,
+            mode: "range",
+            locale: { firstDayOfWeek: 1 },
+          
+            minDate: (modifyMode && startDate)
+              ? startDate          // ← allow original start day
+              : mytToday,
+          
+            onChange: (selectedDates) => {
+              if (isUpdatingCalendar) return;
+          
+              if (reservationHasStarted && modifyMode && startDate) {
+                endDate = selectedDates[1]
+                  ? new Date(selectedDates[1].setHours(0,0,0,0))
+                  : endDate;
+          
+                datePicker.setDate([startDate, endDate], false);
+              } else {
+                startDate = selectedDates[0]
+                  ? new Date(selectedDates[0].setHours(0,0,0,0))
+                  : null;
+                endDate = selectedDates[1]
+                  ? new Date(selectedDates[1].setHours(0,0,0,0))
+                  : null;
               }
+          
+              updateAllBlockedSlots();
+              updateSliderLabels();
+              updateRangeIndicator();
+              updateSummary();
+            }
+            
+            // ===== MODIFY MODE: restore selected range (RUN ONCE) =====
+            if (modifyMode && startDate && endDate) {
+              isUpdatingCalendar = true;
+              datePicker.setDate([startDate, endDate], true);
+              isUpdatingCalendar = false;
+            }  
           });
       
           // --- Slider Handlers ---
