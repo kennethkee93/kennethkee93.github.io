@@ -2407,7 +2407,7 @@ function initializeDateTimePicker() {
           const mytToday = getMalaysiaDateShifted();
           mytToday.setHours(0,0,0,0); // Ensure it's midnight Malaysia time
           
-          const datePicker = flatpickr("#date-calendar", {
+          window.datePicker = flatpickr("#date-calendar", {
               inline: true, 
               minDate: mytToday, 
               disableMobile: true, 
@@ -2532,6 +2532,13 @@ function initializeDateTimePicker() {
           // --- Modal Control ---
           function openModal() {
               modal.style.display = 'flex';
+              
+                  // Reset minDate to today for fresh bookings
+              if (!modifyMode && window.datePicker) {
+                  const mytToday = getMalaysiaDateShifted();
+                  mytToday.setHours(0,0,0,0);
+                  window.datePicker.set('minDate', mytToday);
+              }
           
               const existingCharger = mainFormChargerHidden.value;
               const existingStart = mainFormStartHidden.value;
@@ -2957,6 +2964,16 @@ function initializeDateTimePicker() {
             
                             // 1️⃣ Prefill base fields
                             prefillModifyForm(data);
+                            
+                            // 1️⃣ Calculate original start at midnight
+                            const originalStartAtMidnight = moment(data.startISO).tz("Asia/Kuala_Lumpur").startOf('day').toDate();
+                            const mytToday = getMalaysiaDateShifted();
+                            mytToday.setHours(0,0,0,0);
+                            
+                            // 2️⃣ If the original booking started in the past, lower the minDate so it's not greyed out
+                            if (window.datePicker && originalStartAtMidnight < mytToday) {
+                                window.datePicker.set('minDate', originalStartAtMidnight);
+                            }
 
                             // Save for later use
                             const s = moment(data.startISO).tz("Asia/Kuala_Lumpur").toDate();
