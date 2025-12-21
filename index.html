@@ -2964,16 +2964,6 @@ function initializeDateTimePicker() {
             
                             // 1️⃣ Prefill base fields
                             prefillModifyForm(data);
-                            
-                            // 1️⃣ Calculate original start at midnight
-                            const originalStartAtMidnight = moment(data.startISO).tz("Asia/Kuala_Lumpur").startOf('day').toDate();
-                            const mytToday = getMalaysiaDateShifted();
-                            mytToday.setHours(0,0,0,0);
-                            
-                            // 2️⃣ If the original booking started in the past, lower the minDate so it's not greyed out
-                            if (window.datePicker && originalStartAtMidnight < mytToday) {
-                                window.datePicker.set('minDate', originalStartAtMidnight);
-                            }
 
                             // Save for later use
                             const s = moment(data.startISO).tz("Asia/Kuala_Lumpur").toDate();
@@ -2986,6 +2976,16 @@ function initializeDateTimePicker() {
 
                             // 2️⃣ Switch to Booking Form first
                             showTab("form");
+                            
+                            // 1️⃣ Calculate original start at midnight
+                            const originalStartAtMidnight = moment(data.startISO).tz("Asia/Kuala_Lumpur").startOf('day').toDate();
+                            const mytToday = getMalaysiaDateShifted();
+                            mytToday.setHours(0,0,0,0);
+                            
+                            // 2️⃣ If the original booking started in the past, lower the minDate so it's not greyed out
+                            if (window.datePicker && originalStartAtMidnight < mytToday) {
+                                window.datePicker.set('minDate', originalStartAtMidnight);
+                            }
                             
                             // 🛑 NEW: Check if the reservation is already cancelled
                             if (data.status === "Cancelled") {
