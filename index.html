@@ -2423,7 +2423,7 @@ function initializeDateTimePicker() {
             locale: { firstDayOfWeek: 1 },
           
             minDate: (modifyMode && startDate)
-              ? startDate          // ← allow original start day
+              ? startDate
               : mytToday,
           
             onChange: (selectedDates) => {
@@ -2449,14 +2449,14 @@ function initializeDateTimePicker() {
               updateRangeIndicator();
               updateSummary();
             }
-            
-            // ===== MODIFY MODE: restore selected range (RUN ONCE) =====
-            if (modifyMode && startDate && endDate) {
-              isUpdatingCalendar = true;
-              datePicker.setDate([startDate, endDate], true);
-              isUpdatingCalendar = false;
-            }  
           });
+          
+          // ===== MODIFY MODE: restore selected range (RUN ONCE) =====
+          if (modifyMode && startDate && endDate) {
+            isUpdatingCalendar = true;
+            datePicker.setDate([startDate, endDate], true);
+            isUpdatingCalendar = false;
+          }
       
           // --- Slider Handlers ---
           startSlider.on('update', (v) => {
