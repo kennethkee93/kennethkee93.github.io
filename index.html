@@ -3025,10 +3025,10 @@ function initializeDateTimePicker() {
                                         .toDate();
                                 
                                     // Decide minDate
-                                    const minDate =
+                                    const minDateNew =
                                         bookingStartDate > today ? today : bookingStartDate;
                                 
-                                    calendarEl._flatpickr.set('minDate', minDate);
+                                    calendarEl._flatpickr.set('minDateNew', minDate);
                                 
                                     console.log('Updated flatpickr minDate to:', minDate);
                                 }
