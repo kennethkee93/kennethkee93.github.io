@@ -3011,12 +3011,26 @@ function initializeDateTimePicker() {
                                 // 🔧 FIX: Update flatpickr minDate BEFORE selecting dates
                                 const calendarEl = document.querySelector('#date-calendar');
                                 if (calendarEl && calendarEl._flatpickr) {
-                                    const bookingStartDate = moment(data.startISO).tz("Asia/Kuala_Lumpur").toDate();
-                                    bookingStartDate.setHours(0, 0, 0, 0);
-                                    
-                                    // Update minDate to allow the original booking start date
-                                    calendarEl._flatpickr.set('minDate', bookingStartDate);
-                                    console.log('Updated flatpickr minDate to:', bookingStartDate);
+                                
+                                    // Booking start (normalized to start of day)
+                                    const bookingStartDate = moment(data.startISO)
+                                        .tz("Asia/Kuala_Lumpur")
+                                        .startOf('day')
+                                        .toDate();
+                                
+                                    // Current date (normalized to start of day)
+                                    const today = moment()
+                                        .tz("Asia/Kuala_Lumpur")
+                                        .startOf('day')
+                                        .toDate();
+                                
+                                    // Decide minDate
+                                    const minDate =
+                                        bookingStartDate > today ? today : bookingStartDate;
+                                
+                                    calendarEl._flatpickr.set('minDate', minDate);
+                                
+                                    console.log('Updated flatpickr minDate to:', minDate);
                                 }
                             
                                 // 3️⃣ Select charger (Simulate click to update internal state)
