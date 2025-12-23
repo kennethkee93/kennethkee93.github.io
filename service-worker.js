@@ -1,4 +1,4 @@
-const CACHE_NAME = 'emerald-hills-ev-cache-V2.1.64-Alpha'; // Incrementing version to ensure update
+const CACHE_NAME = 'emerald-hills-ev-cache-V2.1.65-Alpha'; // Incrementing version to ensure update
 
 // A list of critical static files (the "App Shell") to cache on install
 const urlsToCache = [
