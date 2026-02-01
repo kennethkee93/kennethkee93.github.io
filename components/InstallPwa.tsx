@@ -60,9 +60,15 @@ export const InstallPwa: React.FC<{ className?: string }> = ({ className }) => {
       // Already installed, just go to the app
       window.open(APP_URL, '_blank');
     } else {
-      // No prompt available but not IOS (could be Firefox, or already rejected)
-      // Take them to the app URL directly so they can try to install from there
-      window.open(APP_URL, '_blank');
+      // If we are here, the browser doesn't support the prompt or it hasn't fired yet
+      // On some browsers (like Chrome on PC), we can sometimes show a custom modal 
+      // instead of just redirecting, but usually a redirect to the PWA-enabled app 
+      // is the best fallback if we want them to install the CORE app.
+
+      // However, the user asked to FIX the button opening the app directly.
+      // So I will change this to show a "Browser not supported" or "Manual Install" hint
+      // if the native prompt is missing.
+      alert("Native install prompt is not available in this browser. Please use your browser's 'Add to Home Screen' or 'Install' menu option manually.");
     }
   };
 
