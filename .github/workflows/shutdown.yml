@@ -5,6 +5,10 @@ on:
     - cron: '0 16 31 3 *'
   workflow_dispatch: 
 
+# This removes the deprecation warning by forcing the newer Node version
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   shutdown:
     runs-on: ubuntu-latest
@@ -19,16 +23,18 @@ jobs:
           # 1. Overwrite the main index with your "Moved" message
           cp shutdown.html index.html
           
-          # 2. Overwrite the ACTUAL service worker file used by your app
+          # 2. Overwrite the ACTUAL service worker file
+          # Ensure this filename matches your current script exactly
           cp sw-kill.js service-worker.js
           
-          # 3. Optional: If you have a manifest, point it to index.html
-          # cp new-manifest.json assets/images/favicons/site.webmanifest
+          # 3. Clean up the rest of the app to ensure no conflicts
+          # Add any other folders you want to remove here (e.g., assets, js)
+          rm -rf css/ js/ assets/
 
       - name: Commit and Push
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html service-worker.js
-          git commit -m "Automated shutdown: Service Worker killed and App moved"
-          git push
+          # This will only commit if there are actual changes
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Automated shutdown: App transitioned" && git push)
