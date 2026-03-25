@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>We've Moved | Emerald EV Booking</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://www.emeraldevbooking.com/icon.png">
+    
+    <!-- Modern Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #00d97e;
+            --primary-glow: rgba(0, 217, 126, 0.3);
+            --bg: #0a0c10;
+            --card-bg: rgba(255, 255, 255, 0.02);
+            --text-main: #ffffff;
+            --text-dim: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg);
+            /* Soft background glow */
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 217, 126, 0.08) 0%, transparent 50%);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            text-align: center;
+            width: 90%;
+            max-width: 450px;
+            padding: 40px 20px;
+            animation: fadeIn 1s ease-out;
+        }
+
+        /* Borderless Icon Style */
+        .icon {
+            width: 100px;
+            height: auto;
+            margin-bottom: 32px;
+            /* Subtle glow to make the borderless icon pop */
+            filter: drop-shadow(0 0 15px var(--primary-glow));
+            transition: transform 0.3s ease;
+        }
+
+        .icon:hover {
+            transform: scale(1.05);
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            margin-bottom: 12px;
+            background: linear-gradient(to bottom, #fff 40%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p {
+            color: var(--text-dim);
+            font-size: 1.15rem;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            font-weight: 400;
+        }
+
+        /* Ultra Modern Button */
+        .btn-modern {
+            position: relative;
+            display: block;
+            padding: 20px 32px;
+            background: #fff;
+            color: #000;
+            text-decoration: none;
+            border-radius: 100px; /* Capsule shape */
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        .btn-modern:hover {
+            transform: scale(1.03);
+            background: var(--primary);
+            box-shadow: 0 15px 40px var(--primary-glow);
+        }
+
+        .btn-modern:active {
+            transform: scale(0.98);
+        }
+
+        .url-hint {
+            display: block;
+            margin-top: 30px;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            opacity: 0.5;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 480px) {
+            h1 { font-size: 2.2rem; }
+            p { font-size: 1rem; }
+            .icon { width: 85px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Borderless Icon -->
+        <img src="https://www.emeraldevbooking.com/icon.png" alt="Emerald EV Logo" class="icon">
+        
+        <h1>We'd Overhauled The App!</h1>
+        
+        <p>Our reservation system has a new home. </br>Click below to continue your journey.</p>
+        
+        <a href="https://www.emeraldevbooking.com" class="btn-modern">
+            Continue to EH EVCR
+        </a>
+
+        <span class="url-hint">emeraldevbooking.com</span>
+    </div>
+
+</body>
+</html>
